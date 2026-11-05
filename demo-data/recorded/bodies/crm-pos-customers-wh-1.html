@@ -1,0 +1,1053 @@
+<!doctype html>
+<html lang="en">
+<head>
+  
+  <script>
+    try { if (window.self !== window.top) document.documentElement.classList.add('in-frame'); }
+    catch (e) { document.documentElement.classList.add('in-frame'); }
+  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+  <title>Sample Company</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="/pos/static/css/app.css">
+  <link rel="manifest" href="/pos/static/manifest.json">
+  <meta name="theme-color" content="#0B3D2E">
+</head>
+<body>
+
+
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top brand-nav">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/pos/">
+      <span class="brand-logo" aria-hidden="true">W</span>
+      <span class="brand-text">
+        <span class="brand-name">Sample Company <span class="brand-tag d-none d-sm-inline">· POS</span></span>
+        <span class="brand-sub d-none d-md-block">Billing, stock and customers for this store</span>
+      </span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
+            aria-controls="nav" aria-expanded="false" aria-label="Open navigation menu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      
+      <span class="frame-title" aria-hidden="true"><i class="bi bi-shop"></i> Store</span>
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link nav-ctl dropdown-toggle d-flex align-items-center gap-2" href="#"
+             data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+            <span>Customers</span>
+          </a>
+          <ul class="dropdown-menu shadow" style="min-width:320px">
+            
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/">
+                <i class="bi bi-speedometer2 mt-1"></i>
+                <span><strong>Dashboard</strong><br>
+                  <small class="text-muted">Today's sales, low stock and the last few bills</small></span>
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/floor/">
+                <i class="bi bi-phone mt-1"></i>
+                <span><strong>Floor Sales</strong><br>
+                  <small class="text-muted">Build a sale on the phone while walking the floor</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/pos/">
+                <i class="bi bi-cart-check mt-1"></i>
+                <span><strong>Billing Counter</strong><br>
+                  <small class="text-muted">Scan and bill, and print the delivery copy</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/pos/settle">
+                <i class="bi bi-cash-coin mt-1"></i>
+                <span><strong>Settlement</strong><br>
+                  <small class="text-muted">Take payment for billed bills and print the customer copy</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/delivery/">
+                <i class="bi bi-bag-check mt-1"></i>
+                <span><strong>Delivery</strong><br>
+                  <small class="text-muted">Scan the bill, scan each garment, hand the goods over</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/inventory/">
+                <i class="bi bi-box-seam mt-1"></i>
+                <span><strong>Inventory</strong><br>
+                  <small class="text-muted">What the shop holds, with the warehouse QR on every item</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/stock-inward/">
+                <i class="bi bi-box-arrow-in-down mt-1"></i>
+                <span><strong>Stock Inward</strong><br>
+                  <small class="text-muted">Count in what the warehouse or another branch sent here</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/transfer-goods/">
+                <i class="bi bi-box-arrow-up-right mt-1"></i>
+                <span><strong>Transfer Goods</strong><br>
+                  <small class="text-muted">Send goods back to a warehouse, or across to another branch</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/audits/">
+                <i class="bi bi-clipboard-check mt-1"></i>
+                <span><strong>Stock audit</strong><br>
+                  <small class="text-muted">Count a floor, item by item, and see where the books disagree</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/floor-products/">
+                <i class="bi bi-layers mt-1"></i>
+                <span><strong>Floor Products</strong><br>
+                  <small class="text-muted">What is kept on each floor, and moving products between floors</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/stock-check/">
+                <i class="bi bi-search mt-1"></i>
+                <span><strong>Stock check</strong><br>
+                  <small class="text-muted">Scan or filter to find an item and where it is</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        active"
+                 href="/pos/customers/">
+                <i class="bi bi-people mt-1"></i>
+                <span><strong>Customers</strong><br>
+                  <small class="text-muted">Customer master, loyalty points and history</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/pos/invoices">
+                <i class="bi bi-receipt mt-1"></i>
+                <span><strong>Invoices</strong><br>
+                  <small class="text-muted">Every bill raised, searchable and reprintable</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/returns/">
+                <i class="bi bi-arrow-return-left mt-1"></i>
+                <span><strong>Returns</strong><br>
+                  <small class="text-muted">Take goods back against a bill and raise a credit note</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/alterations/">
+                <i class="bi bi-scissors mt-1"></i>
+                <span><strong>Alteration</strong><br>
+                  <small class="text-muted">Garments out for tailoring, and what each tailor is holding</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/stores/">
+                <i class="bi bi-building mt-1"></i>
+                <span><strong>Floors &amp; tills</strong><br>
+                  <small class="text-muted">Which storey each till bills from, and what its bills are called</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/promotions/">
+                <i class="bi bi-gift mt-1"></i>
+                <span><strong>Promotions</strong><br>
+                  <small class="text-muted">Offers the till applies by itself, and what they have given away</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/staff/">
+                <i class="bi bi-person-badge mt-1"></i>
+                <span><strong>Staff</strong><br>
+                  <small class="text-muted">Attendance, roles, ID cards and sales commission</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/reports/">
+                <i class="bi bi-graph-up mt-1"></i>
+                <span><strong>Reports</strong><br>
+                  <small class="text-muted">Every register — or just ask a question in plain words</small></span>
+              </a>
+            </li>
+            
+          </ul>
+        </li>
+      </ul>
+      
+      
+    </div>
+  </div>
+</nav>
+
+
+<main class="container-fluid py-3">
+  
+    
+  
+  
+
+<div class="page-head">
+  <h4><i class="bi bi-people"></i> Customers</h4>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="/pos/customers/advances" class="btn btn-outline-secondary btn-sm"><i class="bi bi-wallet2"></i> Advances</a>
+    <a href="/pos/customers/feedback" class="btn btn-outline-secondary btn-sm"><i class="bi bi-star"></i> Feedback</a>
+    
+    <a href="/pos/customers/messages" class="btn btn-outline-secondary btn-sm"><i class="bi bi-chat-dots"></i> Messages</a>
+    
+    <a href="/pos/customers/new" class="btn btn-brand btn-sm"><i class="bi bi-plus"></i> New</a>
+  </div>
+</div>
+<form class="row g-2 mb-3 align-items-end">
+  <div class="col-md-5"><input class="form-control form-control-sm" name="q" placeholder="Search name, mobile, email, code or loyalty card" value="" aria-label="Search customers"></div>
+  <div class="col-6 col-md-3">
+    <select class="form-select form-select-sm" name="category" aria-label="Customer category">
+      <option value="">Every category</option>
+      <option >Gold</option><option >Platinum</option><option >Regular</option><option >Wholesale</option>
+    </select></div>
+  <div class="col-6 col-md-2">
+    <select class="form-select form-select-sm" name="show" aria-label="Which customers">
+      <option value="">Active</option>
+      <option value="pending" >Awaiting approval (4)</option>
+      <option value="inactive" >Inactive</option>
+      <option value="all" >All</option>
+    </select></div>
+  <div class="col-md-2"><button class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-search"></i> Search</button></div>
+</form>
+
+<div class="alert alert-warning py-2 small d-flex justify-content-between align-items-center">
+  <span><i class="bi bi-qr-code"></i> 4 customers signed up from the QR and are waiting for approval.</span>
+  <a class="btn btn-sm btn-outline-secondary" href="/pos/customers/?show=pending">Review</a>
+</div>
+
+<div class="d-print-none">
+
+
+
+
+<nav class="d-flex align-items-center justify-content-between flex-wrap gap-2 my-2 small">
+  <span class="text-muted">
+    Showing 1–40
+    of 40
+  </span>
+  
+</nav>
+
+</div>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle">
+      <thead><tr><th>Code</th><th>Name</th><th>Mobile</th><th>Category</th><th>City / area</th><th class="text-end">Loyalty</th><th class="text-end">Spent</th><th></th></tr></thead>
+      <tbody>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0100</td>
+          <td><a href="/pos/customers/7" class="text-reset">Aarthi R</a>
+            
+            <span class="status-badge info sm">wholesale</span></td>
+          <td>9000020000</td>
+          <td class="small">Wholesale</td>
+          <td class="small">Madurai · Gandhipuram</td>
+          <td class="text-end"><span class="badge text-bg-info">92 pts</span></td>
+          <td class="text-end">₹9,187.50</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/7/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/7/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/7" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUST000001</td>
+          <td><a href="/pos/customers/1" class="text-reset">Anitha Ramesh</a>
+            
+            </td>
+          <td>+91 99000 11111</td>
+          <td class="small">—</td>
+          <td class="small">—</td>
+          <td class="text-end"><span class="badge text-bg-info">715 pts</span></td>
+          <td class="text-end">₹71,512.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/1/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/1/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/1" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0123</td>
+          <td><a href="/pos/customers/30" class="text-reset">Bala N</a>
+            
+            </td>
+          <td>9000020851</td>
+          <td class="small">Wholesale</td>
+          <td class="small">Tiruppur · Peelamedu</td>
+          <td class="text-end"><span class="badge text-bg-info">30 pts</span></td>
+          <td class="text-end">₹3,045.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/30/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/30/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/30" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0101</td>
+          <td><a href="/pos/customers/8" class="text-reset">Bharath K</a>
+            
+            <span class="status-badge info sm">wholesale</span></td>
+          <td>9000020037</td>
+          <td class="small">Platinum</td>
+          <td class="small">Salem · Gandhipuram</td>
+          <td class="text-end"><span class="badge text-bg-info">0 pts</span></td>
+          <td class="text-end">₹0.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/8/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/8/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/8" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0102</td>
+          <td><a href="/pos/customers/9" class="text-reset">Chitra K</a>
+            
+            <span class="status-badge info sm">wholesale</span></td>
+          <td>9000020074</td>
+          <td class="small">Gold</td>
+          <td class="small">Tiruppur · RS Puram</td>
+          <td class="text-end"><span class="badge text-bg-info">76 pts</span></td>
+          <td class="text-end">₹7,612.50</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/9/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/9/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/9" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUST000003</td>
+          <td><a href="/pos/customers/3" class="text-reset">Deepa Krishnan</a>
+            
+            </td>
+          <td>+91 99000 33333</td>
+          <td class="small">—</td>
+          <td class="small">—</td>
+          <td class="text-end"><span class="badge text-bg-info">1441 pts</span></td>
+          <td class="text-end">₹144,115.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/3/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/3/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/3" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0103</td>
+          <td><a href="/pos/customers/10" class="text-reset">Dinesh P</a>
+            
+            <span class="status-badge info sm">wholesale</span></td>
+          <td>9000020111</td>
+          <td class="small">Platinum</td>
+          <td class="small">Coimbatore · Town Hall</td>
+          <td class="text-end"><span class="badge text-bg-info">0 pts</span></td>
+          <td class="text-end">₹0.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/10/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/10/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/10" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0104</td>
+          <td><a href="/pos/customers/11" class="text-reset">Ezhil A</a>
+            
+            </td>
+          <td>9000020148</td>
+          <td class="small">Regular</td>
+          <td class="small">Madurai · Town Hall</td>
+          <td class="text-end"><span class="badge text-bg-info">400 pts</span></td>
+          <td class="text-end">₹40,005.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/11/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/11/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/11" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0105</td>
+          <td><a href="/pos/customers/12" class="text-reset">Fathima K</a>
+            
+            </td>
+          <td>9000020185</td>
+          <td class="small">Regular</td>
+          <td class="small">Erode · Avinashi Road</td>
+          <td class="text-end"><span class="badge text-bg-info">144 pts</span></td>
+          <td class="text-end">₹14,437.50</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/12/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/12/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/12" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0106</td>
+          <td><a href="/pos/customers/13" class="text-reset">Ganesh A</a>
+            
+            </td>
+          <td>9000020222</td>
+          <td class="small">Gold</td>
+          <td class="small">Coimbatore · Gandhipuram</td>
+          <td class="text-end"><span class="badge text-bg-info">0 pts</span></td>
+          <td class="text-end">₹0.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/13/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/13/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/13" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0124</td>
+          <td><a href="/pos/customers/31" class="text-reset">Geetha A</a>
+            
+            </td>
+          <td>9000020888</td>
+          <td class="small">Regular</td>
+          <td class="small">Tiruppur · Peelamedu</td>
+          <td class="text-end"><span class="badge text-bg-info">187 pts</span></td>
+          <td class="text-end">₹18,742.50</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/31/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/31/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/31" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0125</td>
+          <td><a href="/pos/customers/32" class="text-reset">Hari R</a>
+            
+            </td>
+          <td>9000020925</td>
+          <td class="small">Wholesale</td>
+          <td class="small">Erode · Avinashi Road</td>
+          <td class="text-end"><span class="badge text-bg-info">246 pts</span></td>
+          <td class="text-end">₹24,570.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/32/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/32/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/32" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0107</td>
+          <td><a href="/pos/customers/14" class="text-reset">Harini R</a>
+            
+            </td>
+          <td>9000020259</td>
+          <td class="small">Regular</td>
+          <td class="small">Madurai · Saibaba Colony</td>
+          <td class="text-end"><span class="badge text-bg-info">81 pts</span></td>
+          <td class="text-end">₹8,116.50</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/14/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/14/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/14" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0108</td>
+          <td><a href="/pos/customers/15" class="text-reset">Ilango N</a>
+            
+            </td>
+          <td>9000020296</td>
+          <td class="small">Wholesale</td>
+          <td class="small">Coimbatore · Saibaba Colony</td>
+          <td class="text-end"><span class="badge text-bg-info">632 pts</span></td>
+          <td class="text-end">₹63,210.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/15/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/15/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/15" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0126</td>
+          <td><a href="/pos/customers/33" class="text-reset">Indira K</a>
+            
+            </td>
+          <td>9000020962</td>
+          <td class="small">Platinum</td>
+          <td class="small">Tiruppur · Gandhipuram</td>
+          <td class="text-end"><span class="badge text-bg-info">334 pts</span></td>
+          <td class="text-end">₹33,379.50</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/33/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/33/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/33" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUST000040</td>
+          <td><a href="/pos/customers/40" class="text-reset">Indira N</a>
+            <span class="status-badge pending sm">new sign-up</span>
+            </td>
+          <td>9000080057</td>
+          <td class="small">—</td>
+          <td class="small">Salem</td>
+          <td class="text-end"><span class="badge text-bg-info">0 pts</span></td>
+          <td class="text-end">₹0.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/40/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/40/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/40" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0109</td>
+          <td><a href="/pos/customers/16" class="text-reset">Janani R</a>
+            
+            </td>
+          <td>9000020333</td>
+          <td class="small">Gold</td>
+          <td class="small">Chennai · Gandhipuram</td>
+          <td class="text-end"><span class="badge text-bg-info">487 pts</span></td>
+          <td class="text-end">₹48,741.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/16/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/16/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/16" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0127</td>
+          <td><a href="/pos/customers/34" class="text-reset">Jeeva S</a>
+            
+            </td>
+          <td>9000020999</td>
+          <td class="small">Platinum</td>
+          <td class="small">Salem · Peelamedu</td>
+          <td class="text-end"><span class="badge text-bg-info">60 pts</span></td>
+          <td class="text-end">₹5,985.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/34/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/34/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/34" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUST000002</td>
+          <td><a href="/pos/customers/2" class="text-reset">Karthik Iyer</a>
+            
+            </td>
+          <td>+91 99000 22222</td>
+          <td class="small">—</td>
+          <td class="small">—</td>
+          <td class="text-end"><span class="badge text-bg-info">746 pts</span></td>
+          <td class="text-end">₹74,641.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/2/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/2/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/2" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0110</td>
+          <td><a href="/pos/customers/17" class="text-reset">Kavin V</a>
+            
+            </td>
+          <td>9000020370</td>
+          <td class="small">Gold</td>
+          <td class="small">Erode · RS Puram</td>
+          <td class="text-end"><span class="badge text-bg-info">11 pts</span></td>
+          <td class="text-end">₹1,081.50</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/17/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/17/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/17" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0128</td>
+          <td><a href="/pos/customers/35" class="text-reset">Keerthi V</a>
+            
+            </td>
+          <td>9000021036</td>
+          <td class="small">Regular</td>
+          <td class="small">Tiruppur · Avinashi Road</td>
+          <td class="text-end"><span class="badge text-bg-info">236 pts</span></td>
+          <td class="text-end">₹23,614.50</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/35/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/35/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/35" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUST000005</td>
+          <td><a href="/pos/customers/5" class="text-reset">Lakshmi Devi</a>
+            
+            </td>
+          <td>+91 99000 55555</td>
+          <td class="small">—</td>
+          <td class="small">—</td>
+          <td class="text-end"><span class="badge text-bg-info">1234 pts</span></td>
+          <td class="text-end">₹124,009.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/5/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/5/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/5" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUST000039</td>
+          <td><a href="/pos/customers/39" class="text-reset">Lavanya N</a>
+            <span class="status-badge pending sm">new sign-up</span>
+            </td>
+          <td>9000080038</td>
+          <td class="small">—</td>
+          <td class="small">Salem</td>
+          <td class="text-end"><span class="badge text-bg-info">0 pts</span></td>
+          <td class="text-end">₹0.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/39/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/39/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/39" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0111</td>
+          <td><a href="/pos/customers/18" class="text-reset">Lavanya R</a>
+            
+            </td>
+          <td>9000020407</td>
+          <td class="small">Regular</td>
+          <td class="small">Salem · RS Puram</td>
+          <td class="text-end"><span class="badge text-bg-info">530 pts</span></td>
+          <td class="text-end">₹52,951.50</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/18/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/18/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/18" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUST000038</td>
+          <td><a href="/pos/customers/38" class="text-reset">Lavanya S</a>
+            <span class="status-badge pending sm">new sign-up</span>
+            </td>
+          <td>9000080019</td>
+          <td class="small">—</td>
+          <td class="small">Erode</td>
+          <td class="text-end"><span class="badge text-bg-info">0 pts</span></td>
+          <td class="text-end">₹0.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/38/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/38/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/38" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0112</td>
+          <td><a href="/pos/customers/19" class="text-reset">Manoj M</a>
+            
+            </td>
+          <td>9000020444</td>
+          <td class="small">Platinum</td>
+          <td class="small">Tiruppur · Avinashi Road</td>
+          <td class="text-end"><span class="badge text-bg-info">0 pts</span></td>
+          <td class="text-end">₹0.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/19/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/19/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/19" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0129</td>
+          <td><a href="/pos/customers/36" class="text-reset">Mohan V</a>
+            
+            </td>
+          <td>9000021073</td>
+          <td class="small">Wholesale</td>
+          <td class="small">Salem · Town Hall</td>
+          <td class="text-end"><span class="badge text-bg-info">492 pts</span></td>
+          <td class="text-end">₹49,150.50</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/36/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/36/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/36" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0113</td>
+          <td><a href="/pos/customers/20" class="text-reset">Nila S</a>
+            
+            </td>
+          <td>9000020481</td>
+          <td class="small">Wholesale</td>
+          <td class="small">Erode · Saibaba Colony</td>
+          <td class="text-end"><span class="badge text-bg-info">141 pts</span></td>
+          <td class="text-end">₹14,059.50</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/20/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/20/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/20" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0114</td>
+          <td><a href="/pos/customers/21" class="text-reset">Oviya M</a>
+            
+            </td>
+          <td>9000020518</td>
+          <td class="small">Platinum</td>
+          <td class="small">Tiruppur · Saibaba Colony</td>
+          <td class="text-end"><span class="badge text-bg-info">451 pts</span></td>
+          <td class="text-end">₹45,139.50</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/21/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/21/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/21" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUST000037</td>
+          <td><a href="/pos/customers/37" class="text-reset">Oviya R</a>
+            <span class="status-badge pending sm">new sign-up</span>
+            </td>
+          <td>9000080000</td>
+          <td class="small">—</td>
+          <td class="small">Salem</td>
+          <td class="text-end"><span class="badge text-bg-info">0 pts</span></td>
+          <td class="text-end">₹0.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/37/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/37/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/37" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0115</td>
+          <td><a href="/pos/customers/22" class="text-reset">Pradeep K</a>
+            
+            </td>
+          <td>9000020555</td>
+          <td class="small">Regular</td>
+          <td class="small">Madurai · Saibaba Colony</td>
+          <td class="text-end"><span class="badge text-bg-info">410 pts</span></td>
+          <td class="text-end">₹40,950.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/22/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/22/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/22" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUST000004</td>
+          <td><a href="/pos/customers/4" class="text-reset">Prakash Boutique (B2B)</a>
+            
+            </td>
+          <td>+91 99000 44444</td>
+          <td class="small">—</td>
+          <td class="small">—</td>
+          <td class="text-end"><span class="badge text-bg-info">932 pts</span></td>
+          <td class="text-end">₹93,503.50</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/4/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/4/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/4" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUST000006</td>
+          <td><a href="/pos/customers/6" class="text-reset">Rajesh Sharma</a>
+            
+            </td>
+          <td>+91 99000 66666</td>
+          <td class="small">—</td>
+          <td class="small">—</td>
+          <td class="text-end"><span class="badge text-bg-info">917 pts</span></td>
+          <td class="text-end">₹92,197.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/6/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/6/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/6" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0116</td>
+          <td><a href="/pos/customers/23" class="text-reset">Revathi P</a>
+            
+            </td>
+          <td>9000020592</td>
+          <td class="small">Platinum</td>
+          <td class="small">Coimbatore · Peelamedu</td>
+          <td class="text-end"><span class="badge text-bg-info">723 pts</span></td>
+          <td class="text-end">₹72,282.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/23/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/23/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/23" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0117</td>
+          <td><a href="/pos/customers/24" class="text-reset">Sanjay V</a>
+            
+            </td>
+          <td>9000020629</td>
+          <td class="small">Regular</td>
+          <td class="small">Erode · Avinashi Road</td>
+          <td class="text-end"><span class="badge text-bg-info">0 pts</span></td>
+          <td class="text-end">₹0.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/24/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/24/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/24" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0118</td>
+          <td><a href="/pos/customers/25" class="text-reset">Tharun V</a>
+            
+            </td>
+          <td>9000020666</td>
+          <td class="small">Regular</td>
+          <td class="small">Chennai · Gandhipuram</td>
+          <td class="text-end"><span class="badge text-bg-info">0 pts</span></td>
+          <td class="text-end">₹0.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/25/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/25/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/25" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0119</td>
+          <td><a href="/pos/customers/26" class="text-reset">Uma V</a>
+            
+            </td>
+          <td>9000020703</td>
+          <td class="small">Gold</td>
+          <td class="small">Madurai · Town Hall</td>
+          <td class="text-end"><span class="badge text-bg-info">10 pts</span></td>
+          <td class="text-end">₹1,050.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/26/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/26/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/26" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0120</td>
+          <td><a href="/pos/customers/27" class="text-reset">Vasanth S</a>
+            
+            </td>
+          <td>9000020740</td>
+          <td class="small">Platinum</td>
+          <td class="small">Erode · Town Hall</td>
+          <td class="text-end"><span class="badge text-bg-info">289 pts</span></td>
+          <td class="text-end">₹28,927.50</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/27/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/27/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/27" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0121</td>
+          <td><a href="/pos/customers/28" class="text-reset">Yamini A</a>
+            
+            </td>
+          <td>9000020777</td>
+          <td class="small">Regular</td>
+          <td class="small">Coimbatore · Town Hall</td>
+          <td class="text-end"><span class="badge text-bg-info">71 pts</span></td>
+          <td class="text-end">₹7,140.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/28/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/28/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/28" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+        <tr class="">
+          <td class="small font-monospace">CUS0122</td>
+          <td><a href="/pos/customers/29" class="text-reset">Zara V</a>
+            
+            </td>
+          <td>9000020814</td>
+          <td class="small">Wholesale</td>
+          <td class="small">Tiruppur · Town Hall</td>
+          <td class="text-end"><span class="badge text-bg-info">207 pts</span></td>
+          <td class="text-end">₹20,685.00</td>
+          <td class="text-nowrap text-end">
+            <a href="/pos/customers/29/card" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="/pos/customers/29/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="/pos/customers/29" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="d-print-none">
+
+
+
+
+<nav class="d-flex align-items-center justify-content-between flex-wrap gap-2 my-2 small">
+  <span class="text-muted">
+    Showing 1–40
+    of 40
+  </span>
+  
+</nav>
+
+</div>
+
+</main>
+
+<script>
+  // Where the shop is mounted: '' when it runs on its own, '/pos' when it is
+  // served inside the WAREXX backend. Every same-app fetch is written against this
+  // — a hardcoded '/floor/…' is right standalone and 404s under the mount, where
+  // it lands on the backend's own routes instead of the shop's.
+  const SHOP_ROOT = "/pos";
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  // Every chart on every screen in the design's colours: gridlines in the border
+  // green-grey, 11px muted axis text, a dark-green tooltip. Set once, here, before
+  // any page draws a chart.
+  if (window.Chart) {
+    Chart.defaults.font.family = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    Chart.defaults.font.size = 11;
+    Chart.defaults.color = '#68756E';
+    Chart.defaults.borderColor = '#DCE5DF';
+    Object.assign(Chart.defaults.plugins.tooltip, {
+      backgroundColor: '#0B3D2E', titleColor: '#FFFFFF', bodyColor: '#E7F4EC',
+      cornerRadius: 8, padding: 8, displayColors: false,
+      titleFont: {size: 11, weight: '600'}, bodyFont: {size: 11},
+    });
+  }
+</script>
+
+<script>
+  // Most forms put a <label> straight above its box without a for="…", so it
+  // reads right but a screen reader cannot tie the two together and clicking
+  // the label does nothing. Link each such label to the control that follows it.
+  document.querySelectorAll('label:not([for])').forEach(function (l) {
+    if (l.querySelector('input, select, textarea')) return;
+    var c = l.nextElementSibling;
+    if (c && !c.matches('input, select, textarea')) c = c.querySelector('input, select, textarea');
+    if (!c || c.type === 'hidden') return;
+    if (!c.id) c.id = 'fld-' + Math.random().toString(36).slice(2, 9);
+    l.htmlFor = c.id;
+  });
+</script>
+<script src="/pos/static/js/fit.js"></script>
+</body>
+</html>

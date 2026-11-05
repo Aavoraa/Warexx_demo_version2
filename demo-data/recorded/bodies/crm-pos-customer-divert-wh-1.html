@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="en">
+<head>
+  
+  <script>
+    try { if (window.self !== window.top) document.documentElement.classList.add('in-frame'); }
+    catch (e) { document.documentElement.classList.add('in-frame'); }
+  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+  <title>Sample Company</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="/pos/static/css/app.css">
+  <link rel="manifest" href="/pos/static/manifest.json">
+  <meta name="theme-color" content="#0B3D2E">
+</head>
+<body>
+
+
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top brand-nav">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/pos/">
+      <span class="brand-logo" aria-hidden="true">W</span>
+      <span class="brand-text">
+        <span class="brand-name">Sample Company <span class="brand-tag d-none d-sm-inline">· POS</span></span>
+        <span class="brand-sub d-none d-md-block">Billing, stock and customers for this store</span>
+      </span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
+            aria-controls="nav" aria-expanded="false" aria-label="Open navigation menu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      
+      <span class="frame-title" aria-hidden="true"><i class="bi bi-shop"></i> Store</span>
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link nav-ctl dropdown-toggle d-flex align-items-center gap-2" href="#"
+             data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+            <span>Customer Divert</span>
+          </a>
+          <ul class="dropdown-menu shadow" style="min-width:320px">
+            
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/">
+                <i class="bi bi-speedometer2 mt-1"></i>
+                <span><strong>Dashboard</strong><br>
+                  <small class="text-muted">Today's sales, low stock and the last few bills</small></span>
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/customers/">
+                <i class="bi bi-people mt-1"></i>
+                <span><strong>Customers</strong><br>
+                  <small class="text-muted">Customer master, loyalty points and history</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/orders/">
+                <i class="bi bi-bag mt-1"></i>
+                <span><strong>Customer Orders</strong><br>
+                  <small class="text-muted">Orders taken for later — what, by when, and what was paid</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/loyalty/">
+                <i class="bi bi-award mt-1"></i>
+                <span><strong>Loyalty Management</strong><br>
+                  <small class="text-muted">Points earned and redeemed, by card, phone or name</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/gift-vouchers/">
+                <i class="bi bi-gift mt-1"></i>
+                <span><strong>Gift Voucher</strong><br>
+                  <small class="text-muted">Sell vouchers by denomination; they are spent at Settlement</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/coupons/">
+                <i class="bi bi-ticket-perforated mt-1"></i>
+                <span><strong>Gift Coupon</strong><br>
+                  <small class="text-muted">Coupon schemes, issuing, rewards to coupon and their history</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/price-list/">
+                <i class="bi bi-tags mt-1"></i>
+                <span><strong>Price List</strong><br>
+                  <small class="text-muted">Price categories, the designs on them and who buys on them</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-analyser/">
+                <i class="bi bi-bar-chart-line mt-1"></i>
+                <span><strong>CRM Analyser</strong><br>
+                  <small class="text-muted">Who buys, how often, how much — and who has stopped coming</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/send-sms/">
+                <i class="bi bi-chat-dots mt-1"></i>
+                <span><strong>Send SMS</strong><br>
+                  <small class="text-muted">Pick customers by what they bought, where and when, and message them</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/">
+                <i class="bi bi-speedometer2 mt-1"></i>
+                <span><strong>Feedback Dashboard</strong><br>
+                  <small class="text-muted">How customers rate the store, question by question</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/questions">
+                <i class="bi bi-patch-question mt-1"></i>
+                <span><strong>Feedback Questions</strong><br>
+                  <small class="text-muted">The questions customers are asked</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/report">
+                <i class="bi bi-clipboard-data mt-1"></i>
+                <span><strong>Feedback Report</strong><br>
+                  <small class="text-muted">Every response with its answers, filtered and exported</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/form">
+                <i class="bi bi-ui-checks mt-1"></i>
+                <span><strong>Feedback Form Config</strong><br>
+                  <small class="text-muted">What the customer&#39;s feedback page asks and says</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        active"
+                 href="/pos/customer-divert/">
+                <i class="bi bi-signpost-split mt-1"></i>
+                <span><strong>Customer Divert</strong><br>
+                  <small class="text-muted">Meet walk-ins at the door and send them to a floor and a salesperson</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/leads/">
+                <i class="bi bi-person-plus mt-1"></i>
+                <span><strong>Lead Management</strong><br>
+                  <small class="text-muted">Enquiries to follow up, and which of them became customers</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/registration/">
+                <i class="bi bi-qr-code mt-1"></i>
+                <span><strong>Self Registration</strong><br>
+                  <small class="text-muted">The sign-up QR, its form, and the sign-ups waiting for approval</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/promotions/">
+                <i class="bi bi-gift mt-1"></i>
+                <span><strong>Promotions</strong><br>
+                  <small class="text-muted">Offers the till applies by itself, and what they have given away</small></span>
+              </a>
+            </li>
+            
+          </ul>
+        </li>
+      </ul>
+      
+      
+    </div>
+  </div>
+</nav>
+
+
+<main class="container-fluid py-3">
+  
+    
+  
+  
+<div class="page-head">
+  <h4><i class="bi bi-signpost-split"></i> Customer Divert</h4>
+  <form class="d-flex gap-2 align-items-center">
+    <input class="form-control form-control-sm" type="date" name="day" value="2026-11-05" onchange="this.form.submit()" aria-label="Day">
+    
+  </form>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-md-3">
+<div class="stat-card card p-3 t-count h-100" >
+  <div class="label">Walked in</div>
+  <div class="value">8</div>
+</div>
+</div>
+  <div class="col-6 col-md-3">
+<div class="stat-card card p-3 t-move h-100" >
+  <div class="label">Being served</div>
+  <div class="value">5</div>
+</div>
+</div>
+  <div class="col-6 col-md-3">
+<div class="stat-card card p-3 t-stock h-100" title="Walk-ins closed with a bill">
+  <div class="label">Bought</div>
+  <div class="value">1 · 12%</div>
+</div>
+</div>
+  <div class="col-6 col-md-3">
+<div class="stat-card card p-3 t-back h-100" >
+  <div class="label">Left without buying</div>
+  <div class="value">2</div>
+</div>
+</div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    
+    <form method="post" action="/pos/customer-divert/new" class="card p-3 mb-3">
+      <div class="fw-semibold mb-2">Divert a customer</div>
+      
+<div class="row g-2">
+  <div class="col-md-5"><label class="form-label small">Mobile</label>
+    <input class="form-control form-control-sm cl-phone" name="customer_phone" value=""
+           inputmode="tel" autocomplete="off"  data-prefix="customer"></div>
+  <div class="col-md-7"><label class="form-label small">Customer name</label>
+    <input class="form-control form-control-sm" name="customer_name" id="customer_name" value="" ></div>
+  <input type="hidden" name="customer_id" id="customer_id" value="">
+  <div class="col-12 small" id="customer_hint" style="min-height:1.2em"></div>
+</div>
+
+      <div class="row g-2">
+        <div class="col-8"><label class="form-label small">Looking for</label>
+          <input class="form-control form-control-sm" name="looking_for" list="dlInterest" placeholder="Sarees, kidswear…">
+          <datalist id="dlInterest"><option value="AARAM"><option value="ACC-AARAM"><option value="ACC-B COVER &amp; P COVER"><option value="ACC-BAG"><option value="ACC-BED COVER"><option value="ACC-BED SHEET"><option value="ACC-BELT"><option value="ACC-BLANKET"><option value="ACC-BOX"><option value="ACC-BRACELET"><option value="ACC-COSMETICS"><option value="ACC-DISPLAY CARD"><option value="ACC-FANCY ITEMS"><option value="ACC-FLOOR MAT"><option value="ACC-GIFT (STOCK)"><option value="ACC-GIFT ITEM"><option value="ACC-KERCHIEF"><option value="ACC-KITCHEN TOWEL"><option value="ACC-LACE"><option value="ACC-MASK"><option value="ACC-NECKLACE"><option value="ACC-PERFUME"><option value="ACC-PILLOW"><option value="ACC-PILLOW COVER"><option value="ACC-PRICE TAG"><option value="ACC-REETH"><option value="ACC-SAFETY PIN"><option value="ACC-STATIONERY ITEMS"><option value="ACC-TOWEL"><option value="ACC-TOYS"><option value="ACC-WALLET"><option value="BABASUIT"><option value="BABULA"><option value="BABY ITEMS"><option value="BABY TOWEL"><option value="BANGLE"><option value="BED"><option value="BED COVER"><option value="BED SHEET"><option value="BEDSHEET &amp; PILLOWCOVER"><option value="BELT"><option value="BLANKET"><option value="BLAZER"><option value="BLOUSE"><option value="BLOUSE BIT"><option value="BLOUSE MATERIAL"><option value="BOX"><option value="BRACELET"><option value="BRASSIER"><option value="CAP"><option value="CHAIN"><option value="CHAPPAL"><option value="CHIMMIES"><option value="CHOLI"><option value="CHUDI MATERIAL"><option value="CHUDITHAR"><option value="COAT"><option value="COAT SUIT"><option value="COSMETICS"><option value="CROPTOP"><option value="DHOTI"><option value="DHOTI SET"><option value="DHOTIE SET"><option value="DISPLAY CARD"><option value="DRAWER"><option value="EARINGS"><option value="EARRING"><option value="WAREXX ACC-MASK"><option value="WAREXX KIDS-3/4TH PANT"><option value="WAREXX KIDS-DRAWER"><option value="WAREXX KIDS-FROCK"><option value="WAREXX KIDS-JETTY"><option value="WAREXX KIDS-LEGGINGS"><option value="WAREXX KIDS-NIGHT SUIT"><option value="WAREXX KIDS-PANT"><option value="WAREXX KIDS-SET ITEM"><option value="WAREXX KIDS-SHORTS"><option value="WAREXX KIDS-SLIPS"><option value="WAREXX KIDS-T-SHIRT"><option value="WAREXX KIDS-TRUNK"><option value="WAREXX KIDS-VEST"><option value="WAREXX LADIES-BRASSIER"><option value="WAREXX LADIES-CHIMMIES"><option value="WAREXX LADIES-LEGGINGS"><option value="WAREXX LADIES-NIGHT SUIT"><option value="WAREXX LADIES-PANT"><option value="WAREXX LADIES-PANTIES"><option value="WAREXX LADIES-PATIYALA"><option value="WAREXX LADIES-SET ITEM"><option value="WAREXX LADIES-SHORTS"><option value="WAREXX LADIES-SLIPS"><option value="WAREXX LADIES-T-SHIRT"><option value="WAREXX MENS-BRIEF"><option value="WAREXX MENS-PANT"><option value="WAREXX MENS-SET ITEM"><option value="WAREXX MENS-SHORTS"><option value="WAREXX MENS-T-SHIRT"><option value="WAREXX MENS-TRUNK"><option value="WAREXX MENS-VEST"><option value="EYE LINER"><option value="FALLS"><option value="FLOOR MAT"><option value="FROCK"><option value="GARARA SET"><option value="GIFT ITEM"><option value="GIFT-2SET PEGION TIFFEN BOX"><option value="GIFT-2SET TIFFEN BOX"><option value="GIFT-3LIT COOKER"><option value="GIFT-3SET DISH"><option value="GIFT-3SET TIFFEN CARRIER"><option value="GIFT-7NO DISH"><option value="GIFT-8NO DISH"><option value="GIFT-BENGO (M)"><option value="GIFT-BIG CHAMBADAM"><option value="GIFT-BIG DISH"><option value="GIFT-BOWL"><option value="GIFT-BUCKET"><option value="GIFT-BUTTERFLY GAS STOVE"><option value="GIFT-DISH"><option value="GIFT-DOSA TAWA"><option value="GIFT-EL OVEN"><option value="GIFT-EL STOVE"><option value="GIFT-GRINDER"><option value="GIFT-HEAVY BIG CHAMBADAM"><option value="GIFT-HOTBOX"><option value="GIFT-LAYS BIG"><option value="GIFT-LW CHAMBADAM"><option value="GIFT-M CHAMBADAM"><option value="GIFT-PLATE"><option value="GIFT-S CHAMBADAM"><option value="GIFT-S TUKKU"><option value="GIFT-SMALL CHAMBADAM"><option value="GIFT-SMALL DISH"><option value="GIFT-SMALL IDLY POT"><option value="GIFT-SS ELANTRA FRYPAN 24CM"><option value="GIFT-SS ELANTRA SAUCE PAN"><option value="GIFT-SS GIFT SET 3PCS"><option value="GIFT-SS KADAI SMALL"><option value="GIFT-SWEET CON BOX"><option value="GIFT-TABLE FAN"><option value="GIFT-TOASTER"><option value="GIFT-TOMATO (M)"><option value="GIFT-TOMATO (S)"><option value="GIFT-TOWER FAN"><option value="GIFT-UNO POT JUMBO"><option value="GIFT-WATER BOTTLE 1"><option value="GIFT-WATER BOTTLE 2"><option value="GIFT-XS CHAMBADAM"><option value="GIRLS-PANT"><option value="GROUP A"><option value="GROUP B"><option value="GROUP C"><option value="GROUP D"><option value="GROUP E"><option value="GROUP F"><option value="GROUP G"><option value="GROUP H"><option value="GROUP I"><option value="GROUP J"><option value="GROUP K"><option value="GROUP L"><option value="GROUP M"><option value="GROUP N"><option value="GROUP O"><option value="HALF SAREE"><option value="HAND BAG"><option value="INSKIRT"><option value="JABULA"><option value="JEGGINGS"><option value="JERKIN"><option value="JETTY"><option value="JEWEL"><option value="KERCHIEF"><option value="KIDS-3/4TH PANT"><option value="KIDS-BABASUIT"><option value="KIDS-BABULA"><option value="KIDS-BABY ITEMS"><option value="KIDS-BABY TOWEL"><option value="KIDS-BED"><option value="KIDS-BERMUDA"><option value="KIDS-BOYS 3/4TH PANT"><option value="KIDS-BOYS BERMUDA"><option value="KIDS-BOYS PANT"><option value="KIDS-BOYS SHORTS"><option value="KIDS-BRIEF"><option value="KIDS-CAP"><option value="KIDS-CHAPPAL"><option value="KIDS-CHIMMIES"><option value="KIDS-CHOLI"><option value="KIDS-CHUDITHAR"><option value="KIDS-COAT"><option value="KIDS-COAT SUIT"><option value="KIDS-COTTON FROCK"><option value="KIDS-CROPTOP"><option value="KIDS-DHAVANI SET"><option value="KIDS-DHOTI"><option value="KIDS-DHOTIE SET"><option value="KIDS-DRAWER"><option value="KIDS-FROCK"><option value="KIDS-GARARA SET"><option value="KIDS-GIRLS PANT"><option value="KIDS-GOWN"><option value="KIDS-HALF SAREE"><option value="KIDS-HALF SUIT"><option value="KIDS-JABULA"><option value="KIDS-JEGGINGS"><option value="KIDS-JERKIN"><option value="KIDS-JETTY"><option value="KIDS-JODHPURI"><option value="KIDS-KERCHIEF"><option value="KIDS-KURTA SET"><option value="KIDS-LEGGINGS"><option value="KIDS-LEHANGA"><option value="KIDS-LUNGI"><option value="KIDS-MIDI"><option value="KIDS-MIDI SET"><option value="KIDS-NIGHT SUIT"><option value="KIDS-NIGHTY"><option value="KIDS-OVER COAT"><option value="KIDS-P P MATERIAL"><option value="KIDS-P PAVADAI MAT"><option value="KIDS-PALAZZO SET"><option value="KIDS-PANCHAKACHAM"><option value="KIDS-PANT"><option value="KIDS-PANTIES"><option value="KIDS-PATIYALA"><option value="KIDS-PATTU PAVADAI"><option value="KIDS-RAIN COAT"><option value="KIDS-ROMPER SUIT"><option value="KIDS-SAREE"><option value="KIDS-SCARF"><option value="KIDS-SET ITEM"><option value="KIDS-SHAWL"><option value="KIDS-SHERWANI"><option value="KIDS-SHIRT"><option value="KIDS-SHOE"><option value="KIDS-SHORTS"><option value="KIDS-SIMMIES"><option value="KIDS-SKIRT"><option value="KIDS-SLIPS"><option value="KIDS-SOCKS"><option value="KIDS-SWATER"><option value="KIDS-SWEATER"><option value="KIDS-SWEATER SET"><option value="KIDS-T-SHIRT"><option value="KIDS-TOP"><option value="KIDS-TOWEL"><option value="KIDS-TOYS"><option value="KIDS-TRUNK"><option value="KIDS-UNSPECIFIED"><option value="KIDS-VEST"><option value="KIDS-WAIST COAT"><option value="KIDS-WESTERN"><option value="KITCHEN TOWEL"><option value="KOLUSU"><option value="KURTA SET"><option value="KURTHI PANT"><option value="KW-BRIEF"><option value="KW-DRAWER"><option value="KW-JETTY"><option value="KW-PANT"><option value="KW-PANTIES"><option value="KW-SET ITEM"><option value="KW-T-SHIRT"><option value="KW-TRUNK"><option value="KW-VEST"><option value="LADIES-AARAM"><option value="LADIES-BANGLE"><option value="LADIES-BLAZER"><option value="LADIES-BLOUSE"><option value="LADIES-BLOUSE BIT"><option value="LADIES-BLOUSE MATERIAL"><option value="LADIES-BRACELET"><option value="LADIES-BRASSIER"><option value="LADIES-BRIEF"><option value="LADIES-CAP"><option value="LADIES-CHAIN"><option value="LADIES-CHIMMIES"><option value="LADIES-CHOLI"><option value="LADIES-CHUDI MATERIAL"><option value="LADIES-CHUDITHAR"><option value="LADIES-COUPLE DRESS"><option value="LADIES-CROPTOP"><option value="LADIES-DHAVANI"><option value="LADIES-DHAVANI SET"><option value="LADIES-EARINGS"><option value="LADIES-EARRING"><option value="LADIES-EYE LINER"><option value="LADIES-FALLS"><option value="LADIES-FROCK"><option value="LADIES-GOWN"><option value="LADIES-HALF SAREE"><option value="LADIES-HAND BAG"><option value="LADIES-INSKIRT"><option value="LADIES-JACKET"><option value="LADIES-JEGGINGS"><option value="LADIES-JEWEL"><option value="LADIES-KERCHIEF"><option value="LADIES-KOLUSU"><option value="LADIES-KURTHI PANT"><option value="LADIES-LEGGINGS"><option value="LADIES-LEHANGA"><option value="LADIES-LINING MATERIAL"><option value="LADIES-LIP STICK"><option value="LADIES-MAKE UP KIT"><option value="LADIES-MAXI"><option value="LADIES-NAIL POLISH"><option value="LADIES-NECKLACE"><option value="LADIES-NIGHT SUIT"><option value="LADIES-NIGHTY"><option value="LADIES-NIGHTY SLIP"><option value="LADIES-OVER COAT"><option value="LADIES-P P MATERIAL"><option value="LADIES-P PAVADAI MAT"><option value="LADIES-PALAZZO SET"><option value="LADIES-PANT"><option value="LADIES-PANTIES"><option value="LADIES-PATIYALA"><option value="LADIES-PATTU PAVADAI"><option value="LADIES-RAIN COAT"><option value="LADIES-RING"><option value="LADIES-RM BLOUSE"><option value="LADIES-RM SAREE"><option value="LADIES-SAREE"><option value="LADIES-SCARF"><option value="LADIES-SET ITEM"><option value="LADIES-SHAPEWEAR"><option value="LADIES-SHAPEWEAR PANTY"><option value="LADIES-SHAWL"><option value="LADIES-SHIRT"><option value="LADIES-SHORTS"><option value="LADIES-SHRUG"><option value="LADIES-SKIRT"><option value="LADIES-SLIPS"><option value="LADIES-SOCKS"><option value="LADIES-STUD"><option value="LADIES-SWEATER"><option value="LADIES-T-SHIRT"><option value="LADIES-TOP"><option value="LADIES-TOP MATERIAL"><option value="LADIES-UNSPECIFIED"><option value="LADIES-WALLET"><option value="LADIES-WED-CHUDI"><option value="LADIES-WED-CROPTOP"><option value="LADIES-WED-GOWN"><option value="LADIES-WED-SLIPPER"><option value="LADIES-WESTERN"><option value="LADIES-Z SAREE"><option value="LAPTOP BAG"><option value="LEGGINGS"><option value="LEHANGA"><option value="LINING MATERIAL"><option value="LIP STICK"><option value="LUNGI"><option value="LW-LEGGINGS"><option value="LW-PANT"><option value="LW-PANTIES"><option value="LW-SET ITEM"><option value="LW-T-SHIRT"><option value="MAKE UP KIT"><option value="MASK"><option value="MAXI"><option value="MENS-3/4TH PANT"><option value="MENS-BED COVER"><option value="MENS-BED SHEET"><option value="MENS-BELT"><option value="MENS-BERMUDA"><option value="MENS-BLAZER"><option value="MENS-BRIEF"><option value="MENS-BUNDI COAT"><option value="MENS-CAP"><option value="MENS-CHAPPAL"><option value="MENS-COAT"><option value="MENS-COAT SUIT"><option value="MENS-DHOTI"><option value="MENS-DHOTI SET"><option value="MENS-FLEET PANT"><option value="MENS-IHRAM SET"><option value="MENS-JERKIN"><option value="MENS-JODHPURI"><option value="MENS-KERCHIEF"><option value="MENS-KITCHEN TOWEL"><option value="MENS-KURTA SET"><option value="MENS-LUNGI"><option value="MENS-MASK"><option value="MENS-MUFFLER"><option value="MENS-PANT"><option value="MENS-PANT BIT"><option value="MENS-PILLOW COVER"><option value="MENS-RAIN COAT"><option value="MENS-SET ITEM"><option value="MENS-SHAWL"><option value="MENS-SHERWANI"><option value="MENS-SHERWANI CAP"><option value="MENS-SHERWANI SHOE"><option value="MENS-SHIRT"><option value="MENS-SHIRT &amp; PANT BIT"><option value="MENS-SHIRT BIT"><option value="MENS-SHIRTING"><option value="MENS-SHOE"><option value="MENS-SHORTS"><option value="MENS-SLIPPER"><option value="MENS-SOCKS"><option value="MENS-SUITING"><option value="MENS-SWEATER"><option value="MENS-T-SHIRT"><option value="MENS-TIE"><option value="MENS-TOWEL"><option value="MENS-TRUNK"><option value="MENS-UNSPECIFIED"><option value="MENS-VEST"><option value="MENS-WAIST COAT"><option value="MENS-WALLET"><option value="MIDI"><option value="MIDI SET"><option value="MUFFLER"><option value="MW-BRIEF"><option value="MW-KERCHIEF"><option value="MW-PANT"><option value="MW-T-SHIRT"><option value="MW-TRUNK"><option value="MW-VEST"><option value="NAIL POLISH"><option value="NECKLACE"><option value="NIGHT SUIT"><option value="NIGHTY SLIP"><option value="OVER COAT"><option value="PANCHAKACHAM"><option value="PANT"><option value="PANT BIT"><option value="PANTIES"><option value="PATIYALA"><option value="PATTU PAVADAI"><option value="PATTU PAVADAI MATERIAL"><option value="PILLOW"><option value="PILLOW COVER"><option value="PRICE TAG"><option value="RAIN COAT"><option value="READYMADE BLOUSE"><option value="REETH"><option value="RING"><option value="SAFETY PIN"><option value="SAREE"><option value="SCARF"><option value="SET ITEM"><option value="SHAPEWEAR"><option value="SHAWL"><option value="SHERWANI"><option value="SHIRT"><option value="SHIRT &amp; PANT BIT"><option value="SHIRT BIT"><option value="SHIRTING"><option value="SHOE"><option value="SHORTS"><option value="SIMMIES"><option value="SKIRT"><option value="SLIPS"><option value="SOCKS"><option value="STUD"><option value="SUITING"><option value="SWATER"><option value="SWEATER"><option value="T-SHIRT"><option value="TIE"><option value="TOP MATERIAL"><option value="TOWEL"><option value="TOYS"><option value="TRUNK"><option value="UNSPECIFIED"><option value="VEST"><option value="WAIST COAT"><option value="WALLET"><option value="WESTERN"></datalist></div>
+        <div class="col-4"><label class="form-label small">People</label>
+          <input class="form-control form-control-sm" type="number" min="1" max="50" name="party_size" value="1"></div>
+        <div class="col-6"><label class="form-label small">Floor</label>
+          <select class="form-select form-select-sm" name="floor_id"><option value="">—</option>
+            </select></div>
+        <div class="col-6"><label class="form-label small">Salesperson</label>
+          <select class="form-select form-select-sm" name="staff_id"><option value="">Next free</option>
+            <option value="4">Meena Selvam</option><option value="2">Priya Manager</option><option value="3">Ravi Kumar</option><option value="1">Shop Owner</option><option value="5">Super Admin</option></select></div>
+        <div class="col-12"><label class="form-label small">Note</label>
+          <input class="form-control form-control-sm" name="note" maxlength="256" placeholder="Budget, occasion…"></div>
+        <div class="col-12"><button class="btn btn-brand btn-sm w-100"><i class="bi bi-signpost-split"></i> Divert</button></div>
+      </div>
+    </form>
+    
+    <div class="card mb-3">
+      <div class="card-header">By floor</div>
+      <table class="table table-sm mb-0"><thead><tr><th></th><th class="text-end">In</th><th class="text-end">Bought</th></tr></thead><tbody>
+        <tr><td class="small">No floor</td><td class="text-end">8</td><td class="text-end">1</td></tr>
+        
+      </tbody></table>
+    </div>
+    <div class="card">
+      <div class="card-header">By salesperson</div>
+      <table class="table table-sm mb-0"><thead><tr><th></th><th class="text-end">Served</th><th class="text-end">Converted</th></tr></thead><tbody>
+        <tr><td class="small">Ravi Kumar</td><td class="text-end">3</td><td class="text-end">1 <span class="small text-muted">· 33%</span></td></tr>
+        <tr><td class="small">Priya Manager</td><td class="text-end">3</td><td class="text-end">0 <span class="small text-muted">· 0%</span></td></tr>
+        <tr><td class="small">Meena Selvam</td><td class="text-end">2</td><td class="text-end">0 <span class="small text-muted">· 0%</span></td></tr>
+        
+      </tbody></table>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card mb-3">
+      <div class="card-header">On the floor now</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+          <thead><tr><th>In at</th><th>Customer</th><th>Looking for</th><th>Floor · salesperson</th><th>Status</th><th class="text-end">Close</th></tr></thead>
+          <tbody>
+            
+            <tr>
+              <td class="small text-nowrap">15:25</td>
+              <td><a href="/pos/customers/6">Rajesh Sharma</a> <span class="status-badge info sm">returning</span>
+                <br><span class="small text-muted">+91 99000 66666</span></td>
+              <td class="small">Men&#39;s shirts</td>
+              <td>
+                <form method="post" action="/pos/customer-divert/3/move" class="d-flex gap-1">
+                  <select class="form-select form-select-sm" name="floor_id" onchange="this.form.submit()" aria-label="Floor" style="max-width:120px"><option value="">—</option>
+                    </select>
+                  <select class="form-select form-select-sm" name="staff_id" onchange="this.form.submit()" aria-label="Salesperson" style="max-width:150px"><option value="">Unassigned</option>
+                    <option value="4" selected>Meena Selvam</option><option value="2" >Priya Manager</option><option value="3" >Ravi Kumar</option><option value="1" >Shop Owner</option><option value="5" >Super Admin</option></select>
+                </form>
+              </td>
+              <td><span class="status-badge info sm">attending</span></td>
+              <td class="text-end">
+                <form method="post" action="/pos/customer-divert/3/status" class="d-inline-flex gap-1">
+                  <input class="form-control form-control-sm" name="invoice" placeholder="Bill no" style="width:110px" aria-label="Bill number" title="Leave blank to find the customer's bill by itself">
+                  <button class="btn btn-sm btn-outline-success" name="status" value="billed" title="Bought"><i class="bi bi-bag-check"></i></button>
+                  <button class="btn btn-sm btn-outline-secondary" name="status" value="left" title="Left without buying"><i class="bi bi-box-arrow-right"></i></button>
+                </form>
+              </td>
+            </tr>
+            
+            <tr>
+              <td class="small text-nowrap">15:10</td>
+              <td><a href="/pos/customers/21">Oviya M</a> <span class="status-badge info sm">returning</span>
+                <br><span class="small text-muted">9000020518 · 3 people</span></td>
+              <td class="small">Men&#39;s shirts</td>
+              <td>
+                <form method="post" action="/pos/customer-divert/4/move" class="d-flex gap-1">
+                  <select class="form-select form-select-sm" name="floor_id" onchange="this.form.submit()" aria-label="Floor" style="max-width:120px"><option value="">—</option>
+                    </select>
+                  <select class="form-select form-select-sm" name="staff_id" onchange="this.form.submit()" aria-label="Salesperson" style="max-width:150px"><option value="">Unassigned</option>
+                    <option value="4" >Meena Selvam</option><option value="2" selected>Priya Manager</option><option value="3" >Ravi Kumar</option><option value="1" >Shop Owner</option><option value="5" >Super Admin</option></select>
+                </form>
+              </td>
+              <td><span class="status-badge pending sm">waiting</span></td>
+              <td class="text-end">
+                <form method="post" action="/pos/customer-divert/4/status" class="d-inline-flex gap-1">
+                  <input class="form-control form-control-sm" name="invoice" placeholder="Bill no" style="width:110px" aria-label="Bill number" title="Leave blank to find the customer's bill by itself">
+                  <button class="btn btn-sm btn-outline-success" name="status" value="billed" title="Bought"><i class="bi bi-bag-check"></i></button>
+                  <button class="btn btn-sm btn-outline-secondary" name="status" value="left" title="Left without buying"><i class="bi bi-box-arrow-right"></i></button>
+                </form>
+              </td>
+            </tr>
+            
+            <tr>
+              <td class="small text-nowrap">14:40</td>
+              <td><a href="/pos/customers/6">Rajesh Sharma</a> <span class="status-badge info sm">returning</span>
+                <br><span class="small text-muted">+91 99000 66666 · 3 people</span></td>
+              <td class="small">Bridal</td>
+              <td>
+                <form method="post" action="/pos/customer-divert/6/move" class="d-flex gap-1">
+                  <select class="form-select form-select-sm" name="floor_id" onchange="this.form.submit()" aria-label="Floor" style="max-width:120px"><option value="">—</option>
+                    </select>
+                  <select class="form-select form-select-sm" name="staff_id" onchange="this.form.submit()" aria-label="Salesperson" style="max-width:150px"><option value="">Unassigned</option>
+                    <option value="4" >Meena Selvam</option><option value="2" >Priya Manager</option><option value="3" selected>Ravi Kumar</option><option value="1" >Shop Owner</option><option value="5" >Super Admin</option></select>
+                </form>
+              </td>
+              <td><span class="status-badge pending sm">waiting</span></td>
+              <td class="text-end">
+                <form method="post" action="/pos/customer-divert/6/status" class="d-inline-flex gap-1">
+                  <input class="form-control form-control-sm" name="invoice" placeholder="Bill no" style="width:110px" aria-label="Bill number" title="Leave blank to find the customer's bill by itself">
+                  <button class="btn btn-sm btn-outline-success" name="status" value="billed" title="Bought"><i class="bi bi-bag-check"></i></button>
+                  <button class="btn btn-sm btn-outline-secondary" name="status" value="left" title="Left without buying"><i class="bi bi-box-arrow-right"></i></button>
+                </form>
+              </td>
+            </tr>
+            
+            <tr>
+              <td class="small text-nowrap">14:25</td>
+              <td><a href="/pos/customers/27">Vasanth S</a> <span class="status-badge info sm">returning</span>
+                <br><span class="small text-muted">9000020740 · 3 people</span></td>
+              <td class="small">Kurtis</td>
+              <td>
+                <form method="post" action="/pos/customer-divert/7/move" class="d-flex gap-1">
+                  <select class="form-select form-select-sm" name="floor_id" onchange="this.form.submit()" aria-label="Floor" style="max-width:120px"><option value="">—</option>
+                    </select>
+                  <select class="form-select form-select-sm" name="staff_id" onchange="this.form.submit()" aria-label="Salesperson" style="max-width:150px"><option value="">Unassigned</option>
+                    <option value="4" >Meena Selvam</option><option value="2" >Priya Manager</option><option value="3" selected>Ravi Kumar</option><option value="1" >Shop Owner</option><option value="5" >Super Admin</option></select>
+                </form>
+              </td>
+              <td><span class="status-badge info sm">attending</span></td>
+              <td class="text-end">
+                <form method="post" action="/pos/customer-divert/7/status" class="d-inline-flex gap-1">
+                  <input class="form-control form-control-sm" name="invoice" placeholder="Bill no" style="width:110px" aria-label="Bill number" title="Leave blank to find the customer's bill by itself">
+                  <button class="btn btn-sm btn-outline-success" name="status" value="billed" title="Bought"><i class="bi bi-bag-check"></i></button>
+                  <button class="btn btn-sm btn-outline-secondary" name="status" value="left" title="Left without buying"><i class="bi bi-box-arrow-right"></i></button>
+                </form>
+              </td>
+            </tr>
+            
+            <tr>
+              <td class="small text-nowrap">14:10</td>
+              <td><a href="/pos/customers/29">Zara V</a> <span class="status-badge info sm">returning</span>
+                <br><span class="small text-muted">9000020814 · 2 people</span></td>
+              <td class="small">Men&#39;s shirts</td>
+              <td>
+                <form method="post" action="/pos/customer-divert/8/move" class="d-flex gap-1">
+                  <select class="form-select form-select-sm" name="floor_id" onchange="this.form.submit()" aria-label="Floor" style="max-width:120px"><option value="">—</option>
+                    </select>
+                  <select class="form-select form-select-sm" name="staff_id" onchange="this.form.submit()" aria-label="Salesperson" style="max-width:150px"><option value="">Unassigned</option>
+                    <option value="4" >Meena Selvam</option><option value="2" selected>Priya Manager</option><option value="3" >Ravi Kumar</option><option value="1" >Shop Owner</option><option value="5" >Super Admin</option></select>
+                </form>
+              </td>
+              <td><span class="status-badge info sm">attending</span></td>
+              <td class="text-end">
+                <form method="post" action="/pos/customer-divert/8/status" class="d-inline-flex gap-1">
+                  <input class="form-control form-control-sm" name="invoice" placeholder="Bill no" style="width:110px" aria-label="Bill number" title="Leave blank to find the customer's bill by itself">
+                  <button class="btn btn-sm btn-outline-success" name="status" value="billed" title="Bought"><i class="bi bi-bag-check"></i></button>
+                  <button class="btn btn-sm btn-outline-secondary" name="status" value="left" title="Left without buying"><i class="bi bi-box-arrow-right"></i></button>
+                </form>
+              </td>
+            </tr>
+            
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">Closed</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+          <thead><tr><th>In · out</th><th>Customer</th><th>Floor · salesperson</th><th>Status</th><th>Bill</th></tr></thead>
+          <tbody>
+            
+            <tr>
+              <td class="small text-nowrap">15:55</td>
+              <td>Bala</td>
+              <td class="small">Meena Selvam</td>
+              <td><span class="status-badge neutral sm">left</span></td>
+              <td class="small">—</td>
+            </tr>
+            
+            <tr>
+              <td class="small text-nowrap">15:40</td>
+              <td>Fathima K</td>
+              <td class="small">Ravi Kumar</td>
+              <td><span class="status-badge success sm">billed</span></td>
+              <td class="small">—</td>
+            </tr>
+            
+            <tr>
+              <td class="small text-nowrap">14:55</td>
+              <td>Deepa Krishnan</td>
+              <td class="small">Priya Manager</td>
+              <td><span class="status-badge neutral sm">left</span></td>
+              <td class="small">—</td>
+            </tr>
+            
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+  // Where the shop is mounted: '' when it runs on its own, '/pos' when it is
+  // served inside the WAREXX backend. Every same-app fetch is written against this
+  // — a hardcoded '/floor/…' is right standalone and 404s under the mount, where
+  // it lands on the backend's own routes instead of the shop's.
+  const SHOP_ROOT = "/pos";
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  // Every chart on every screen in the design's colours: gridlines in the border
+  // green-grey, 11px muted axis text, a dark-green tooltip. Set once, here, before
+  // any page draws a chart.
+  if (window.Chart) {
+    Chart.defaults.font.family = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    Chart.defaults.font.size = 11;
+    Chart.defaults.color = '#68756E';
+    Chart.defaults.borderColor = '#DCE5DF';
+    Object.assign(Chart.defaults.plugins.tooltip, {
+      backgroundColor: '#0B3D2E', titleColor: '#FFFFFF', bodyColor: '#E7F4EC',
+      cornerRadius: 8, padding: 8, displayColors: false,
+      titleFont: {size: 11, weight: '600'}, bodyFont: {size: 11},
+    });
+  }
+</script>
+
+<script>
+// Finds a customer by mobile as it is typed — the same lookup Floor Sales uses.
+document.querySelectorAll('.cl-phone').forEach((el) => {
+  const p = el.dataset.prefix, hint = document.getElementById(p + '_hint');
+  let t = null;
+  el.addEventListener('input', () => {
+    clearTimeout(t);
+    document.getElementById(p + '_id').value = '';
+    const q = el.value.trim();
+    if (q.length < 6){ hint.innerText = ''; return; }
+    t = setTimeout(async () => {
+      try {
+        const j = await (await fetch(`${SHOP_ROOT}/orders/api/customer?q=${encodeURIComponent(q)}`)).json();
+        if (j.id){
+          document.getElementById(p + '_id').value = j.id;
+          document.getElementById(p + '_name').value = j.name;
+          hint.innerHTML = `<span class="text-success"><i class="bi bi-check-circle"></i> ${j.name} · ${j.code}${j.city ? ' · ' + j.city : ''} · ${j.points} pts</span>`;
+          el.dispatchEvent(new CustomEvent('customer', {detail: j}));
+        } else hint.innerHTML = '<span class="text-muted">New customer — they will be added with this name.</span>';
+      } catch (e){ hint.innerText = ''; }
+    }, 250);
+  });
+});
+</script>
+
+<script>
+  // Most forms put a <label> straight above its box without a for="…", so it
+  // reads right but a screen reader cannot tie the two together and clicking
+  // the label does nothing. Link each such label to the control that follows it.
+  document.querySelectorAll('label:not([for])').forEach(function (l) {
+    if (l.querySelector('input, select, textarea')) return;
+    var c = l.nextElementSibling;
+    if (c && !c.matches('input, select, textarea')) c = c.querySelector('input, select, textarea');
+    if (!c || c.type === 'hidden') return;
+    if (!c.id) c.id = 'fld-' + Math.random().toString(36).slice(2, 9);
+    l.htmlFor = c.id;
+  });
+</script>
+<script src="/pos/static/js/fit.js"></script>
+</body>
+</html>

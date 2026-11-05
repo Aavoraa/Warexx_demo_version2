@@ -675,6 +675,37 @@ export const api = {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(J),
   supplierLedger: (id) => fetch(`/api/payments/supplier/${id}/ledger`).then(J),
 
+  // Finance — one pair of calls for every Finance screen (Finance.jsx). `params`
+  // drops blank values and joins arrays with commas, as the router's lists read.
+  finGet: (path, params) => {
+    const qs = new URLSearchParams()
+    Object.entries(params || {}).forEach(([k, v]) => {
+      if (v == null || v === '' || (Array.isArray(v) && !v.length)) return
+      qs.set(k, Array.isArray(v) ? v.join(',') : v)
+    })
+    const s = qs.toString()
+    return fetch(`/api/finance/${path}${s ? '?' + s : ''}`).then(J)
+  },
+  finSend: (method, path, body) => fetch(`/api/finance/${path}`, {
+    method, headers: { 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body) }).then(J),
+
+  // HR — the same pair for every HR screen, plus a multipart upload for
+  // documents and attendance files (HR.jsx).
+  hrGet: (path, params) => {
+    const qs = new URLSearchParams()
+    Object.entries(params || {}).forEach(([k, v]) => {
+      if (v == null || v === '' || (Array.isArray(v) && !v.length)) return
+      qs.set(k, Array.isArray(v) ? v.join(',') : v)
+    })
+    const s = qs.toString()
+    return fetch(`/api/hr/${path}${s ? '?' + s : ''}`).then(J)
+  },
+  hrSend: (method, path, body) => fetch(`/api/hr/${path}`, {
+    method, headers: { 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body) }).then(J),
+  hrUpload: (path, form) => fetch(`/api/hr/${path}`, { method: 'POST', body: form }).then(J),
+
   // purchase returns
   listReturns: () => fetch('/api/returns').then(J),
   getReturn: (id) => fetch(`/api/returns/${id}`).then(J),

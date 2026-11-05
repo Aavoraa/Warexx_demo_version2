@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en">
+<head>
+  
+  <script>
+    try { if (window.self !== window.top) document.documentElement.classList.add('in-frame'); }
+    catch (e) { document.documentElement.classList.add('in-frame'); }
+  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+  <title>Sample Company</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="/pos/static/css/app.css">
+  <link rel="manifest" href="/pos/static/manifest.json">
+  <meta name="theme-color" content="#0B3D2E">
+</head>
+<body>
+
+
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top brand-nav">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/pos/">
+      <span class="brand-logo" aria-hidden="true">W</span>
+      <span class="brand-text">
+        <span class="brand-name">Sample Company <span class="brand-tag d-none d-sm-inline">· POS</span></span>
+        <span class="brand-sub d-none d-md-block">Billing, stock and customers for this store</span>
+      </span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
+            aria-controls="nav" aria-expanded="false" aria-label="Open navigation menu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      
+      <span class="frame-title" aria-hidden="true"><i class="bi bi-shop"></i> Store</span>
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link nav-ctl dropdown-toggle d-flex align-items-center gap-2" href="#"
+             data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+            <span>CRM Analyser</span>
+          </a>
+          <ul class="dropdown-menu shadow" style="min-width:320px">
+            
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/">
+                <i class="bi bi-speedometer2 mt-1"></i>
+                <span><strong>Dashboard</strong><br>
+                  <small class="text-muted">Today's sales, low stock and the last few bills</small></span>
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/customers/">
+                <i class="bi bi-people mt-1"></i>
+                <span><strong>Customers</strong><br>
+                  <small class="text-muted">Customer master, loyalty points and history</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/orders/">
+                <i class="bi bi-bag mt-1"></i>
+                <span><strong>Customer Orders</strong><br>
+                  <small class="text-muted">Orders taken for later — what, by when, and what was paid</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/loyalty/">
+                <i class="bi bi-award mt-1"></i>
+                <span><strong>Loyalty Management</strong><br>
+                  <small class="text-muted">Points earned and redeemed, by card, phone or name</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/gift-vouchers/">
+                <i class="bi bi-gift mt-1"></i>
+                <span><strong>Gift Voucher</strong><br>
+                  <small class="text-muted">Sell vouchers by denomination; they are spent at Settlement</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/coupons/">
+                <i class="bi bi-ticket-perforated mt-1"></i>
+                <span><strong>Gift Coupon</strong><br>
+                  <small class="text-muted">Coupon schemes, issuing, rewards to coupon and their history</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/price-list/">
+                <i class="bi bi-tags mt-1"></i>
+                <span><strong>Price List</strong><br>
+                  <small class="text-muted">Price categories, the designs on them and who buys on them</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        active"
+                 href="/pos/crm-analyser/">
+                <i class="bi bi-bar-chart-line mt-1"></i>
+                <span><strong>CRM Analyser</strong><br>
+                  <small class="text-muted">Who buys, how often, how much — and who has stopped coming</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/send-sms/">
+                <i class="bi bi-chat-dots mt-1"></i>
+                <span><strong>Send SMS</strong><br>
+                  <small class="text-muted">Pick customers by what they bought, where and when, and message them</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/">
+                <i class="bi bi-speedometer2 mt-1"></i>
+                <span><strong>Feedback Dashboard</strong><br>
+                  <small class="text-muted">How customers rate the store, question by question</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/questions">
+                <i class="bi bi-patch-question mt-1"></i>
+                <span><strong>Feedback Questions</strong><br>
+                  <small class="text-muted">The questions customers are asked</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/report">
+                <i class="bi bi-clipboard-data mt-1"></i>
+                <span><strong>Feedback Report</strong><br>
+                  <small class="text-muted">Every response with its answers, filtered and exported</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/form">
+                <i class="bi bi-ui-checks mt-1"></i>
+                <span><strong>Feedback Form Config</strong><br>
+                  <small class="text-muted">What the customer&#39;s feedback page asks and says</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/customer-divert/">
+                <i class="bi bi-signpost-split mt-1"></i>
+                <span><strong>Customer Divert</strong><br>
+                  <small class="text-muted">Meet walk-ins at the door and send them to a floor and a salesperson</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/leads/">
+                <i class="bi bi-person-plus mt-1"></i>
+                <span><strong>Lead Management</strong><br>
+                  <small class="text-muted">Enquiries to follow up, and which of them became customers</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/registration/">
+                <i class="bi bi-qr-code mt-1"></i>
+                <span><strong>Self Registration</strong><br>
+                  <small class="text-muted">The sign-up QR, its form, and the sign-ups waiting for approval</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/promotions/">
+                <i class="bi bi-gift mt-1"></i>
+                <span><strong>Promotions</strong><br>
+                  <small class="text-muted">Offers the till applies by itself, and what they have given away</small></span>
+              </a>
+            </li>
+            
+          </ul>
+        </li>
+      </ul>
+      
+      
+    </div>
+  </div>
+</nav>
+
+
+<main class="container-fluid py-3">
+  
+    
+  
+  
+<div class="page-head">
+  <h4><i class="bi bi-bar-chart-line"></i> CRM Analyser</h4>
+  <form class="d-flex gap-2 align-items-center flex-wrap">
+    <select class="form-select form-select-sm" name="location_id" style="width:auto" aria-label="Location">
+      <option value="">Every location</option>
+      
+    </select>
+    <input class="form-control form-control-sm" type="date" name="from" value="2026-08-08" style="width:auto" aria-label="From">
+    <input class="form-control form-control-sm" type="date" name="to" value="2026-11-05" style="width:auto" aria-label="To">
+    <button class="btn btn-brand btn-sm">Analyse</button>
+  </form>
+</div>
+
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-lg-2">
+<div class="stat-card card p-3 t-count h-100" title="Active customers in the book">
+  <div class="label">Customers</div>
+  <div class="value">40</div>
+</div>
+</div>
+  <div class="col-6 col-lg-2">
+<div class="stat-card card p-3 t-move h-100" title="Customers added in the window">
+  <div class="label">New sign-ups</div>
+  <div class="value">13</div>
+</div>
+</div>
+  <div class="col-6 col-lg-2">
+<div class="stat-card card p-3 t-stock h-100" title="Customers who bought in the window">
+  <div class="label">Buyers</div>
+  <div class="value">23</div>
+</div>
+</div>
+  <div class="col-6 col-lg-2">
+<div class="stat-card card p-3 t-adjust h-100" title="Bought twice or more in the window">
+  <div class="label">Repeat buyers</div>
+  <div class="value">13 · 57%</div>
+</div>
+</div>
+  <div class="col-6 col-lg-2">
+<div class="stat-card card p-3 t-move h-100" title="Their first ever bill fell in the window">
+  <div class="label">First-time buyers</div>
+  <div class="value">2</div>
+</div>
+</div>
+  <div class="col-6 col-lg-2">
+<div class="stat-card card p-3 t-back h-100" title="Bought before, nothing in the last 90 days">
+  <div class="label">Lapsed</div>
+  <div class="value">7</div>
+</div>
+</div>
+</div>
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+<div class="stat-card card p-3 t-money h-100" title="Bills with a customer on them, against all sales">
+  <div class="label">Sales to known customers</div>
+  <div class="value">₹623,098.50 · 87%</div>
+</div>
+</div>
+  <div class="col-md-4">
+<div class="stat-card card p-3 t-money h-100" >
+  <div class="label">Average customer bill</div>
+  <div class="value">₹5,192.49</div>
+</div>
+</div>
+  <div class="col-md-4">
+<div class="stat-card card p-3 t-count h-100" title="Every one is a customer the shop could have known">
+  <div class="label">Walk-in bills (no customer)</div>
+  <div class="value">14 of 134</div>
+</div>
+</div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-8"><div class="card p-3 h-100">
+    <div class="fw-semibold mb-2">New customers and buyers, month by month</div>
+    <div style="height:240px"><canvas id="chMonths" aria-label="New customers and buyers by month" role="img"></canvas></div>
+  </div></div>
+  <div class="col-lg-4"><div class="card p-3 h-100">
+    <div class="fw-semibold mb-2">How often they came</div>
+    <div style="height:240px"><canvas id="chVisits" aria-label="Customers by number of visits" role="img"></canvas></div>
+  </div></div>
+</div>
+<div class="row g-3 mb-3">
+  <div class="col-md-6 col-lg-3"><div class="card p-3 h-100">
+    <div class="fw-semibold mb-2">What they spent in the window</div>
+    <div style="height:220px"><canvas id="chSpend" aria-label="Customers by spend band" role="img"></canvas></div>
+  </div></div>
+  
+  <div class="col-md-6 col-lg-3">
+    <div class="card h-100">
+      <div class="card-header">By customer category</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead><tr><th></th><th class="text-end">Buyers</th><th class="text-end">Sales</th></tr></thead>
+          <tbody>
+            
+            <tr><td class="small">Not recorded</td><td class="text-end">6</td><td class="text-end">₹404,478.00</td></tr>
+            
+            <tr><td class="small">Platinum</td><td class="text-end">4</td><td class="text-end">₹67,063.50</td></tr>
+            
+            <tr><td class="small">Regular</td><td class="text-end">6</td><td class="text-end">₹64,354.50</td></tr>
+            
+            <tr><td class="small">Wholesale</td><td class="text-end">4</td><td class="text-end">₹56,469.00</td></tr>
+            
+            <tr><td class="small">Gold</td><td class="text-end">3</td><td class="text-end">₹30,733.50</td></tr>
+            
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-6 col-lg-3">
+    <div class="card h-100">
+      <div class="card-header">By city</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead><tr><th></th><th class="text-end">Buyers</th><th class="text-end">Sales</th></tr></thead>
+          <tbody>
+            
+            <tr><td class="small">Not recorded</td><td class="text-end">6</td><td class="text-end">₹404,478.00</td></tr>
+            
+            <tr><td class="small">Coimbatore</td><td class="text-end">2</td><td class="text-end">₹64,407.00</td></tr>
+            
+            <tr><td class="small">Tiruppur</td><td class="text-end">4</td><td class="text-end">₹53,938.50</td></tr>
+            
+            <tr><td class="small">Madurai</td><td class="text-end">4</td><td class="text-end">₹42,105.00</td></tr>
+            
+            <tr><td class="small">Chennai</td><td class="text-end">1</td><td class="text-end">₹28,791.00</td></tr>
+            
+            <tr><td class="small">Salem</td><td class="text-end">3</td><td class="text-end">₹16,726.50</td></tr>
+            
+            <tr><td class="small">Erode</td><td class="text-end">3</td><td class="text-end">₹12,652.50</td></tr>
+            
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-6 col-lg-3">
+    <div class="card h-100">
+      <div class="card-header">By gender</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead><tr><th></th><th class="text-end">Buyers</th><th class="text-end">Sales</th></tr></thead>
+          <tbody>
+            
+            <tr><td class="small">Not Recorded</td><td class="text-end">6</td><td class="text-end">₹404,478.00</td></tr>
+            
+            <tr><td class="small">F</td><td class="text-end">12</td><td class="text-end">₹168,367.50</td></tr>
+            
+            <tr><td class="small">M</td><td class="text-end">5</td><td class="text-end">₹50,253.00</td></tr>
+            
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-6"><div class="card h-100">
+    <div class="card-header">Best customers in the window</div>
+    <div class="table-responsive"><table class="table table-sm table-hover mb-0 align-middle">
+      <thead><tr><th>Customer</th><th>Mobile</th><th class="text-end">Bills</th><th class="text-end">Spent</th><th>Last bill</th></tr></thead>
+      <tbody>
+        
+        <tr><td><a href="/pos/customers/6">Rajesh Sharma</a></td><td class="small">+91 99000 66666</td>
+          <td class="text-end">15</td><td class="text-end fw-semibold">₹92,197.00</td><td class="small text-nowrap">03-11-2026</td></tr>
+        
+        <tr><td><a href="/pos/customers/4">Prakash Boutique (B2B)</a></td><td class="small">+91 99000 44444</td>
+          <td class="text-end">13</td><td class="text-end fw-semibold">₹86,468.50</td><td class="small text-nowrap">03-11-2026</td></tr>
+        
+        <tr><td><a href="/pos/customers/5">Lakshmi Devi</a></td><td class="small">+91 99000 55555</td>
+          <td class="text-end">16</td><td class="text-end fw-semibold">₹72,821.50</td><td class="small text-nowrap">04-11-2026</td></tr>
+        
+        <tr><td><a href="/pos/customers/1">Anitha Ramesh</a></td><td class="small">+91 99000 11111</td>
+          <td class="text-end">21</td><td class="text-end fw-semibold">₹69,044.50</td><td class="small text-nowrap">03-11-2026</td></tr>
+        
+        <tr><td><a href="/pos/customers/2">Karthik Iyer</a></td><td class="small">+91 99000 22222</td>
+          <td class="text-end">16</td><td class="text-end fw-semibold">₹46,553.50</td><td class="small text-nowrap">04-11-2026</td></tr>
+        
+        <tr><td><a href="/pos/customers/15">Ilango N</a></td><td class="small">9000020296</td>
+          <td class="text-end">3</td><td class="text-end fw-semibold">₹39,375.00</td><td class="small text-nowrap">18-10-2026</td></tr>
+        
+        <tr><td><a href="/pos/customers/3">Deepa Krishnan</a></td><td class="small">+91 99000 33333</td>
+          <td class="text-end">12</td><td class="text-end fw-semibold">₹37,393.00</td><td class="small text-nowrap">02-11-2026</td></tr>
+        
+        <tr><td><a href="/pos/customers/22">Pradeep K</a></td><td class="small">9000020555</td>
+          <td class="text-end">3</td><td class="text-end fw-semibold">₹37,170.00</td><td class="small text-nowrap">19-10-2026</td></tr>
+        
+        <tr><td><a href="/pos/customers/33">Indira K</a></td><td class="small">9000020962</td>
+          <td class="text-end">3</td><td class="text-end fw-semibold">₹30,439.50</td><td class="small text-nowrap">30-10-2026</td></tr>
+        
+        <tr><td><a href="/pos/customers/16">Janani R</a></td><td class="small">9000020333</td>
+          <td class="text-end">2</td><td class="text-end fw-semibold">₹28,791.00</td><td class="small text-nowrap">23-10-2026</td></tr>
+        
+        <tr><td><a href="/pos/customers/23">Revathi P</a></td><td class="small">9000020592</td>
+          <td class="text-end">2</td><td class="text-end fw-semibold">₹25,032.00</td><td class="small text-nowrap">04-10-2026</td></tr>
+        
+        <tr><td><a href="/pos/customers/36">Mohan V</a></td><td class="small">9000021073</td>
+          <td class="text-end">2</td><td class="text-end fw-semibold">₹9,166.50</td><td class="small text-nowrap">23-10-2026</td></tr>
+        
+        <tr><td><a href="/pos/customers/21">Oviya M</a></td><td class="small">9000020518</td>
+          <td class="text-end">2</td><td class="text-end fw-semibold">₹8,652.00</td><td class="small text-nowrap">18-10-2026</td></tr>
+        
+        <tr><td><a href="/pos/customers/35">Keerthi V</a></td><td class="small">9000021036</td>
+          <td class="text-end">1</td><td class="text-end fw-semibold">₹7,759.50</td><td class="small text-nowrap">08-10-2026</td></tr>
+        
+        <tr><td><a href="/pos/customers/31">Geetha A</a></td><td class="small">9000020888</td>
+          <td class="text-end">1</td><td class="text-end fw-semibold">₹7,087.50</td><td class="small text-nowrap">09-08-2026</td></tr>
+        
+      </tbody>
+    </table></div>
+  </div></div>
+  <div class="col-lg-6"><div class="card h-100">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>Good customers who have stopped coming</span>
+      <a class="btn btn-sm btn-outline-secondary" href="/pos/send-sms/?exclude_from=2026-08-07&amp;exclude_to=2026-11-05"><i class="bi bi-chat-dots"></i> Message lapsed customers</a>
+    </div>
+    <div class="table-responsive"><table class="table table-sm table-hover mb-0 align-middle">
+      <thead><tr><th>Customer</th><th>Mobile</th><th class="text-end">Lifetime</th><th>Last bill</th></tr></thead>
+      <tbody>
+        
+        <tr><td><a href="/pos/customers/11">Ezhil A</a></td><td class="small">9000020148</td>
+          <td class="text-end">₹40,005.00 <span class="small text-muted">· 2</span></td><td class="small text-nowrap">03-07-2026</td></tr>
+        
+        <tr><td><a href="/pos/customers/27">Vasanth S</a></td><td class="small">9000020740</td>
+          <td class="text-end">₹28,927.50 <span class="small text-muted">· 3</span></td><td class="small text-nowrap">08-06-2026</td></tr>
+        
+        <tr><td><a href="/pos/customers/29">Zara V</a></td><td class="small">9000020814</td>
+          <td class="text-end">₹20,685.00 <span class="small text-muted">· 1</span></td><td class="small text-nowrap">17-03-2026</td></tr>
+        
+        <tr><td><a href="/pos/customers/20">Nila S</a></td><td class="small">9000020481</td>
+          <td class="text-end">₹14,059.50 <span class="small text-muted">· 4</span></td><td class="small text-nowrap">30-07-2026</td></tr>
+        
+        <tr><td><a href="/pos/customers/9">Chitra K</a></td><td class="small">9000020074</td>
+          <td class="text-end">₹7,612.50 <span class="small text-muted">· 1</span></td><td class="small text-nowrap">09-03-2026</td></tr>
+        
+        <tr><td><a href="/pos/customers/28">Yamini A</a></td><td class="small">9000020777</td>
+          <td class="text-end">₹7,140.00 <span class="small text-muted">· 2</span></td><td class="small text-nowrap">03-06-2026</td></tr>
+        
+        <tr><td><a href="/pos/customers/30">Bala N</a></td><td class="small">9000020851</td>
+          <td class="text-end">₹3,045.00 <span class="small text-muted">· 1</span></td><td class="small text-nowrap">09-07-2026</td></tr>
+        
+      </tbody>
+    </table></div>
+  </div></div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header d-flex justify-content-between align-items-center"><span>This week's birthdays and anniversaries</span>
+    <a class="btn btn-sm btn-outline-secondary" href="/pos/customers/messages"><i class="bi bi-send"></i> Queue wishes</a></div>
+  <div class="card-body"><div class="row">
+    
+    <div class="col-md-6"><div class="small fw-semibold mb-1"><i class="bi bi-cake2"></i> Birthdays</div>
+      <ul class="list-unstyled small mb-0">
+        <li class="text-muted">None in the next 7 days.</li>
+        
+      </ul></div>
+    
+    <div class="col-md-6"><div class="small fw-semibold mb-1"><i class="bi bi-heart"></i> Anniversaries</div>
+      <ul class="list-unstyled small mb-0">
+        <li class="text-muted">None in the next 7 days.</li>
+        
+      </ul></div>
+    
+  </div></div>
+</div>
+
+</main>
+
+<script>
+  // Where the shop is mounted: '' when it runs on its own, '/pos' when it is
+  // served inside the WAREXX backend. Every same-app fetch is written against this
+  // — a hardcoded '/floor/…' is right standalone and 404s under the mount, where
+  // it lands on the backend's own routes instead of the shop's.
+  const SHOP_ROOT = "/pos";
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  // Every chart on every screen in the design's colours: gridlines in the border
+  // green-grey, 11px muted axis text, a dark-green tooltip. Set once, here, before
+  // any page draws a chart.
+  if (window.Chart) {
+    Chart.defaults.font.family = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    Chart.defaults.font.size = 11;
+    Chart.defaults.color = '#68756E';
+    Chart.defaults.borderColor = '#DCE5DF';
+    Object.assign(Chart.defaults.plugins.tooltip, {
+      backgroundColor: '#0B3D2E', titleColor: '#FFFFFF', bodyColor: '#E7F4EC',
+      cornerRadius: 8, padding: 8, displayColors: false,
+      titleFont: {size: 11, weight: '600'}, bodyFont: {size: 11},
+    });
+  }
+</script>
+
+<script>
+const css = getComputedStyle(document.documentElement);
+const C1 = css.getPropertyValue('--viz-1').trim() || '#2F8F68', C2 = css.getPropertyValue('--viz-2').trim() || '#0B3D2E',
+      C3 = css.getPropertyValue('--viz-3').trim() || '#6FBF98', C4 = css.getPropertyValue('--viz-4').trim() || '#D97706';
+const months = [["Dec 25", 1, 0], ["Jan 26", 2, 0], ["Feb 26", 2, 4], ["Mar 26", 5, 16], ["Apr 26", 4, 6], ["May 26", 2, 10], ["Jun 26", 2, 9], ["Jul 26", 4, 8], ["Aug 26", 1, 10], ["Sep 26", 0, 6], ["Oct 26", 2, 18], ["Nov 26", 10, 6]];
+const common = {responsive: true, maintainAspectRatio: false, plugins: {legend: {position: 'bottom', labels: {boxWidth: 10}}}};
+new Chart(document.getElementById('chMonths'), {type: 'bar', data: {labels: months.map((m) => m[0]), datasets: [
+  {label: 'Buyers', data: months.map((m) => m[2]), backgroundColor: C1, borderRadius: 4},
+  {label: 'New sign-ups', data: months.map((m) => m[1]), backgroundColor: C3, borderRadius: 4},
+]}, options: {...common, scales: {x: {grid: {display: false}}, y: {beginAtZero: true, ticks: {precision: 0}}}}});
+const visits = {"1 visit": 10, "2": 4, "3\u20135": 3, "6+": 6}, spend = {"Under \u20b91K": 1, "\u20b910K\u201325K": 0, "\u20b91K\u20135K": 5, "\u20b925K+": 11, "\u20b95K\u201310K": 6};
+new Chart(document.getElementById('chVisits'), {type: 'doughnut', data: {labels: Object.keys(visits), datasets: [
+  {data: Object.values(visits), backgroundColor: [C3, C1, C2, C4], borderWidth: 0}]}, options: {...common, cutout: '62%'}});
+new Chart(document.getElementById('chSpend'), {type: 'bar', data: {labels: Object.keys(spend), datasets: [
+  {label: 'Customers', data: Object.values(spend), backgroundColor: C1, borderRadius: 4}]},
+  options: {...common, indexAxis: 'y', plugins: {legend: {display: false}}, scales: {x: {beginAtZero: true, ticks: {precision: 0}}, y: {grid: {display: false}}}}});
+</script>
+
+<script>
+  // Most forms put a <label> straight above its box without a for="…", so it
+  // reads right but a screen reader cannot tie the two together and clicking
+  // the label does nothing. Link each such label to the control that follows it.
+  document.querySelectorAll('label:not([for])').forEach(function (l) {
+    if (l.querySelector('input, select, textarea')) return;
+    var c = l.nextElementSibling;
+    if (c && !c.matches('input, select, textarea')) c = c.querySelector('input, select, textarea');
+    if (!c || c.type === 'hidden') return;
+    if (!c.id) c.id = 'fld-' + Math.random().toString(36).slice(2, 9);
+    l.htmlFor = c.id;
+  });
+</script>
+<script src="/pos/static/js/fit.js"></script>
+</body>
+</html>

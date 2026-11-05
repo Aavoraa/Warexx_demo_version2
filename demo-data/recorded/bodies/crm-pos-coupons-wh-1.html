@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="en">
+<head>
+  
+  <script>
+    try { if (window.self !== window.top) document.documentElement.classList.add('in-frame'); }
+    catch (e) { document.documentElement.classList.add('in-frame'); }
+  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+  <title>Sample Company</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="/pos/static/css/app.css">
+  <link rel="manifest" href="/pos/static/manifest.json">
+  <meta name="theme-color" content="#0B3D2E">
+</head>
+<body>
+
+
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top brand-nav">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/pos/">
+      <span class="brand-logo" aria-hidden="true">W</span>
+      <span class="brand-text">
+        <span class="brand-name">Sample Company <span class="brand-tag d-none d-sm-inline">· POS</span></span>
+        <span class="brand-sub d-none d-md-block">Billing, stock and customers for this store</span>
+      </span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
+            aria-controls="nav" aria-expanded="false" aria-label="Open navigation menu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      
+      <span class="frame-title" aria-hidden="true"><i class="bi bi-shop"></i> Store</span>
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link nav-ctl dropdown-toggle d-flex align-items-center gap-2" href="#"
+             data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+            <span>Gift Coupon</span>
+          </a>
+          <ul class="dropdown-menu shadow" style="min-width:320px">
+            
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/">
+                <i class="bi bi-speedometer2 mt-1"></i>
+                <span><strong>Dashboard</strong><br>
+                  <small class="text-muted">Today's sales, low stock and the last few bills</small></span>
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/customers/">
+                <i class="bi bi-people mt-1"></i>
+                <span><strong>Customers</strong><br>
+                  <small class="text-muted">Customer master, loyalty points and history</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/orders/">
+                <i class="bi bi-bag mt-1"></i>
+                <span><strong>Customer Orders</strong><br>
+                  <small class="text-muted">Orders taken for later — what, by when, and what was paid</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/loyalty/">
+                <i class="bi bi-award mt-1"></i>
+                <span><strong>Loyalty Management</strong><br>
+                  <small class="text-muted">Points earned and redeemed, by card, phone or name</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/gift-vouchers/">
+                <i class="bi bi-gift mt-1"></i>
+                <span><strong>Gift Voucher</strong><br>
+                  <small class="text-muted">Sell vouchers by denomination; they are spent at Settlement</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        active"
+                 href="/pos/coupons/">
+                <i class="bi bi-ticket-perforated mt-1"></i>
+                <span><strong>Gift Coupon</strong><br>
+                  <small class="text-muted">Coupon schemes, issuing, rewards to coupon and their history</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/price-list/">
+                <i class="bi bi-tags mt-1"></i>
+                <span><strong>Price List</strong><br>
+                  <small class="text-muted">Price categories, the designs on them and who buys on them</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-analyser/">
+                <i class="bi bi-bar-chart-line mt-1"></i>
+                <span><strong>CRM Analyser</strong><br>
+                  <small class="text-muted">Who buys, how often, how much — and who has stopped coming</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/send-sms/">
+                <i class="bi bi-chat-dots mt-1"></i>
+                <span><strong>Send SMS</strong><br>
+                  <small class="text-muted">Pick customers by what they bought, where and when, and message them</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/">
+                <i class="bi bi-speedometer2 mt-1"></i>
+                <span><strong>Feedback Dashboard</strong><br>
+                  <small class="text-muted">How customers rate the store, question by question</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/questions">
+                <i class="bi bi-patch-question mt-1"></i>
+                <span><strong>Feedback Questions</strong><br>
+                  <small class="text-muted">The questions customers are asked</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/report">
+                <i class="bi bi-clipboard-data mt-1"></i>
+                <span><strong>Feedback Report</strong><br>
+                  <small class="text-muted">Every response with its answers, filtered and exported</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/form">
+                <i class="bi bi-ui-checks mt-1"></i>
+                <span><strong>Feedback Form Config</strong><br>
+                  <small class="text-muted">What the customer&#39;s feedback page asks and says</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/customer-divert/">
+                <i class="bi bi-signpost-split mt-1"></i>
+                <span><strong>Customer Divert</strong><br>
+                  <small class="text-muted">Meet walk-ins at the door and send them to a floor and a salesperson</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/leads/">
+                <i class="bi bi-person-plus mt-1"></i>
+                <span><strong>Lead Management</strong><br>
+                  <small class="text-muted">Enquiries to follow up, and which of them became customers</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/registration/">
+                <i class="bi bi-qr-code mt-1"></i>
+                <span><strong>Self Registration</strong><br>
+                  <small class="text-muted">The sign-up QR, its form, and the sign-ups waiting for approval</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/promotions/">
+                <i class="bi bi-gift mt-1"></i>
+                <span><strong>Promotions</strong><br>
+                  <small class="text-muted">Offers the till applies by itself, and what they have given away</small></span>
+              </a>
+            </li>
+            
+          </ul>
+        </li>
+      </ul>
+      
+      
+    </div>
+  </div>
+</nav>
+
+
+<main class="container-fluid py-3">
+  
+    
+  
+  
+
+<div class="page-head d-print-none">
+  <h4><i class="bi bi-ticket-perforated"></i> Gift Coupon</h4>
+  <a href="/pos/promotions/" class="btn btn-outline-secondary btn-sm"><i class="bi bi-gift"></i> Promotion schemes</a>
+</div>
+
+<ul class="nav nav-tabs mb-3 d-print-none">
+  
+  <li class="nav-item">
+    <a class="nav-link active" href="/pos/coupons/"
+       aria-current="page">
+      <i class="bi bi-sliders"></i> Scheme</a>
+  </li>
+  
+  <li class="nav-item">
+    <a class="nav-link " href="/pos/coupons/history"
+       >
+      <i class="bi bi-clock-history"></i> Transaction History</a>
+  </li>
+  
+  <li class="nav-item">
+    <a class="nav-link " href="/pos/coupons/rewards"
+       >
+      <i class="bi bi-award"></i> Rewards to Coupon</a>
+  </li>
+  
+  <li class="nav-item">
+    <a class="nav-link " href="/pos/coupons/print"
+       >
+      <i class="bi bi-printer"></i> Settlement Coupon Print</a>
+  </li>
+  
+</ul>
+
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-5">
+    <form method="post" action="/pos/coupons/campaigns" class="card p-3 h-100">
+      <div class="fw-semibold mb-2">New campaign</div>
+      <div class="row g-2">
+        <div class="col-12"><label class="form-label small">Name *</label>
+          <input class="form-control form-control-sm" name="name" required placeholder="e.g. Come back soon"></div>
+        <div class="col-6"><label class="form-label small">Worth</label>
+          <select class="form-select form-select-sm" name="kind" id="cpKind">
+            <option value="amount">₹ off</option><option value="percent">% off</option>
+          </select></div>
+        <div class="col-6"><label class="form-label small">Value *</label>
+          <input class="form-control form-control-sm" type="number" step="0.01" min="0.01" name="value" required></div>
+        <div class="col-6"><label class="form-label small">Minimum bill</label>
+          <input class="form-control form-control-sm" type="number" step="0.01" min="0" name="min_bill" value="0"></div>
+        <div class="col-6" id="cpCap"><label class="form-label small">Most it takes off (₹)</label>
+          <input class="form-control form-control-sm" type="number" step="0.01" min="0" name="max_discount" placeholder="no cap"></div>
+        <div class="col-6"><label class="form-label small">Good for (days)</label>
+          <input class="form-control form-control-sm" type="number" min="1" name="valid_days" value="30"></div>
+        <div class="col-6"><label class="form-label small">Uses per coupon</label>
+          <input class="form-control form-control-sm" type="number" min="0" name="uses_per_coupon" value="1">
+          <div class="form-text">0 = no limit</div></div>
+        <div class="col-12">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="issue_at_settlement" id="cpSettle">
+            <label class="form-check-label small" for="cpSettle">Hand one out on every bill of at least…</label>
+          </div>
+          <input class="form-control form-control-sm mt-1" type="number" step="0.01" min="0" aria-label="Minimum bill value" name="settlement_min_bill" value="0">
+          <div class="form-text">The till prints the new code on the bill, for the customer's next visit.</div>
+        </div>
+        <div class="col-12"><button class="btn btn-brand btn-sm">Create campaign</button></div>
+      </div>
+    </form>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card mb-3">
+      <div class="card-header">Campaigns</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+          <thead><tr><th>Name</th><th>Offer</th><th>Rules</th><th class="text-end">Coupons</th><th></th></tr></thead>
+          <tbody>
+            
+            <tr class="">
+              <td>Birthday treat</td>
+              <td class="small">₹300 off on bills of ₹1500+</td>
+              <td class="small">15 days · 1 use
+                </td>
+              <td class="text-end">6</td>
+              <td class="text-end">
+                <form method="post" action="/pos/coupons/campaigns/3/toggle">
+                  <button class="btn btn-sm btn-outline-secondary" title="Switch off">
+                    <i class="bi bi-pause"></i></button>
+                </form>
+              </td>
+            </tr>
+            
+            <tr class="">
+              <td>10% for coming back</td>
+              <td class="small">10% off (up to ₹500) on bills of ₹1000+</td>
+              <td class="small">45 days · 1 use
+                <br><span class="status-badge info sm">auto on bills ≥ ₹3000</span></td>
+              <td class="text-end">6</td>
+              <td class="text-end">
+                <form method="post" action="/pos/coupons/campaigns/2/toggle">
+                  <button class="btn btn-sm btn-outline-secondary" title="Switch off">
+                    <i class="bi bi-pause"></i></button>
+                </form>
+              </td>
+            </tr>
+            
+            <tr class="">
+              <td>Festival ₹200 off</td>
+              <td class="small">₹200 off on bills of ₹2000+</td>
+              <td class="small">30 days · 1 use
+                </td>
+              <td class="text-end">6</td>
+              <td class="text-end">
+                <form method="post" action="/pos/coupons/campaigns/1/toggle">
+                  <button class="btn btn-sm btn-outline-secondary" title="Switch off">
+                    <i class="bi bi-pause"></i></button>
+                </form>
+              </td>
+            </tr>
+            
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    
+    <form method="post" action="/pos/coupons/issue" class="card p-3">
+      <div class="fw-semibold mb-2">Issue coupons</div>
+      <div class="row g-2 align-items-end">
+        <div class="col-md-4"><label class="form-label small">Campaign *</label>
+          <select class="form-select form-select-sm" name="campaign_id" required>
+            <option value="3">Birthday treat</option><option value="2">10% for coming back</option><option value="1">Festival ₹200 off</option>
+          </select></div>
+        <div class="col-4 col-md-2"><label class="form-label small">How many</label>
+          <input class="form-control form-control-sm" type="number" min="1" max="500" name="count" value="1"></div>
+        <div class="col-8 col-md-3"><label class="form-label small">For customer</label>
+          <input class="form-control form-control-sm" name="customer" placeholder="phone — blank = anyone"></div>
+        <div class="col-8 col-md-2"><label class="form-label small">Own code</label>
+          <input class="form-control form-control-sm text-uppercase" name="code" placeholder="auto"></div>
+        <div class="col-4 col-md-1"><button class="btn btn-brand btn-sm w-100">Issue</button></div>
+      </div>
+    </form>
+    
+  </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+  <div class="fw-semibold">Issued coupons</div>
+  <form class="d-flex gap-2" style="max-width:340px">
+    <input class="form-control form-control-sm" name="q" value="" placeholder="Code, customer name or phone">
+    <button class="btn btn-outline-primary btn-sm">Search</button>
+  </form>
+</div>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle">
+      <thead><tr>
+        <th>Code</th><th>Campaign</th><th>Customer</th><th>Valid</th><th>Issued</th>
+        <th class="text-end">Uses</th><th class="text-end">Discount given</th><th>Status</th><th></th>
+      </tr></thead>
+      <tbody>
+        
+        
+        
+        
+        <tr>
+          <td><code class="fs-6">CPN10119</code><br><span class="small text-muted">₹300</span></td>
+          <td class="small">Birthday treat</td>
+          <td class="small"><a href="/pos/customers/10">Dinesh P</a></td>
+          <td class="small text-nowrap">26-10-2026<br>to 20-11-2026</td>
+          <td class="small">by hand</td>
+          <td class="text-end">0 / 1</td>
+          <td class="text-end">₹0.00</td>
+          <td><span class="status-badge success sm">valid</span></td>
+          <td class="text-end">
+            
+            <form method="post" action="/pos/coupons/18/withdraw" onsubmit="return confirm('Withdraw CPN10119? It can no longer be used.')">
+              <button class="btn btn-sm btn-outline-danger" title="Withdraw"><i class="bi bi-x-lg"></i></button>
+            </form>
+            
+          </td>
+        </tr>
+        
+        
+        
+        
+        <tr>
+          <td><code class="fs-6">CPN10112</code><br><span class="small text-muted">₹10</span></td>
+          <td class="small">10% for coming back</td>
+          <td class="small"><a href="/pos/customers/16">Janani R</a></td>
+          <td class="small text-nowrap">26-10-2026<br>to 20-12-2026</td>
+          <td class="small">by hand</td>
+          <td class="text-end">0 / 1</td>
+          <td class="text-end">₹0.00</td>
+          <td><span class="status-badge success sm">valid</span></td>
+          <td class="text-end">
+            
+            <form method="post" action="/pos/coupons/17/withdraw" onsubmit="return confirm('Withdraw CPN10112? It can no longer be used.')">
+              <button class="btn btn-sm btn-outline-danger" title="Withdraw"><i class="bi bi-x-lg"></i></button>
+            </form>
+            
+          </td>
+        </tr>
+        
+        
+        
+        
+        <tr>
+          <td><code class="fs-6">CPN10105</code><br><span class="small text-muted">₹200</span></td>
+          <td class="small">Festival ₹200 off</td>
+          <td class="small"><a href="/pos/customers/9">Chitra K</a></td>
+          <td class="small text-nowrap">26-10-2026<br>to 05-12-2026</td>
+          <td class="small">by hand</td>
+          <td class="text-end">0 / 1</td>
+          <td class="text-end">₹0.00</td>
+          <td><span class="status-badge success sm">valid</span></td>
+          <td class="text-end">
+            
+            <form method="post" action="/pos/coupons/16/withdraw" onsubmit="return confirm('Withdraw CPN10105? It can no longer be used.')">
+              <button class="btn btn-sm btn-outline-danger" title="Withdraw"><i class="bi bi-x-lg"></i></button>
+            </form>
+            
+          </td>
+        </tr>
+        
+        
+        
+        
+        <tr>
+          <td><code class="fs-6">CPN10098</code><br><span class="small text-muted">₹300</span></td>
+          <td class="small">Birthday treat</td>
+          <td class="small"><a href="/pos/customers/14">Harini R</a></td>
+          <td class="small text-nowrap">26-10-2026<br>to 20-11-2026</td>
+          <td class="small">by hand</td>
+          <td class="text-end">0 / 1</td>
+          <td class="text-end">₹0.00</td>
+          <td><span class="status-badge success sm">valid</span></td>
+          <td class="text-end">
+            
+            <form method="post" action="/pos/coupons/15/withdraw" onsubmit="return confirm('Withdraw CPN10098? It can no longer be used.')">
+              <button class="btn btn-sm btn-outline-danger" title="Withdraw"><i class="bi bi-x-lg"></i></button>
+            </form>
+            
+          </td>
+        </tr>
+        
+        
+        
+        
+        <tr>
+          <td><code class="fs-6">CPN10091</code><br><span class="small text-muted">₹10</span></td>
+          <td class="small">10% for coming back</td>
+          <td class="small"><a href="/pos/customers/28">Yamini A</a></td>
+          <td class="small text-nowrap">26-10-2026<br>to 20-12-2026</td>
+          <td class="small">by hand</td>
+          <td class="text-end">0 / 1</td>
+          <td class="text-end">₹0.00</td>
+          <td><span class="status-badge success sm">valid</span></td>
+          <td class="text-end">
+            
+            <form method="post" action="/pos/coupons/14/withdraw" onsubmit="return confirm('Withdraw CPN10091? It can no longer be used.')">
+              <button class="btn btn-sm btn-outline-danger" title="Withdraw"><i class="bi bi-x-lg"></i></button>
+            </form>
+            
+          </td>
+        </tr>
+        
+        
+        
+        
+        <tr>
+          <td><code class="fs-6">CPN10084</code><br><span class="small text-muted">₹200</span></td>
+          <td class="small">Festival ₹200 off</td>
+          <td class="small"><a href="/pos/customers/29">Zara V</a></td>
+          <td class="small text-nowrap">26-10-2026<br>to 05-12-2026</td>
+          <td class="small">by hand</td>
+          <td class="text-end">0 / 1</td>
+          <td class="text-end">₹0.00</td>
+          <td><span class="status-badge success sm">valid</span></td>
+          <td class="text-end">
+            
+            <form method="post" action="/pos/coupons/13/withdraw" onsubmit="return confirm('Withdraw CPN10084? It can no longer be used.')">
+              <button class="btn btn-sm btn-outline-danger" title="Withdraw"><i class="bi bi-x-lg"></i></button>
+            </form>
+            
+          </td>
+        </tr>
+        
+        
+        
+        
+        <tr>
+          <td><code class="fs-6">CPN10077</code><br><span class="small text-muted">₹300</span></td>
+          <td class="small">Birthday treat</td>
+          <td class="small"><a href="/pos/customers/15">Ilango N</a></td>
+          <td class="small text-nowrap">26-10-2026<br>to 20-11-2026</td>
+          <td class="small">by hand</td>
+          <td class="text-end">0 / 1</td>
+          <td class="text-end">₹0.00</td>
+          <td><span class="status-badge success sm">valid</span></td>
+          <td class="text-end">
+            
+            <form method="post" action="/pos/coupons/12/withdraw" onsubmit="return confirm('Withdraw CPN10077? It can no longer be used.')">
+              <button class="btn btn-sm btn-outline-danger" title="Withdraw"><i class="bi bi-x-lg"></i></button>
+            </form>
+            
+          </td>
+        </tr>
+        
+        
+        
+        
+        <tr>
+          <td><code class="fs-6">CPN10070</code><br><span class="small text-muted">₹10</span></td>
+          <td class="small">10% for coming back</td>
+          <td class="small"><a href="/pos/customers/3">Deepa Krishnan</a></td>
+          <td class="small text-nowrap">26-10-2026<br>to 20-12-2026</td>
+          <td class="small">by hand</td>
+          <td class="text-end">0 / 1</td>
+          <td class="text-end">₹0.00</td>
+          <td><span class="status-badge success sm">valid</span></td>
+          <td class="text-end">
+            
+            <form method="post" action="/pos/coupons/11/withdraw" onsubmit="return confirm('Withdraw CPN10070? It can no longer be used.')">
+              <button class="btn btn-sm btn-outline-danger" title="Withdraw"><i class="bi bi-x-lg"></i></button>
+            </form>
+            
+          </td>
+        </tr>
+        
+        
+        
+        
+        <tr>
+          <td><code class="fs-6">CPN10063</code><br><span class="small text-muted">₹200</span></td>
+          <td class="small">Festival ₹200 off</td>
+          <td class="small"><a href="/pos/customers/13">Ganesh A</a></td>
+          <td class="small text-nowrap">26-10-2026<br>to 05-12-2026</td>
+          <td class="small">by hand</td>
+          <td class="text-end">0 / 1</td>
+          <td class="text-end">₹0.00</td>
+          <td><span class="status-badge success sm">valid</span></td>
+          <td class="text-end">
+            
+            <form method="post" action="/pos/coupons/10/withdraw" onsubmit="return confirm('Withdraw CPN10063? It can no longer be used.')">
+              <button class="btn btn-sm btn-outline-danger" title="Withdraw"><i class="bi bi-x-lg"></i></button>
+            </form>
+            
+          </td>
+        </tr>
+        
+        
+        
+        
+        <tr>
+          <td><code class="fs-6">CPN10056</code><br><span class="small text-muted">₹300</span></td>
+          <td class="small">Birthday treat</td>
+          <td class="small"><a href="/pos/customers/12">Fathima K</a></td>
+          <td class="small text-nowrap">26-10-2026<br>to 20-11-2026</td>
+          <td class="small">by hand</td>
+          <td class="text-end">0 / 1</td>
+          <td class="text-end">₹0.00</td>
+          <td><span class="status-badge success sm">valid</span></td>
+          <td class="text-end">
+            
+            <form method="post" action="/pos/coupons/9/withdraw" onsubmit="return confirm('Withdraw CPN10056? It can no longer be used.')">
+              <button class="btn btn-sm btn-outline-danger" title="Withdraw"><i class="bi bi-x-lg"></i></button>
+            </form>
+            
+          </td>
+        </tr>
+        
+        
+        
+        
+        <tr>
+          <td><code class="fs-6">CPN10049</code><br><span class="small text-muted">₹10</span></td>
+          <td class="small">10% for coming back</td>
+          <td class="small"><a href="/pos/customers/32">Hari R</a></td>
+          <td class="small text-nowrap">26-10-2026<br>to 20-12-2026</td>
+          <td class="small">by hand</td>
+          <td class="text-end">0 / 1</td>
+          <td class="text-end">₹0.00</td>
+          <td><span class="status-badge success sm">valid</span></td>
+          <td class="text-end">
+            
+            <form method="post" action="/pos/coupons/8/withdraw" onsubmit="return confirm('Withdraw CPN10049? It can no longer be used.')">
+              <button class="btn btn-sm btn-outline-danger" title="Withdraw"><i class="bi bi-x-lg"></i></button>
+            </form>
+            
+          </td>
+        </tr>
+        
+        
+        
+        
+        <tr>
+          <td><code class="fs-6">CPN10042</code><br><span class="small text-muted">₹200</span></td>
+          <td class="small">Festival ₹200 off</td>
+          <td class="small"><a href="/pos/customers/19">Manoj M</a></td>
+          <td class="small text-nowrap">26-10-2026<br>to 05-12-2026</td>
+          <td class="small">by hand</td>
+          <td class="text-end">0 / 1</td>
+          <td class="text-end">₹0.00</td>
+          <td><span class="status-badge success sm">valid</span></td>
+          <td class="text-end">
+            
+            <form method="post" action="/pos/coupons/7/withdraw" onsubmit="return confirm('Withdraw CPN10042? It can no longer be used.')">
+              <button class="btn btn-sm btn-outline-danger" title="Withdraw"><i class="bi bi-x-lg"></i></button>
+            </form>
+            
+          </td>
+        </tr>
+        
+        
+        
+        
+        <tr>
+          <td><code class="fs-6">CPN10035</code><br><span class="small text-muted">₹300</span></td>
+          <td class="small">Birthday treat</td>
+          <td class="small"><a href="/pos/customers/30">Bala N</a></td>
+          <td class="small text-nowrap">26-10-2026<br>to 20-11-2026</td>
+          <td class="small">by hand</td>
+          <td class="text-end">0 / 1</td>
+          <td class="text-end">₹0.00</td>
+          <td><span class="status-badge success sm">valid</span></td>
+          <td class="text-end">
+            
+            <form method="post" action="/pos/coupons/6/withdraw" onsubmit="return confirm('Withdraw CPN10035? It can no longer be used.')">
+              <button class="btn btn-sm btn-outline-danger" title="Withdraw"><i class="bi bi-x-lg"></i></button>
+            </form>
+            
+          </td>
+        </tr>
+        
+        
+        
+        
+        <tr>
+          <td><code class="fs-6">CPN10028</code><br><span class="small text-muted">₹10</span></td>
+          <td class="small">10% for coming back</td>
+          <td class="small"><a href="/pos/customers/21">Oviya M</a></td>
+          <td class="small text-nowrap">26-10-2026<br>to 20-12-2026</td>
+          <td class="small">by hand</td>
+          <td class="text-end">0 / 1</td>
+          <td class="text-end">₹0.00</td>
+          <td><span class="status-badge success sm">valid</span></td>
+          <td class="text-end">
+            
+            <form method="post" action="/pos/coupons/5/withdraw" onsubmit="return confirm('Withdraw CPN10028? It can no longer be used.')">
+              <button class="btn btn-sm btn-outline-danger" title="Withdraw"><i class="bi bi-x-lg"></i></button>
+            </form>
+            
+          </td>
+        </tr>
+        
+        
+        
+        
+        <tr>
+          <td><code class="fs-6">CPN10021</code><br><span class="small text-muted">₹200</span></td>
+          <td class="small">Festival ₹200 off</td>
+          <td class="small"><a href="/pos/customers/33">Indira K</a></td>
+          <td class="small text-nowrap">26-10-2026<br>to 05-12-2026</td>
+          <td class="small">by hand</td>
+          <td class="text-end">0 / 1</td>
+          <td class="text-end">₹0.00</td>
+          <td><span class="status-badge success sm">valid</span></td>
+          <td class="text-end">
+            
+            <form method="post" action="/pos/coupons/4/withdraw" onsubmit="return confirm('Withdraw CPN10021? It can no longer be used.')">
+              <button class="btn btn-sm btn-outline-danger" title="Withdraw"><i class="bi bi-x-lg"></i></button>
+            </form>
+            
+          </td>
+        </tr>
+        
+        
+        
+        
+        <tr>
+          <td><code class="fs-6">CPN10014</code><br><span class="small text-muted">₹300</span></td>
+          <td class="small">Birthday treat</td>
+          <td class="small"><a href="/pos/customers/24">Sanjay V</a></td>
+          <td class="small text-nowrap">26-10-2026<br>to 20-11-2026</td>
+          <td class="small">by hand</td>
+          <td class="text-end">0 / 1</td>
+          <td class="text-end">₹0.00</td>
+          <td><span class="status-badge success sm">valid</span></td>
+          <td class="text-end">
+            
+            <form method="post" action="/pos/coupons/3/withdraw" onsubmit="return confirm('Withdraw CPN10014? It can no longer be used.')">
+              <button class="btn btn-sm btn-outline-danger" title="Withdraw"><i class="bi bi-x-lg"></i></button>
+            </form>
+            
+          </td>
+        </tr>
+        
+        
+        
+        
+        <tr>
+          <td><code class="fs-6">CPN10007</code><br><span class="small text-muted">₹10</span></td>
+          <td class="small">10% for coming back</td>
+          <td class="small"><a href="/pos/customers/6">Rajesh Sharma</a></td>
+          <td class="small text-nowrap">26-10-2026<br>to 20-12-2026</td>
+          <td class="small">by hand</td>
+          <td class="text-end">0 / 1</td>
+          <td class="text-end">₹0.00</td>
+          <td><span class="status-badge success sm">valid</span></td>
+          <td class="text-end">
+            
+            <form method="post" action="/pos/coupons/2/withdraw" onsubmit="return confirm('Withdraw CPN10007? It can no longer be used.')">
+              <button class="btn btn-sm btn-outline-danger" title="Withdraw"><i class="bi bi-x-lg"></i></button>
+            </form>
+            
+          </td>
+        </tr>
+        
+        
+        
+        
+        <tr>
+          <td><code class="fs-6">CPN10000</code><br><span class="small text-muted">₹200</span></td>
+          <td class="small">Festival ₹200 off</td>
+          <td class="small"><a href="/pos/customers/5">Lakshmi Devi</a></td>
+          <td class="small text-nowrap">26-10-2026<br>to 05-12-2026</td>
+          <td class="small">by hand</td>
+          <td class="text-end">0 / 1</td>
+          <td class="text-end">₹0.00</td>
+          <td><span class="status-badge success sm">valid</span></td>
+          <td class="text-end">
+            
+            <form method="post" action="/pos/coupons/1/withdraw" onsubmit="return confirm('Withdraw CPN10000? It can no longer be used.')">
+              <button class="btn btn-sm btn-outline-danger" title="Withdraw"><i class="bi bi-x-lg"></i></button>
+            </form>
+            
+          </td>
+        </tr>
+        
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const kind = document.getElementById('cpKind'), cap = document.getElementById('cpCap');
+    const sync = () => { cap.hidden = kind.value !== 'percent'; };
+    kind.addEventListener('change', sync); sync();
+  })();
+</script>
+
+</main>
+
+<script>
+  // Where the shop is mounted: '' when it runs on its own, '/pos' when it is
+  // served inside the WAREXX backend. Every same-app fetch is written against this
+  // — a hardcoded '/floor/…' is right standalone and 404s under the mount, where
+  // it lands on the backend's own routes instead of the shop's.
+  const SHOP_ROOT = "/pos";
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  // Every chart on every screen in the design's colours: gridlines in the border
+  // green-grey, 11px muted axis text, a dark-green tooltip. Set once, here, before
+  // any page draws a chart.
+  if (window.Chart) {
+    Chart.defaults.font.family = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    Chart.defaults.font.size = 11;
+    Chart.defaults.color = '#68756E';
+    Chart.defaults.borderColor = '#DCE5DF';
+    Object.assign(Chart.defaults.plugins.tooltip, {
+      backgroundColor: '#0B3D2E', titleColor: '#FFFFFF', bodyColor: '#E7F4EC',
+      cornerRadius: 8, padding: 8, displayColors: false,
+      titleFont: {size: 11, weight: '600'}, bodyFont: {size: 11},
+    });
+  }
+</script>
+
+<script>
+  // Most forms put a <label> straight above its box without a for="…", so it
+  // reads right but a screen reader cannot tie the two together and clicking
+  // the label does nothing. Link each such label to the control that follows it.
+  document.querySelectorAll('label:not([for])').forEach(function (l) {
+    if (l.querySelector('input, select, textarea')) return;
+    var c = l.nextElementSibling;
+    if (c && !c.matches('input, select, textarea')) c = c.querySelector('input, select, textarea');
+    if (!c || c.type === 'hidden') return;
+    if (!c.id) c.id = 'fld-' + Math.random().toString(36).slice(2, 9);
+    l.htmlFor = c.id;
+  });
+</script>
+<script src="/pos/static/js/fit.js"></script>
+</body>
+</html>

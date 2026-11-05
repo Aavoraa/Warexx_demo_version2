@@ -7,7 +7,7 @@
  * stored. Writes are acknowledged so the screens behave, and the recorded data
  * comes back on the next read — the demo resets itself on every reload.
  */
-const VERSION = 'wx-demo-v3'
+const VERSION = 'wx-demo-v4'
 const DATA = new URL('./data/', self.registration.scope).href
 
 self.addEventListener('install', () => self.skipWaiting())
@@ -311,6 +311,12 @@ async function answer(req, url) {
     return e ? replay(e) : json({ detail: `No product for '${url.searchParams.get('code')}'` }, 404)
   }
 
+  // HR's people: an employee added or edited in the demo is kept for the visit
+  // (the recording cannot know them), so the record that was saved is the one
+  // shown back — not the nearest recorded person.
+  const hrEmp = await hrEmployeeAnswer(m, req, method, path, url)
+  if (hrEmp) return hrEmp
+
   const hit = m.exact.get(key) || m.exact.get(`${method} - ${path}${url.search}`)
     || pick(m.byPath.get(`${method} ${wh} ${path}`), url)
     || pick(m.byPath.get(`${method} * ${path}`), url)
@@ -359,6 +365,75 @@ async function sampleInvoice(m, wh, path) {
   if (!sample) return json({ detail: message }, 409)
   return json({ ...sample, demo: true, message, supplier_recognised: !!sample.document.supplier_id,
     profile_used: false, lr_filled: [] })
+}
+
+// ---- HR employees kept for the visit (demo-data/tools/record_hr.py recorded the rest) ----
+// Added people get ids from 9001 up; an edit to a recorded person is laid over
+// their recorded record. Both are gone on reload, like every save in the demo.
+const HR_ADDED = new Map(), HR_EDITED = new Map()
+let hrNextId = 9000
+const EMP_RE = /^\/api\/hr\/employees\/(\d+)$/
+const recordedBody = async (m, key) => {
+  const e = m.exact.get(key)
+  if (!e) return null
+  try { return await (await replay(e)).json() } catch { return null }
+}
+async function hrBody(req) {
+  try { return await req.clone().json() } catch { return {} }
+}
+// names for the ids a form sends, from the recorded options
+async function hrNamed(m, rec) {
+  const o = (await recordedBody(m, 'GET - /api/hr/options')) || {}
+  const nameOf = (list, id) => ((list || []).find((x) => String(x.id) === String(id)) || {}).name || ''
+  const sal = rec.salary || {}
+  return { ...rec,
+    department: nameOf(o.departments, rec.department_id), designation: nameOf(o.designations, rec.designation_id),
+    shift: nameOf(o.shifts, rec.shift_id), manager: nameOf(o.employees, rec.reporting_to_id) || null,
+    gross: Object.values(sal).reduce((a, v) => a + (+v || 0), 0) }
+}
+async function hrEmployeeAnswer(m, req, method, path, url) {
+  if (!path.startsWith('/api/hr/employees')) return null
+  if (method === 'POST' && path === '/api/hr/employees') {
+    const b = await hrBody(req)
+    if (!String(b.name || '').trim()) return json({ detail: 'Give the employee a name' }, 400)
+    if (!b.joined_on) return json({ detail: 'When did they join? Put in the joining date' }, 400)
+    const id = ++hrNextId
+    const today = new Date().toISOString().slice(0, 10)
+    const rec = await hrNamed(m, { ...b, id, code: b.code || 'EMP' + String(15 + HR_ADDED.size).padStart(4, '0'),   // the recording holds EMP0001–EMP0014
+      status: 'active',
+      photo: null, service: '', contracts: [], documents: [], reports: [], leave: [], advances: [],
+      history: [{ id: 1, kind: 'Joined', date: b.joined_on, detail: 'Added in the demo', by: 'Sample Admin', at: today }] })
+    HR_ADDED.set(id, rec)
+    return json(rec)
+  }
+  const one = path.match(EMP_RE)
+  if (one) {
+    const id = +one[1]
+    const base = HR_ADDED.get(id) || HR_EDITED.get(id) || await recordedBody(m, `GET - ${path}`)
+    if (!base) return null
+    if (method === 'PUT') {
+      const rec = await hrNamed(m, { ...base, ...(await hrBody(req)), id })
+      ;(HR_ADDED.has(id) ? HR_ADDED : HR_EDITED).set(id, rec)
+      return json(rec)
+    }
+    if (method === 'GET') return (HR_ADDED.has(id) || HR_EDITED.has(id)) ? json(base) : null
+    return null
+  }
+  if (method === 'GET' && path === '/api/hr/employees' && (HR_ADDED.size || HR_EDITED.size)) {
+    const e = m.exact.get(`GET - ${path}${url.search}`) || pick(m.byPath.get(`GET * ${path}`), url)
+    if (!e) return null
+    let rows = []
+    try { rows = await (await replay(e)).json() } catch { return null }
+    if (!Array.isArray(rows)) return null
+    rows = rows.map((r) => (HR_EDITED.has(r.id) ? { ...r, ...HR_EDITED.get(r.id) } : r))
+    const st = url.searchParams.get('status') || ''
+    const q = (url.searchParams.get('q') || '').toLowerCase()
+    if (!st || st === 'current' || st === 'all') {
+      rows = rows.concat([...HR_ADDED.values()].filter((r) => !q || r.name.toLowerCase().includes(q)))
+    }
+    return json(rows)
+  }
+  return null
 }
 
 // Of several recorded answers for one path, the one whose query shares the

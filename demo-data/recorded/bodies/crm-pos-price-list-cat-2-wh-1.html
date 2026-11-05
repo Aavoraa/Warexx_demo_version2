@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+<head>
+  
+  <script>
+    try { if (window.self !== window.top) document.documentElement.classList.add('in-frame'); }
+    catch (e) { document.documentElement.classList.add('in-frame'); }
+  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+  <title>Sample Company</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="/pos/static/css/app.css">
+  <link rel="manifest" href="/pos/static/manifest.json">
+  <meta name="theme-color" content="#0B3D2E">
+</head>
+<body>
+
+
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top brand-nav">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/pos/">
+      <span class="brand-logo" aria-hidden="true">W</span>
+      <span class="brand-text">
+        <span class="brand-name">Sample Company <span class="brand-tag d-none d-sm-inline">· POS</span></span>
+        <span class="brand-sub d-none d-md-block">Billing, stock and customers for this store</span>
+      </span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
+            aria-controls="nav" aria-expanded="false" aria-label="Open navigation menu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      
+      <span class="frame-title" aria-hidden="true"><i class="bi bi-shop"></i> Store</span>
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link nav-ctl dropdown-toggle d-flex align-items-center gap-2" href="#"
+             data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+            <span>Price List</span>
+          </a>
+          <ul class="dropdown-menu shadow" style="min-width:320px">
+            
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/">
+                <i class="bi bi-speedometer2 mt-1"></i>
+                <span><strong>Dashboard</strong><br>
+                  <small class="text-muted">Today's sales, low stock and the last few bills</small></span>
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/customers/">
+                <i class="bi bi-people mt-1"></i>
+                <span><strong>Customers</strong><br>
+                  <small class="text-muted">Customer master, loyalty points and history</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/orders/">
+                <i class="bi bi-bag mt-1"></i>
+                <span><strong>Customer Orders</strong><br>
+                  <small class="text-muted">Orders taken for later — what, by when, and what was paid</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/loyalty/">
+                <i class="bi bi-award mt-1"></i>
+                <span><strong>Loyalty Management</strong><br>
+                  <small class="text-muted">Points earned and redeemed, by card, phone or name</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/gift-vouchers/">
+                <i class="bi bi-gift mt-1"></i>
+                <span><strong>Gift Voucher</strong><br>
+                  <small class="text-muted">Sell vouchers by denomination; they are spent at Settlement</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/coupons/">
+                <i class="bi bi-ticket-perforated mt-1"></i>
+                <span><strong>Gift Coupon</strong><br>
+                  <small class="text-muted">Coupon schemes, issuing, rewards to coupon and their history</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        active"
+                 href="/pos/price-list/">
+                <i class="bi bi-tags mt-1"></i>
+                <span><strong>Price List</strong><br>
+                  <small class="text-muted">Price categories, the designs on them and who buys on them</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-analyser/">
+                <i class="bi bi-bar-chart-line mt-1"></i>
+                <span><strong>CRM Analyser</strong><br>
+                  <small class="text-muted">Who buys, how often, how much — and who has stopped coming</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/send-sms/">
+                <i class="bi bi-chat-dots mt-1"></i>
+                <span><strong>Send SMS</strong><br>
+                  <small class="text-muted">Pick customers by what they bought, where and when, and message them</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/">
+                <i class="bi bi-speedometer2 mt-1"></i>
+                <span><strong>Feedback Dashboard</strong><br>
+                  <small class="text-muted">How customers rate the store, question by question</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/questions">
+                <i class="bi bi-patch-question mt-1"></i>
+                <span><strong>Feedback Questions</strong><br>
+                  <small class="text-muted">The questions customers are asked</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/report">
+                <i class="bi bi-clipboard-data mt-1"></i>
+                <span><strong>Feedback Report</strong><br>
+                  <small class="text-muted">Every response with its answers, filtered and exported</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/form">
+                <i class="bi bi-ui-checks mt-1"></i>
+                <span><strong>Feedback Form Config</strong><br>
+                  <small class="text-muted">What the customer&#39;s feedback page asks and says</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/customer-divert/">
+                <i class="bi bi-signpost-split mt-1"></i>
+                <span><strong>Customer Divert</strong><br>
+                  <small class="text-muted">Meet walk-ins at the door and send them to a floor and a salesperson</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/leads/">
+                <i class="bi bi-person-plus mt-1"></i>
+                <span><strong>Lead Management</strong><br>
+                  <small class="text-muted">Enquiries to follow up, and which of them became customers</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/registration/">
+                <i class="bi bi-qr-code mt-1"></i>
+                <span><strong>Self Registration</strong><br>
+                  <small class="text-muted">The sign-up QR, its form, and the sign-ups waiting for approval</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/promotions/">
+                <i class="bi bi-gift mt-1"></i>
+                <span><strong>Promotions</strong><br>
+                  <small class="text-muted">Offers the till applies by itself, and what they have given away</small></span>
+              </a>
+            </li>
+            
+          </ul>
+        </li>
+      </ul>
+      
+      
+    </div>
+  </div>
+</nav>
+
+
+<main class="container-fluid py-3">
+  
+    
+  
+  
+<div class="page-head">
+  <h4><i class="bi bi-tags"></i> Price List</h4>
+  <div class="d-flex gap-2">
+    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#catModal" data-mode="new"><i class="bi bi-plus"></i> Create category</button>
+    <button form="pricesForm" class="btn btn-brand btn-sm"><i class="bi bi-save"></i> Save prices</button>
+  </div>
+</div>
+
+<div class="row g-3">
+  
+  <div class="col-lg-3">
+    <div class="card h-100">
+      <div class="card-header">Category</div>
+      <div class="list-group list-group-flush">
+        
+        <a href="/pos/price-list/?cat=3"
+           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center "
+           >
+          <span>Bulk order (50+)
+            <br><small class="text-muted">8% off the rest · 0 customer(s)</small></span>
+          <i class="bi bi-chevron-right"></i>
+        </a>
+        
+        <a href="/pos/price-list/?cat=2"
+           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center active"
+           aria-current="true">
+          <span>Staff
+            <br><small class="">20% off the rest · 0 customer(s)</small></span>
+          <i class="bi bi-chevron-right"></i>
+        </a>
+        
+        <a href="/pos/price-list/?cat=1"
+           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center "
+           >
+          <span>Wholesale
+            <br><small class="text-muted">12% off the rest · 4 customer(s)</small></span>
+          <i class="bi bi-chevron-right"></i>
+        </a>
+        
+      </div>
+      
+      <div class="card-footer d-flex gap-2">
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#catModal" data-mode="edit"><i class="bi bi-pencil"></i> Edit</button>
+        <form method="post" action="/pos/price-list/category/2/toggle">
+          <button class="btn btn-sm btn-outline-secondary">Switch off</button></form>
+      </div>
+      
+    </div>
+  </div>
+
+  
+  
+  <div class="col-lg-5">
+    <form method="post" action="/pos/price-list/2/prices" id="pricesForm" class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center gap-2">
+        <span>Design <span class="small text-muted">· priced on Staff</span></span>
+        <input class="form-control form-control-sm" style="max-width:170px" placeholder="Filter designs" value=""
+               aria-label="Filter designs" onkeydown="if(event.key==='Enter'){event.preventDefault();location='/pos/price-list/?cat=2&amp;cq=&dq='+encodeURIComponent(this.value)}">
+      </div>
+      <div class="table-responsive" style="max-height:460px">
+        <table class="table table-sm mb-0 align-middle">
+          <thead><tr><th>Design no</th><th>Item</th><th class="text-end">Ordinary</th><th style="width:120px">List price</th><th class="text-center">Off</th></tr></thead>
+          <tbody>
+            
+            
+            <tr>
+              <td class="font-monospace small">SH-001</td>
+              <td class="small"><span class="text-muted">not in the catalogue</span></td>
+              <td class="text-end small">—</td>
+              <td><input class="form-control form-control-sm text-end" type="number" min="0" step="0.01" name="price_18" value="680.00" aria-label="Price for SH-001"></td>
+              <td class="text-center"><input class="form-check-input" type="checkbox" name="del_18" title="Take this design off the list" aria-label="Remove SH-001"></td>
+            </tr>
+            
+            
+            <tr>
+              <td class="font-monospace small">SH-002</td>
+              <td class="small"><span class="text-muted">not in the catalogue</span></td>
+              <td class="text-end small">—</td>
+              <td><input class="form-control form-control-sm text-end" type="number" min="0" step="0.01" name="price_20" value="680.00" aria-label="Price for SH-002"></td>
+              <td class="text-center"><input class="form-check-input" type="checkbox" name="del_20" title="Take this design off the list" aria-label="Remove SH-002"></td>
+            </tr>
+            
+            
+            <tr>
+              <td class="font-monospace small">SL-001</td>
+              <td class="small"><span class="text-muted">not in the catalogue</span></td>
+              <td class="text-end small">—</td>
+              <td><input class="form-control form-control-sm text-end" type="number" min="0" step="0.01" name="price_12" value="2560.00" aria-label="Price for SL-001"></td>
+              <td class="text-center"><input class="form-check-input" type="checkbox" name="del_12" title="Take this design off the list" aria-label="Remove SL-001"></td>
+            </tr>
+            
+            
+            <tr>
+              <td class="font-monospace small">SL-002</td>
+              <td class="small"><span class="text-muted">not in the catalogue</span></td>
+              <td class="text-end small">—</td>
+              <td><input class="form-control form-control-sm text-end" type="number" min="0" step="0.01" name="price_14" value="1120.00" aria-label="Price for SL-002"></td>
+              <td class="text-center"><input class="form-check-input" type="checkbox" name="del_14" title="Take this design off the list" aria-label="Remove SL-002"></td>
+            </tr>
+            
+            
+            <tr>
+              <td class="font-monospace small">SL-003</td>
+              <td class="small"><span class="text-muted">not in the catalogue</span></td>
+              <td class="text-end small">—</td>
+              <td><input class="form-control form-control-sm text-end" type="number" min="0" step="0.01" name="price_16" value="12000.00" aria-label="Price for SL-003"></td>
+              <td class="text-center"><input class="form-check-input" type="checkbox" name="del_16" title="Take this design off the list" aria-label="Remove SL-003"></td>
+            </tr>
+            
+            
+            <tr>
+              <td class="font-monospace small">SR-001</td>
+              <td class="small"><span class="text-muted">not in the catalogue</span></td>
+              <td class="text-end small">—</td>
+              <td><input class="form-control form-control-sm text-end" type="number" min="0" step="0.01" name="price_2" value="6800.00" aria-label="Price for SR-001"></td>
+              <td class="text-center"><input class="form-check-input" type="checkbox" name="del_2" title="Take this design off the list" aria-label="Remove SR-001"></td>
+            </tr>
+            
+            
+            <tr>
+              <td class="font-monospace small">SR-002</td>
+              <td class="small"><span class="text-muted">not in the catalogue</span></td>
+              <td class="text-end small">—</td>
+              <td><input class="form-control form-control-sm text-end" type="number" min="0" step="0.01" name="price_4" value="7600.00" aria-label="Price for SR-002"></td>
+              <td class="text-center"><input class="form-check-input" type="checkbox" name="del_4" title="Take this design off the list" aria-label="Remove SR-002"></td>
+            </tr>
+            
+            
+            <tr>
+              <td class="font-monospace small">SR-003</td>
+              <td class="small"><span class="text-muted">not in the catalogue</span></td>
+              <td class="text-end small">—</td>
+              <td><input class="form-control form-control-sm text-end" type="number" min="0" step="0.01" name="price_6" value="960.00" aria-label="Price for SR-003"></td>
+              <td class="text-center"><input class="form-check-input" type="checkbox" name="del_6" title="Take this design off the list" aria-label="Remove SR-003"></td>
+            </tr>
+            
+            
+            <tr>
+              <td class="font-monospace small">SR-004</td>
+              <td class="small"><span class="text-muted">not in the catalogue</span></td>
+              <td class="text-end small">—</td>
+              <td><input class="form-control form-control-sm text-end" type="number" min="0" step="0.01" name="price_8" value="2240.00" aria-label="Price for SR-004"></td>
+              <td class="text-center"><input class="form-check-input" type="checkbox" name="del_8" title="Take this design off the list" aria-label="Remove SR-004"></td>
+            </tr>
+            
+            
+            <tr>
+              <td class="font-monospace small">SR-005</td>
+              <td class="small"><span class="text-muted">not in the catalogue</span></td>
+              <td class="text-end small">—</td>
+              <td><input class="form-control form-control-sm text-end" type="number" min="0" step="0.01" name="price_10" value="1440.00" aria-label="Price for SR-005"></td>
+              <td class="text-center"><input class="form-check-input" type="checkbox" name="del_10" title="Take this design off the list" aria-label="Remove SR-005"></td>
+            </tr>
+            
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer">
+        <div class="small fw-semibold mb-1">Create design</div>
+        <div class="input-group input-group-sm">
+          <input class="form-control" name="new_design" id="newDesign" list="dlDesigns" placeholder="Design no" autocomplete="off" aria-label="Design no">
+          <datalist id="dlDesigns"></datalist>
+          <input class="form-control" name="new_price" type="number" min="0" step="0.01" placeholder="List price" style="max-width:120px" aria-label="List price">
+          <button class="btn btn-brand"><i class="bi bi-plus"></i> Add</button>
+        </div>
+        <div class="small text-muted mt-1" id="designHint"></div>
+      </div>
+    </form>
+  </div>
+
+  
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center gap-2">
+        <span>Customers</span>
+        <form class="m-0"><input type="hidden" name="cat" value="2"><input type="hidden" name="dq" value="">
+          <input class="form-control form-control-sm" name="cq" value="" placeholder="Filter" style="max-width:150px" aria-label="Filter customers"></form>
+      </div>
+      <form method="post" action="/pos/price-list/2/customers" class="p-2 border-bottom">
+        <div class="input-group input-group-sm">
+          <input class="form-control" name="customer" placeholder="Mobile, card or customer code" required aria-label="Customer to add">
+          <button class="btn btn-outline-primary"><i class="bi bi-person-plus"></i> Add</button>
+        </div>
+      </form>
+      <form method="post" action="/pos/price-list/2/customers/remove">
+        <div class="table-responsive" style="max-height:400px">
+          <table class="table table-sm mb-0 align-middle">
+            <tbody>
+              
+              <tr><td class="text-center text-muted p-3 small">Nobody buys on Staff yet.</td></tr>
+              
+            </tbody>
+          </table>
+        </div>
+        
+      </form>
+    </div>
+  </div>
+  
+</div>
+
+<div class="modal fade" id="catModal" tabindex="-1" aria-labelledby="catTitle" aria-hidden="true">
+  <div class="modal-dialog modal-sm"><form method="post" action="/pos/price-list/category" class="modal-content">
+    <div class="modal-header"><h6 class="modal-title" id="catTitle">Price category</h6><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-body">
+      <input type="hidden" name="id" id="catId">
+      <label class="form-label small">Name</label>
+      <input class="form-control form-control-sm mb-2" name="name" id="catName" required maxlength="64" placeholder="e.g. Wholesale">
+      <label class="form-label small">Discount on anything not priced (%)</label>
+      <input class="form-control form-control-sm" type="number" min="0" max="100" step="0.01" name="discount_pct" id="catPct" value="0">
+    </div>
+    <div class="modal-footer"><button class="btn btn-brand btn-sm">Save</button></div>
+  </form></div>
+</div>
+
+</main>
+
+<script>
+  // Where the shop is mounted: '' when it runs on its own, '/pos' when it is
+  // served inside the WAREXX backend. Every same-app fetch is written against this
+  // — a hardcoded '/floor/…' is right standalone and 404s under the mount, where
+  // it lands on the backend's own routes instead of the shop's.
+  const SHOP_ROOT = "/pos";
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  // Every chart on every screen in the design's colours: gridlines in the border
+  // green-grey, 11px muted axis text, a dark-green tooltip. Set once, here, before
+  // any page draws a chart.
+  if (window.Chart) {
+    Chart.defaults.font.family = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    Chart.defaults.font.size = 11;
+    Chart.defaults.color = '#68756E';
+    Chart.defaults.borderColor = '#DCE5DF';
+    Object.assign(Chart.defaults.plugins.tooltip, {
+      backgroundColor: '#0B3D2E', titleColor: '#FFFFFF', bodyColor: '#E7F4EC',
+      cornerRadius: 8, padding: 8, displayColors: false,
+      titleFont: {size: 11, weight: '600'}, bodyFont: {size: 11},
+    });
+  }
+</script>
+
+<script>
+document.getElementById('catModal').addEventListener('show.bs.modal', (e) => {
+  const edit = e.relatedTarget && e.relatedTarget.dataset.mode === 'edit';
+  document.getElementById('catId').value = edit ? 2 : '';
+  document.getElementById('catName').value = edit ? "Staff" : '';
+  document.getElementById('catPct').value = edit ? 20.0 : 0;
+});
+const nd = document.getElementById('newDesign');
+if (nd){
+  let t = null, found = {};
+  nd.addEventListener('input', () => {
+    clearTimeout(t);
+    const q = nd.value.trim(), hint = document.getElementById('designHint');
+    hint.innerText = found[q] ? `${found[q].name} · ordinarily ₹${found[q].price}` : '';
+    if (q.length < 2) return;
+    t = setTimeout(async () => {
+      const j = await (await fetch(`${SHOP_ROOT}/price-list/designs?q=${encodeURIComponent(q)}`)).json();
+      const dl = document.getElementById('dlDesigns'); dl.innerHTML = '';
+      j.designs.forEach((d) => { found[d.design_no] = d; const o = document.createElement('option'); o.value = d.design_no; o.label = d.name; dl.appendChild(o); });
+      if (found[nd.value.trim()]) hint.innerText = `${found[nd.value.trim()].name} · ordinarily ₹${found[nd.value.trim()].price}`;
+    }, 250);
+  });
+}
+</script>
+
+<script>
+  // Most forms put a <label> straight above its box without a for="…", so it
+  // reads right but a screen reader cannot tie the two together and clicking
+  // the label does nothing. Link each such label to the control that follows it.
+  document.querySelectorAll('label:not([for])').forEach(function (l) {
+    if (l.querySelector('input, select, textarea')) return;
+    var c = l.nextElementSibling;
+    if (c && !c.matches('input, select, textarea')) c = c.querySelector('input, select, textarea');
+    if (!c || c.type === 'hidden') return;
+    if (!c.id) c.id = 'fld-' + Math.random().toString(36).slice(2, 9);
+    l.htmlFor = c.id;
+  });
+</script>
+<script src="/pos/static/js/fit.js"></script>
+</body>
+</html>

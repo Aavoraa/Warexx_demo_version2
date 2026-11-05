@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+  
+  <script>
+    try { if (window.self !== window.top) document.documentElement.classList.add('in-frame'); }
+    catch (e) { document.documentElement.classList.add('in-frame'); }
+  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+  <title>Sample Company</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="/pos/static/css/app.css">
+  <link rel="manifest" href="/pos/static/manifest.json">
+  <meta name="theme-color" content="#0B3D2E">
+</head>
+<body>
+
+
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top brand-nav">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/pos/">
+      <span class="brand-logo" aria-hidden="true">W</span>
+      <span class="brand-text">
+        <span class="brand-name">Sample Company <span class="brand-tag d-none d-sm-inline">· POS</span></span>
+        <span class="brand-sub d-none d-md-block">Billing, stock and customers for this store</span>
+      </span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
+            aria-controls="nav" aria-expanded="false" aria-label="Open navigation menu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      
+      <span class="frame-title" aria-hidden="true"><i class="bi bi-shop"></i> Store</span>
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link nav-ctl dropdown-toggle d-flex align-items-center gap-2" href="#"
+             data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+            <span>Gift Coupon</span>
+          </a>
+          <ul class="dropdown-menu shadow" style="min-width:320px">
+            
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/">
+                <i class="bi bi-speedometer2 mt-1"></i>
+                <span><strong>Dashboard</strong><br>
+                  <small class="text-muted">Today's sales, low stock and the last few bills</small></span>
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/customers/">
+                <i class="bi bi-people mt-1"></i>
+                <span><strong>Customers</strong><br>
+                  <small class="text-muted">Customer master, loyalty points and history</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/orders/">
+                <i class="bi bi-bag mt-1"></i>
+                <span><strong>Customer Orders</strong><br>
+                  <small class="text-muted">Orders taken for later — what, by when, and what was paid</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/loyalty/">
+                <i class="bi bi-award mt-1"></i>
+                <span><strong>Loyalty Management</strong><br>
+                  <small class="text-muted">Points earned and redeemed, by card, phone or name</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/gift-vouchers/">
+                <i class="bi bi-gift mt-1"></i>
+                <span><strong>Gift Voucher</strong><br>
+                  <small class="text-muted">Sell vouchers by denomination; they are spent at Settlement</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        active"
+                 href="/pos/coupons/">
+                <i class="bi bi-ticket-perforated mt-1"></i>
+                <span><strong>Gift Coupon</strong><br>
+                  <small class="text-muted">Coupon schemes, issuing, rewards to coupon and their history</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/price-list/">
+                <i class="bi bi-tags mt-1"></i>
+                <span><strong>Price List</strong><br>
+                  <small class="text-muted">Price categories, the designs on them and who buys on them</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-analyser/">
+                <i class="bi bi-bar-chart-line mt-1"></i>
+                <span><strong>CRM Analyser</strong><br>
+                  <small class="text-muted">Who buys, how often, how much — and who has stopped coming</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/send-sms/">
+                <i class="bi bi-chat-dots mt-1"></i>
+                <span><strong>Send SMS</strong><br>
+                  <small class="text-muted">Pick customers by what they bought, where and when, and message them</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/">
+                <i class="bi bi-speedometer2 mt-1"></i>
+                <span><strong>Feedback Dashboard</strong><br>
+                  <small class="text-muted">How customers rate the store, question by question</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/questions">
+                <i class="bi bi-patch-question mt-1"></i>
+                <span><strong>Feedback Questions</strong><br>
+                  <small class="text-muted">The questions customers are asked</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/report">
+                <i class="bi bi-clipboard-data mt-1"></i>
+                <span><strong>Feedback Report</strong><br>
+                  <small class="text-muted">Every response with its answers, filtered and exported</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/form">
+                <i class="bi bi-ui-checks mt-1"></i>
+                <span><strong>Feedback Form Config</strong><br>
+                  <small class="text-muted">What the customer&#39;s feedback page asks and says</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/customer-divert/">
+                <i class="bi bi-signpost-split mt-1"></i>
+                <span><strong>Customer Divert</strong><br>
+                  <small class="text-muted">Meet walk-ins at the door and send them to a floor and a salesperson</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/leads/">
+                <i class="bi bi-person-plus mt-1"></i>
+                <span><strong>Lead Management</strong><br>
+                  <small class="text-muted">Enquiries to follow up, and which of them became customers</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/registration/">
+                <i class="bi bi-qr-code mt-1"></i>
+                <span><strong>Self Registration</strong><br>
+                  <small class="text-muted">The sign-up QR, its form, and the sign-ups waiting for approval</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/promotions/">
+                <i class="bi bi-gift mt-1"></i>
+                <span><strong>Promotions</strong><br>
+                  <small class="text-muted">Offers the till applies by itself, and what they have given away</small></span>
+              </a>
+            </li>
+            
+          </ul>
+        </li>
+      </ul>
+      
+      
+    </div>
+  </div>
+</nav>
+
+
+<main class="container-fluid py-3">
+  
+    
+  
+  
+
+<div class="page-head d-print-none">
+  <h4><i class="bi bi-ticket-perforated"></i> Gift Coupon</h4>
+  <a href="/pos/promotions/" class="btn btn-outline-secondary btn-sm"><i class="bi bi-gift"></i> Promotion schemes</a>
+</div>
+
+<ul class="nav nav-tabs mb-3 d-print-none">
+  
+  <li class="nav-item">
+    <a class="nav-link " href="/pos/coupons/"
+       >
+      <i class="bi bi-sliders"></i> Scheme</a>
+  </li>
+  
+  <li class="nav-item">
+    <a class="nav-link " href="/pos/coupons/history"
+       >
+      <i class="bi bi-clock-history"></i> Transaction History</a>
+  </li>
+  
+  <li class="nav-item">
+    <a class="nav-link active" href="/pos/coupons/rewards"
+       aria-current="page">
+      <i class="bi bi-award"></i> Rewards to Coupon</a>
+  </li>
+  
+  <li class="nav-item">
+    <a class="nav-link " href="/pos/coupons/print"
+       >
+      <i class="bi bi-printer"></i> Settlement Coupon Print</a>
+  </li>
+  
+</ul>
+
+<div class="row g-3">
+  <div class="col-lg-3">
+    <form class="card p-3">
+      <label class="form-label small">Mobile no, card no or customer code</label>
+      <div class="input-group input-group-sm">
+        <input class="form-control" name="mobile" value="" autofocus>
+        <button class="btn btn-brand" title="Find" aria-label="Find"><i class="bi bi-search"></i></button>
+      </div>
+      
+    </form>
+  </div>
+
+  
+  <div class="col-lg-9"><div class="card p-4 text-center text-muted">Find the customer whose points are being turned into a coupon.</div></div>
+  
+</div>
+
+</main>
+
+<script>
+  // Where the shop is mounted: '' when it runs on its own, '/pos' when it is
+  // served inside the WAREXX backend. Every same-app fetch is written against this
+  // — a hardcoded '/floor/…' is right standalone and 404s under the mount, where
+  // it lands on the backend's own routes instead of the shop's.
+  const SHOP_ROOT = "/pos";
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  // Every chart on every screen in the design's colours: gridlines in the border
+  // green-grey, 11px muted axis text, a dark-green tooltip. Set once, here, before
+  // any page draws a chart.
+  if (window.Chart) {
+    Chart.defaults.font.family = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    Chart.defaults.font.size = 11;
+    Chart.defaults.color = '#68756E';
+    Chart.defaults.borderColor = '#DCE5DF';
+    Object.assign(Chart.defaults.plugins.tooltip, {
+      backgroundColor: '#0B3D2E', titleColor: '#FFFFFF', bodyColor: '#E7F4EC',
+      cornerRadius: 8, padding: 8, displayColors: false,
+      titleFont: {size: 11, weight: '600'}, bodyFont: {size: 11},
+    });
+  }
+</script>
+
+
+
+<script>
+  // Most forms put a <label> straight above its box without a for="…", so it
+  // reads right but a screen reader cannot tie the two together and clicking
+  // the label does nothing. Link each such label to the control that follows it.
+  document.querySelectorAll('label:not([for])').forEach(function (l) {
+    if (l.querySelector('input, select, textarea')) return;
+    var c = l.nextElementSibling;
+    if (c && !c.matches('input, select, textarea')) c = c.querySelector('input, select, textarea');
+    if (!c || c.type === 'hidden') return;
+    if (!c.id) c.id = 'fld-' + Math.random().toString(36).slice(2, 9);
+    l.htmlFor = c.id;
+  });
+</script>
+<script src="/pos/static/js/fit.js"></script>
+</body>
+</html>

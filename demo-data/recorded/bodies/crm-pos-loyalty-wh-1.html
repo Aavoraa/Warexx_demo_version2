@@ -1,0 +1,1019 @@
+<!doctype html>
+<html lang="en">
+<head>
+  
+  <script>
+    try { if (window.self !== window.top) document.documentElement.classList.add('in-frame'); }
+    catch (e) { document.documentElement.classList.add('in-frame'); }
+  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+  <title>Sample Company</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="/pos/static/css/app.css">
+  <link rel="manifest" href="/pos/static/manifest.json">
+  <meta name="theme-color" content="#0B3D2E">
+</head>
+<body>
+
+
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top brand-nav">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/pos/">
+      <span class="brand-logo" aria-hidden="true">W</span>
+      <span class="brand-text">
+        <span class="brand-name">Sample Company <span class="brand-tag d-none d-sm-inline">· POS</span></span>
+        <span class="brand-sub d-none d-md-block">Billing, stock and customers for this store</span>
+      </span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
+            aria-controls="nav" aria-expanded="false" aria-label="Open navigation menu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      
+      <span class="frame-title" aria-hidden="true"><i class="bi bi-shop"></i> Store</span>
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link nav-ctl dropdown-toggle d-flex align-items-center gap-2" href="#"
+             data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+            <span>Loyalty Management</span>
+          </a>
+          <ul class="dropdown-menu shadow" style="min-width:320px">
+            
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/">
+                <i class="bi bi-speedometer2 mt-1"></i>
+                <span><strong>Dashboard</strong><br>
+                  <small class="text-muted">Today's sales, low stock and the last few bills</small></span>
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/customers/">
+                <i class="bi bi-people mt-1"></i>
+                <span><strong>Customers</strong><br>
+                  <small class="text-muted">Customer master, loyalty points and history</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/orders/">
+                <i class="bi bi-bag mt-1"></i>
+                <span><strong>Customer Orders</strong><br>
+                  <small class="text-muted">Orders taken for later — what, by when, and what was paid</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        active"
+                 href="/pos/loyalty/">
+                <i class="bi bi-award mt-1"></i>
+                <span><strong>Loyalty Management</strong><br>
+                  <small class="text-muted">Points earned and redeemed, by card, phone or name</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/gift-vouchers/">
+                <i class="bi bi-gift mt-1"></i>
+                <span><strong>Gift Voucher</strong><br>
+                  <small class="text-muted">Sell vouchers by denomination; they are spent at Settlement</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/coupons/">
+                <i class="bi bi-ticket-perforated mt-1"></i>
+                <span><strong>Gift Coupon</strong><br>
+                  <small class="text-muted">Coupon schemes, issuing, rewards to coupon and their history</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/price-list/">
+                <i class="bi bi-tags mt-1"></i>
+                <span><strong>Price List</strong><br>
+                  <small class="text-muted">Price categories, the designs on them and who buys on them</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-analyser/">
+                <i class="bi bi-bar-chart-line mt-1"></i>
+                <span><strong>CRM Analyser</strong><br>
+                  <small class="text-muted">Who buys, how often, how much — and who has stopped coming</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/send-sms/">
+                <i class="bi bi-chat-dots mt-1"></i>
+                <span><strong>Send SMS</strong><br>
+                  <small class="text-muted">Pick customers by what they bought, where and when, and message them</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/">
+                <i class="bi bi-speedometer2 mt-1"></i>
+                <span><strong>Feedback Dashboard</strong><br>
+                  <small class="text-muted">How customers rate the store, question by question</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/questions">
+                <i class="bi bi-patch-question mt-1"></i>
+                <span><strong>Feedback Questions</strong><br>
+                  <small class="text-muted">The questions customers are asked</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/report">
+                <i class="bi bi-clipboard-data mt-1"></i>
+                <span><strong>Feedback Report</strong><br>
+                  <small class="text-muted">Every response with its answers, filtered and exported</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/form">
+                <i class="bi bi-ui-checks mt-1"></i>
+                <span><strong>Feedback Form Config</strong><br>
+                  <small class="text-muted">What the customer&#39;s feedback page asks and says</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/customer-divert/">
+                <i class="bi bi-signpost-split mt-1"></i>
+                <span><strong>Customer Divert</strong><br>
+                  <small class="text-muted">Meet walk-ins at the door and send them to a floor and a salesperson</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/leads/">
+                <i class="bi bi-person-plus mt-1"></i>
+                <span><strong>Lead Management</strong><br>
+                  <small class="text-muted">Enquiries to follow up, and which of them became customers</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/registration/">
+                <i class="bi bi-qr-code mt-1"></i>
+                <span><strong>Self Registration</strong><br>
+                  <small class="text-muted">The sign-up QR, its form, and the sign-ups waiting for approval</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/promotions/">
+                <i class="bi bi-gift mt-1"></i>
+                <span><strong>Promotions</strong><br>
+                  <small class="text-muted">Offers the till applies by itself, and what they have given away</small></span>
+              </a>
+            </li>
+            
+          </ul>
+        </li>
+      </ul>
+      
+      
+    </div>
+  </div>
+</nav>
+
+
+<main class="container-fluid py-3">
+  
+    
+  
+  
+
+<div class="page-head">
+  <h4><i class="bi bi-award"></i> Loyalty Management</h4>
+  <a href="/pos/loyalty/export.csv" class="btn btn-outline-secondary btn-sm"><i class="bi bi-download"></i> CSV</a>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-md-3">
+<div class="stat-card card p-3 t-adjust h-100" title="Every customer&#39;s balance added up">
+  <div class="label">Points held</div>
+  <div class="value">12,326</div>
+</div>
+</div>
+  <div class="col-6 col-md-3">
+<div class="stat-card card p-3 t-count h-100" >
+  <div class="label">Customers holding points</div>
+  <div class="value">30</div>
+</div>
+</div>
+  <div class="col-6 col-md-3">
+<div class="stat-card card p-3 t-move h-100" title="Of every bill of ₹500 or more">
+  <div class="label">Earn rate</div>
+  <div class="value">1%</div>
+</div>
+</div>
+  <div class="col-6 col-md-3">
+<div class="stat-card card p-3 t-money h-100" >
+  <div class="label">One point is worth</div>
+  <div class="value">₹1</div>
+</div>
+</div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-3">
+    <form class="card p-3">
+      <label class="form-label small">Card no</label>
+      <input class="form-control form-control-sm mb-2" name="card" value="">
+      <label class="form-label small">Mobile no</label>
+      <input class="form-control form-control-sm mb-2" name="mobile" inputmode="tel" value="" autofocus>
+      <label class="form-label small">Email ID</label>
+      <input class="form-control form-control-sm mb-2" name="email" value="">
+      <label class="form-label small">Customer name</label>
+      <input class="form-control form-control-sm mb-2" name="name" value="">
+      <label class="form-label small">Bill date</label>
+      <div class="input-group input-group-sm mb-2">
+        <input class="form-control" type="date" name="from" value="" aria-label="From">
+        <input class="form-control" type="date" name="to" value="" aria-label="To">
+      </div>
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" name="summary" value="1" id="fSummary" checked>
+        <label class="form-check-label small" for="fSummary">Show summary <span class="text-muted">(one row per customer; untick for every transaction)</span></label>
+      </div>
+      <button class="btn btn-brand btn-sm"><i class="bi bi-search"></i> Search</button>
+    </form>
+  </div>
+
+  <div class="col-lg-9">
+    
+    <div class="card">
+      <div class="card-header">Top balances</div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+          <thead><tr><th>Card</th><th>Customer</th><th>Mobile</th><th class="text-end">Earned</th><th class="text-end">Redeemed</th><th class="text-end">Adjusted</th><th class="text-end">Balance</th><th class="text-end">Worth</th><th></th></tr></thead>
+          <tbody>
+            
+            
+            <tr>
+              <td class="small font-monospace">CUST000003</td>
+              <td><a href="/pos/customers/3">Deepa Krishnan</a>
+                </td>
+              <td>+91 99000 33333</td>
+              <td class="text-end text-success">1441.17</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">1441</td>
+              <td class="text-end">₹1,441.17</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="3" data-name="Deepa Krishnan" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">CUST000005</td>
+              <td><a href="/pos/customers/5">Lakshmi Devi</a>
+                </td>
+              <td>+91 99000 55555</td>
+              <td class="text-end text-success">1234.21</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">1234</td>
+              <td class="text-end">₹1,234.21</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="5" data-name="Lakshmi Devi" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">CUST000004</td>
+              <td><a href="/pos/customers/4">Prakash Boutique (B2B)</a>
+                </td>
+              <td>+91 99000 44444</td>
+              <td class="text-end text-success">931.68</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">932</td>
+              <td class="text-end">₹931.68</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="4" data-name="Prakash Boutique (B2B)" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">CUST000006</td>
+              <td><a href="/pos/customers/6">Rajesh Sharma</a>
+                </td>
+              <td>+91 99000 66666</td>
+              <td class="text-end text-success">916.73</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">917</td>
+              <td class="text-end">₹916.73</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="6" data-name="Rajesh Sharma" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">CUST000002</td>
+              <td><a href="/pos/customers/2">Karthik Iyer</a>
+                </td>
+              <td>+91 99000 22222</td>
+              <td class="text-end text-success">746.41</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">746</td>
+              <td class="text-end">₹746.41</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="2" data-name="Karthik Iyer" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500208</td>
+              <td><a href="/pos/customers/23">Revathi P</a>
+                </td>
+              <td>9000020592</td>
+              <td class="text-end text-success">722.83</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">723</td>
+              <td class="text-end">₹722.83</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="23" data-name="Revathi P" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">CUST000001</td>
+              <td><a href="/pos/customers/1">Anitha Ramesh</a>
+                </td>
+              <td>+91 99000 11111</td>
+              <td class="text-end text-success">715.15</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">715</td>
+              <td class="text-end">₹715.15</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="1" data-name="Anitha Ramesh" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500104</td>
+              <td><a href="/pos/customers/15">Ilango N</a>
+                </td>
+              <td>9000020296</td>
+              <td class="text-end text-success">632.1</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">632</td>
+              <td class="text-end">₹632.10</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="15" data-name="Ilango N" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500143</td>
+              <td><a href="/pos/customers/18">Lavanya R</a>
+                </td>
+              <td>9000020407</td>
+              <td class="text-end text-success">529.52</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">530</td>
+              <td class="text-end">₹529.52</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="18" data-name="Lavanya R" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500377</td>
+              <td><a href="/pos/customers/36">Mohan V</a>
+                </td>
+              <td>9000021073</td>
+              <td class="text-end text-success">491.51</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">492</td>
+              <td class="text-end">₹491.51</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="36" data-name="Mohan V" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500117</td>
+              <td><a href="/pos/customers/16">Janani R</a>
+                </td>
+              <td>9000020333</td>
+              <td class="text-end text-success">487.41</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">487</td>
+              <td class="text-end">₹487.41</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="16" data-name="Janani R" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500182</td>
+              <td><a href="/pos/customers/21">Oviya M</a>
+                </td>
+              <td>9000020518</td>
+              <td class="text-end text-success">451.39</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">451</td>
+              <td class="text-end">₹451.39</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="21" data-name="Oviya M" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500195</td>
+              <td><a href="/pos/customers/22">Pradeep K</a>
+                </td>
+              <td>9000020555</td>
+              <td class="text-end text-success">409.51</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">410</td>
+              <td class="text-end">₹409.51</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="22" data-name="Pradeep K" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500052</td>
+              <td><a href="/pos/customers/11">Ezhil A</a>
+                </td>
+              <td>9000020148</td>
+              <td class="text-end text-success">400.05</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">400</td>
+              <td class="text-end">₹400.05</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="11" data-name="Ezhil A" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500338</td>
+              <td><a href="/pos/customers/33">Indira K</a>
+                </td>
+              <td>9000020962</td>
+              <td class="text-end text-success">333.8</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">334</td>
+              <td class="text-end">₹333.80</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="33" data-name="Indira K" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500260</td>
+              <td><a href="/pos/customers/27">Vasanth S</a>
+                </td>
+              <td>9000020740</td>
+              <td class="text-end text-success">289.27</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">289</td>
+              <td class="text-end">₹289.27</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="27" data-name="Vasanth S" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500325</td>
+              <td><a href="/pos/customers/32">Hari R</a>
+                </td>
+              <td>9000020925</td>
+              <td class="text-end text-success">245.71</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">246</td>
+              <td class="text-end">₹245.71</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="32" data-name="Hari R" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500364</td>
+              <td><a href="/pos/customers/35">Keerthi V</a>
+                </td>
+              <td>9000021036</td>
+              <td class="text-end text-success">236.14</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">236</td>
+              <td class="text-end">₹236.14</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="35" data-name="Keerthi V" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500286</td>
+              <td><a href="/pos/customers/29">Zara V</a>
+                </td>
+              <td>9000020814</td>
+              <td class="text-end text-success">206.85</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">207</td>
+              <td class="text-end">₹206.85</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="29" data-name="Zara V" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500312</td>
+              <td><a href="/pos/customers/31">Geetha A</a>
+                </td>
+              <td>9000020888</td>
+              <td class="text-end text-success">187.43</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">187</td>
+              <td class="text-end">₹187.43</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="31" data-name="Geetha A" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500065</td>
+              <td><a href="/pos/customers/12">Fathima K</a>
+                </td>
+              <td>9000020185</td>
+              <td class="text-end text-success">144.37</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">144</td>
+              <td class="text-end">₹144.37</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="12" data-name="Fathima K" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500169</td>
+              <td><a href="/pos/customers/20">Nila S</a>
+                </td>
+              <td>9000020481</td>
+              <td class="text-end text-success">140.59</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">141</td>
+              <td class="text-end">₹140.59</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="20" data-name="Nila S" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500000</td>
+              <td><a href="/pos/customers/7">Aarthi R</a>
+                </td>
+              <td>9000020000</td>
+              <td class="text-end text-success">91.88</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">92</td>
+              <td class="text-end">₹91.88</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="7" data-name="Aarthi R" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500091</td>
+              <td><a href="/pos/customers/14">Harini R</a>
+                </td>
+              <td>9000020259</td>
+              <td class="text-end text-success">81.17</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">81</td>
+              <td class="text-end">₹81.17</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="14" data-name="Harini R" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500026</td>
+              <td><a href="/pos/customers/9">Chitra K</a>
+                </td>
+              <td>9000020074</td>
+              <td class="text-end text-success">76.12</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">76</td>
+              <td class="text-end">₹76.12</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="9" data-name="Chitra K" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500273</td>
+              <td><a href="/pos/customers/28">Yamini A</a>
+                </td>
+              <td>9000020777</td>
+              <td class="text-end text-success">71.4</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">71</td>
+              <td class="text-end">₹71.40</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="28" data-name="Yamini A" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500351</td>
+              <td><a href="/pos/customers/34">Jeeva S</a>
+                </td>
+              <td>9000020999</td>
+              <td class="text-end text-success">59.85</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">60</td>
+              <td class="text-end">₹59.85</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="34" data-name="Jeeva S" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500299</td>
+              <td><a href="/pos/customers/30">Bala N</a>
+                </td>
+              <td>9000020851</td>
+              <td class="text-end text-success">30.45</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">30</td>
+              <td class="text-end">₹30.45</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="30" data-name="Bala N" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500130</td>
+              <td><a href="/pos/customers/17">Kavin V</a>
+                </td>
+              <td>9000020370</td>
+              <td class="text-end text-success">10.82</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">11</td>
+              <td class="text-end">₹10.82</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="17" data-name="Kavin V" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500247</td>
+              <td><a href="/pos/customers/26">Uma V</a>
+                </td>
+              <td>9000020703</td>
+              <td class="text-end text-success">10.5</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">10</td>
+              <td class="text-end">₹10.50</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="26" data-name="Uma V" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500013</td>
+              <td><a href="/pos/customers/8">Bharath K</a>
+                </td>
+              <td>9000020037</td>
+              <td class="text-end text-success">0</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">0</td>
+              <td class="text-end">₹0.00</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="8" data-name="Bharath K" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500039</td>
+              <td><a href="/pos/customers/10">Dinesh P</a>
+                </td>
+              <td>9000020111</td>
+              <td class="text-end text-success">0</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">0</td>
+              <td class="text-end">₹0.00</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="10" data-name="Dinesh P" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500078</td>
+              <td><a href="/pos/customers/13">Ganesh A</a>
+                </td>
+              <td>9000020222</td>
+              <td class="text-end text-success">0</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">0</td>
+              <td class="text-end">₹0.00</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="13" data-name="Ganesh A" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500156</td>
+              <td><a href="/pos/customers/19">Manoj M</a>
+                </td>
+              <td>9000020444</td>
+              <td class="text-end text-success">0</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">0</td>
+              <td class="text-end">₹0.00</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="19" data-name="Manoj M" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500221</td>
+              <td><a href="/pos/customers/24">Sanjay V</a>
+                </td>
+              <td>9000020629</td>
+              <td class="text-end text-success">0</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">0</td>
+              <td class="text-end">₹0.00</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="24" data-name="Sanjay V" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">LC500234</td>
+              <td><a href="/pos/customers/25">Tharun V</a>
+                </td>
+              <td>9000020666</td>
+              <td class="text-end text-success">0</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">0</td>
+              <td class="text-end">₹0.00</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="25" data-name="Tharun V" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">CUST000037</td>
+              <td><a href="/pos/customers/37">Oviya R</a>
+                </td>
+              <td>9000080000</td>
+              <td class="text-end text-success">0</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">0</td>
+              <td class="text-end">₹0.00</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="37" data-name="Oviya R" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">CUST000038</td>
+              <td><a href="/pos/customers/38">Lavanya S</a>
+                </td>
+              <td>9000080019</td>
+              <td class="text-end text-success">0</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">0</td>
+              <td class="text-end">₹0.00</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="38" data-name="Lavanya S" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">CUST000039</td>
+              <td><a href="/pos/customers/39">Lavanya N</a>
+                </td>
+              <td>9000080038</td>
+              <td class="text-end text-success">0</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">0</td>
+              <td class="text-end">₹0.00</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="39" data-name="Lavanya N" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+            
+            <tr>
+              <td class="small font-monospace">CUST000040</td>
+              <td><a href="/pos/customers/40">Indira N</a>
+                </td>
+              <td>9000080057</td>
+              <td class="text-end text-success">0</td>
+              <td class="text-end">0</td>
+              <td class="text-end">—</td>
+              <td class="text-end fw-semibold">0</td>
+              <td class="text-end">₹0.00</td>
+              
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="40" data-name="Indira N" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              
+            </tr>
+            
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+  </div>
+</div>
+
+
+<div class="modal fade" id="adjModal" tabindex="-1" aria-labelledby="adjTitle" aria-hidden="true">
+  <div class="modal-dialog modal-sm"><form method="post" action="/pos/loyalty/adjust" class="modal-content">
+    <div class="modal-header"><h6 class="modal-title" id="adjTitle">Correct points</h6><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-body">
+      <input type="hidden" name="customer_id" id="adjId">
+      <div class="small mb-2" id="adjName"></div>
+      <label class="form-label small">Points (+ to add, − to take off)</label>
+      <input class="form-control form-control-sm mb-2" type="number" step="any" name="points" required>
+      <label class="form-label small">Reason</label>
+      <input class="form-control form-control-sm" name="reason" maxlength="48" required placeholder="e.g. points missed on bill INV-…">
+    </div>
+    <div class="modal-footer"><button class="btn btn-brand btn-sm">Save</button></div>
+  </form></div>
+</div>
+
+
+</main>
+
+<script>
+  // Where the shop is mounted: '' when it runs on its own, '/pos' when it is
+  // served inside the WAREXX backend. Every same-app fetch is written against this
+  // — a hardcoded '/floor/…' is right standalone and 404s under the mount, where
+  // it lands on the backend's own routes instead of the shop's.
+  const SHOP_ROOT = "/pos";
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  // Every chart on every screen in the design's colours: gridlines in the border
+  // green-grey, 11px muted axis text, a dark-green tooltip. Set once, here, before
+  // any page draws a chart.
+  if (window.Chart) {
+    Chart.defaults.font.family = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    Chart.defaults.font.size = 11;
+    Chart.defaults.color = '#68756E';
+    Chart.defaults.borderColor = '#DCE5DF';
+    Object.assign(Chart.defaults.plugins.tooltip, {
+      backgroundColor: '#0B3D2E', titleColor: '#FFFFFF', bodyColor: '#E7F4EC',
+      cornerRadius: 8, padding: 8, displayColors: false,
+      titleFont: {size: 11, weight: '600'}, bodyFont: {size: 11},
+    });
+  }
+</script>
+
+<script>
+document.querySelectorAll('.adj').forEach((b) => b.onclick = () => {
+  document.getElementById('adjId').value = b.dataset.id;
+  document.getElementById('adjName').innerText = b.dataset.name;
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('adjModal')).show();
+});
+</script>
+
+<script>
+  // Most forms put a <label> straight above its box without a for="…", so it
+  // reads right but a screen reader cannot tie the two together and clicking
+  // the label does nothing. Link each such label to the control that follows it.
+  document.querySelectorAll('label:not([for])').forEach(function (l) {
+    if (l.querySelector('input, select, textarea')) return;
+    var c = l.nextElementSibling;
+    if (c && !c.matches('input, select, textarea')) c = c.querySelector('input, select, textarea');
+    if (!c || c.type === 'hidden') return;
+    if (!c.id) c.id = 'fld-' + Math.random().toString(36).slice(2, 9);
+    l.htmlFor = c.id;
+  });
+</script>
+<script src="/pos/static/js/fit.js"></script>
+</body>
+</html>

@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+<head>
+  
+  <script>
+    try { if (window.self !== window.top) document.documentElement.classList.add('in-frame'); }
+    catch (e) { document.documentElement.classList.add('in-frame'); }
+  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+  <title>Sample Company</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="/pos/static/css/app.css">
+  <link rel="manifest" href="/pos/static/manifest.json">
+  <meta name="theme-color" content="#0B3D2E">
+</head>
+<body>
+
+
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top brand-nav">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/pos/">
+      <span class="brand-logo" aria-hidden="true">W</span>
+      <span class="brand-text">
+        <span class="brand-name">Sample Company <span class="brand-tag d-none d-sm-inline">· POS</span></span>
+        <span class="brand-sub d-none d-md-block">Billing, stock and customers for this store</span>
+      </span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
+            aria-controls="nav" aria-expanded="false" aria-label="Open navigation menu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      
+      <span class="frame-title" aria-hidden="true"><i class="bi bi-shop"></i> Store</span>
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link nav-ctl dropdown-toggle d-flex align-items-center gap-2" href="#"
+             data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+            <span>Customers</span>
+          </a>
+          <ul class="dropdown-menu shadow" style="min-width:320px">
+            
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/">
+                <i class="bi bi-speedometer2 mt-1"></i>
+                <span><strong>Dashboard</strong><br>
+                  <small class="text-muted">Today's sales, low stock and the last few bills</small></span>
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/floor/">
+                <i class="bi bi-phone mt-1"></i>
+                <span><strong>Floor Sales</strong><br>
+                  <small class="text-muted">Build a sale on the phone while walking the floor</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/pos/">
+                <i class="bi bi-cart-check mt-1"></i>
+                <span><strong>Billing Counter</strong><br>
+                  <small class="text-muted">Scan and bill, and print the delivery copy</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/pos/settle">
+                <i class="bi bi-cash-coin mt-1"></i>
+                <span><strong>Settlement</strong><br>
+                  <small class="text-muted">Take payment for billed bills and print the customer copy</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/delivery/">
+                <i class="bi bi-bag-check mt-1"></i>
+                <span><strong>Delivery</strong><br>
+                  <small class="text-muted">Scan the bill, scan each garment, hand the goods over</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/inventory/">
+                <i class="bi bi-box-seam mt-1"></i>
+                <span><strong>Inventory</strong><br>
+                  <small class="text-muted">What the shop holds, with the warehouse QR on every item</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/stock-inward/">
+                <i class="bi bi-box-arrow-in-down mt-1"></i>
+                <span><strong>Stock Inward</strong><br>
+                  <small class="text-muted">Count in what the warehouse or another branch sent here</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/transfer-goods/">
+                <i class="bi bi-box-arrow-up-right mt-1"></i>
+                <span><strong>Transfer Goods</strong><br>
+                  <small class="text-muted">Send goods back to a warehouse, or across to another branch</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/audits/">
+                <i class="bi bi-clipboard-check mt-1"></i>
+                <span><strong>Stock audit</strong><br>
+                  <small class="text-muted">Count a floor, item by item, and see where the books disagree</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/floor-products/">
+                <i class="bi bi-layers mt-1"></i>
+                <span><strong>Floor Products</strong><br>
+                  <small class="text-muted">What is kept on each floor, and moving products between floors</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/stock-check/">
+                <i class="bi bi-search mt-1"></i>
+                <span><strong>Stock check</strong><br>
+                  <small class="text-muted">Scan or filter to find an item and where it is</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        active"
+                 href="/pos/customers/">
+                <i class="bi bi-people mt-1"></i>
+                <span><strong>Customers</strong><br>
+                  <small class="text-muted">Customer master, loyalty points and history</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/pos/invoices">
+                <i class="bi bi-receipt mt-1"></i>
+                <span><strong>Invoices</strong><br>
+                  <small class="text-muted">Every bill raised, searchable and reprintable</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/returns/">
+                <i class="bi bi-arrow-return-left mt-1"></i>
+                <span><strong>Returns</strong><br>
+                  <small class="text-muted">Take goods back against a bill and raise a credit note</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/alterations/">
+                <i class="bi bi-scissors mt-1"></i>
+                <span><strong>Alteration</strong><br>
+                  <small class="text-muted">Garments out for tailoring, and what each tailor is holding</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/stores/">
+                <i class="bi bi-building mt-1"></i>
+                <span><strong>Floors &amp; tills</strong><br>
+                  <small class="text-muted">Which storey each till bills from, and what its bills are called</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/promotions/">
+                <i class="bi bi-gift mt-1"></i>
+                <span><strong>Promotions</strong><br>
+                  <small class="text-muted">Offers the till applies by itself, and what they have given away</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/staff/">
+                <i class="bi bi-person-badge mt-1"></i>
+                <span><strong>Staff</strong><br>
+                  <small class="text-muted">Attendance, roles, ID cards and sales commission</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/reports/">
+                <i class="bi bi-graph-up mt-1"></i>
+                <span><strong>Reports</strong><br>
+                  <small class="text-muted">Every register — or just ask a question in plain words</small></span>
+              </a>
+            </li>
+            
+          </ul>
+        </li>
+      </ul>
+      
+      
+    </div>
+  </div>
+</nav>
+
+
+<main class="container-fluid py-3">
+  
+    
+  
+  
+<div class="page-head">
+  <h4><i class="bi bi-person"></i> Oviya R
+    <span class="badge">CUST000037</span>
+    
+    <span class="status-badge pending sm">awaiting approval</span>
+    
+    </h4>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="/pos/orders/new?customer_id=37" class="btn btn-outline-secondary btn-sm"><i class="bi bi-bag"></i> New order</a>
+    <a href="/pos/loyalty/?q=9000080000" class="btn btn-outline-secondary btn-sm"><i class="bi bi-award"></i> Loyalty</a>
+    <a href="/pos/customers/37/card" class="btn btn-outline-secondary btn-sm"><i class="bi bi-person-vcard"></i> Card</a>
+    <a href="/pos/customers/37/edit" class="btn btn-outline-primary btn-sm">Edit</a>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+      <div class="text-muted small">Membership card — scan at POS to attach this customer</div>
+      <div><svg xmlns="http://www.w3.org/2000/svg" width="310" height="80" viewBox="0 0 310 80"><rect width="310" height="80" fill="#fff"/><g fill="#000"><rect x="10" y="0" width="4" height="64"/><rect x="16" y="0" width="2" height="64"/><rect x="22" y="0" width="2" height="64"/><rect x="32" y="0" width="2" height="64"/><rect x="40" y="0" width="2" height="64"/><rect x="48" y="0" width="4" height="64"/><rect x="54" y="0" width="4" height="64"/><rect x="60" y="0" width="6" height="64"/><rect x="68" y="0" width="6" height="64"/><rect x="76" y="0" width="4" height="64"/><rect x="82" y="0" width="6" height="64"/><rect x="90" y="0" width="2" height="64"/><rect x="98" y="0" width="4" height="64"/><rect x="104" y="0" width="6" height="64"/><rect x="116" y="0" width="2" height="64"/><rect x="120" y="0" width="2" height="64"/><rect x="126" y="0" width="6" height="64"/><rect x="134" y="0" width="4" height="64"/><rect x="142" y="0" width="2" height="64"/><rect x="148" y="0" width="6" height="64"/><rect x="156" y="0" width="4" height="64"/><rect x="164" y="0" width="2" height="64"/><rect x="170" y="0" width="6" height="64"/><rect x="178" y="0" width="4" height="64"/><rect x="186" y="0" width="2" height="64"/><rect x="192" y="0" width="6" height="64"/><rect x="200" y="0" width="4" height="64"/><rect x="208" y="0" width="4" height="64"/><rect x="216" y="0" width="2" height="64"/><rect x="220" y="0" width="6" height="64"/><rect x="230" y="0" width="6" height="64"/><rect x="238" y="0" width="4" height="64"/><rect x="244" y="0" width="6" height="64"/><rect x="252" y="0" width="2" height="64"/><rect x="258" y="0" width="8" height="64"/><rect x="268" y="0" width="2" height="64"/><rect x="274" y="0" width="4" height="64"/><rect x="284" y="0" width="6" height="64"/><rect x="292" y="0" width="2" height="64"/><rect x="296" y="0" width="4" height="64"/></g><text x="155.0" y="77" text-anchor="middle" font-family="monospace" font-size="13" fill="#000">CUST000037</text></svg></div>
+    </div>
+    <a href="/pos/customers/37/card" class="btn btn-brand btn-sm"><i class="bi bi-printer"></i> Print card</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-md-3"><div class="stat-card card p-3 t-adjust"><div class="label">Loyalty balance</div><div class="value">0 pts</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card card p-3 t-money"><div class="label">Total spent</div><div class="value">₹0.00</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card card p-3 t-count"><div class="label">Invoices</div><div class="value">0</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card card p-3 t-stock"><div class="label">Advance in hand</div><div class="value">₹0.00</div></div></div>
+</div>
+
+
+<div class="card mb-3">
+  <div class="card-header">Profile</div>
+  <div class="card-body">
+    <div class="row g-2 small">
+      
+      
+      <div class="col-sm-6 col-lg-4"><span class="text-muted">Type</span><br>Customer</div>
+      
+      
+      
+      <div class="col-sm-6 col-lg-4"><span class="text-muted">Mobile</span><br>9000080000</div>
+      
+      
+      
+      
+      
+      <div class="col-sm-6 col-lg-4"><span class="text-muted">Email</span><br>oviya.0@sample-customer.example</div>
+      
+      
+      
+      
+      
+      <div class="col-sm-6 col-lg-4"><span class="text-muted">Loyalty card</span><br>CUST000037</div>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <div class="col-sm-6 col-lg-4"><span class="text-muted">City / district</span><br>Salem</div>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <div class="col-sm-6 col-lg-4"><span class="text-muted">Signed up</span><br>self, from the QR</div>
+      
+      
+    </div>
+  </div>
+</div>
+
+
+
+<div class="row g-3 mb-3">
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-header">Purchase history</div>
+      <table class="table mb-0">
+        <thead><tr><th>#</th><th>Date</th><th class="text-end">Total</th></tr></thead>
+        <tbody>
+          
+          <tr><td colspan="3" class="text-center text-muted">No purchases yet.</td></tr>
+          
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="col-md-5">
+    <div class="card">
+      <div class="card-header">Loyalty ledger</div>
+      <table class="table table-sm mb-0">
+        <thead><tr><th>Date</th><th>Reason</th><th class="text-end">Points</th></tr></thead>
+        <tbody>
+          
+          <tr><td colspan="3" class="text-center text-muted">-</td></tr>
+          
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Advances</span>
+        <span class="small text-muted">Balance ₹0.00</span>
+      </div>
+      <form method="post" action="/pos/customers/37/advance"
+            class="card-body border-bottom row g-2 align-items-end">
+        <div class="col-6 col-md-3"><label class="form-label small">Amount *</label>
+          <input class="form-control form-control-sm" type="number" step="0.01" min="0.01" name="amount" required></div>
+        <div class="col-6 col-md-3"><label class="form-label small">Paid by</label>
+          <select class="form-select form-select-sm" name="method">
+            <option value="cash">CASH</option><option value="card">CARD</option><option value="upi">UPI</option>
+          </select></div>
+        <div class="col-6 col-md-3"><label class="form-label small">Reference</label>
+          <input class="form-control form-control-sm" name="reference" placeholder="UPI / card ref"></div>
+        <div class="col-6 col-md-3"><label class="form-label small">Note</label>
+          <input class="form-control form-control-sm" name="note" placeholder="e.g. order deposit"></div>
+        <div class="col-12"><button class="btn btn-brand btn-sm"><i class="bi bi-wallet2"></i> Take advance</button></div>
+      </form>
+      <div class="table-responsive">
+      <table class="table table-sm mb-0 align-middle">
+        <thead><tr><th>Number</th><th>Date</th><th class="text-end">Amount</th><th class="text-end">Left</th><th></th></tr></thead>
+        <tbody>
+          
+          <tr><td colspan="5" class="text-center text-muted">No advances taken.</td></tr>
+          
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-5">
+    <div class="card">
+      <div class="card-header">Feedback</div>
+      <form method="post" action="/pos/customers/feedback" class="card-body border-bottom">
+        <input type="hidden" name="customer_id" value="37">
+        <input type="hidden" name="next" value="/pos/customers/37">
+        <div class="d-flex gap-2 align-items-center mb-2">
+          <select class="form-select form-select-sm" name="rating" required style="max-width:140px">
+            <option value="">Rating…</option>
+            <option value="5">★★★★★</option><option value="4">★★★★</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option>
+          </select>
+          <input class="form-control form-control-sm" name="invoice" placeholder="Bill no. (optional)">
+        </div>
+        <textarea class="form-control form-control-sm mb-2" name="comments" rows="2" placeholder="What did they say?"></textarea>
+        <button class="btn btn-outline-primary btn-sm">Record feedback</button>
+      </form>
+      <ul class="list-group list-group-flush">
+        
+        <li class="list-group-item text-center text-muted small">No feedback yet.</li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+  // Where the shop is mounted: '' when it runs on its own, '/pos' when it is
+  // served inside the WAREXX backend. Every same-app fetch is written against this
+  // — a hardcoded '/floor/…' is right standalone and 404s under the mount, where
+  // it lands on the backend's own routes instead of the shop's.
+  const SHOP_ROOT = "/pos";
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  // Every chart on every screen in the design's colours: gridlines in the border
+  // green-grey, 11px muted axis text, a dark-green tooltip. Set once, here, before
+  // any page draws a chart.
+  if (window.Chart) {
+    Chart.defaults.font.family = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    Chart.defaults.font.size = 11;
+    Chart.defaults.color = '#68756E';
+    Chart.defaults.borderColor = '#DCE5DF';
+    Object.assign(Chart.defaults.plugins.tooltip, {
+      backgroundColor: '#0B3D2E', titleColor: '#FFFFFF', bodyColor: '#E7F4EC',
+      cornerRadius: 8, padding: 8, displayColors: false,
+      titleFont: {size: 11, weight: '600'}, bodyFont: {size: 11},
+    });
+  }
+</script>
+
+<script>
+  // Most forms put a <label> straight above its box without a for="…", so it
+  // reads right but a screen reader cannot tie the two together and clicking
+  // the label does nothing. Link each such label to the control that follows it.
+  document.querySelectorAll('label:not([for])').forEach(function (l) {
+    if (l.querySelector('input, select, textarea')) return;
+    var c = l.nextElementSibling;
+    if (c && !c.matches('input, select, textarea')) c = c.querySelector('input, select, textarea');
+    if (!c || c.type === 'hidden') return;
+    if (!c.id) c.id = 'fld-' + Math.random().toString(36).slice(2, 9);
+    l.htmlFor = c.id;
+  });
+</script>
+<script src="/pos/static/js/fit.js"></script>
+</body>
+</html>

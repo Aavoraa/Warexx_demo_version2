@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+  
+  <script>
+    try { if (window.self !== window.top) document.documentElement.classList.add('in-frame'); }
+    catch (e) { document.documentElement.classList.add('in-frame'); }
+  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+  <title>Sample Company</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="/pos/static/css/app.css">
+  <link rel="manifest" href="/pos/static/manifest.json">
+  <meta name="theme-color" content="#0B3D2E">
+</head>
+<body>
+
+
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top brand-nav">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/pos/">
+      <span class="brand-logo" aria-hidden="true">W</span>
+      <span class="brand-text">
+        <span class="brand-name">Sample Company <span class="brand-tag d-none d-sm-inline">· POS</span></span>
+        <span class="brand-sub d-none d-md-block">Billing, stock and customers for this store</span>
+      </span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
+            aria-controls="nav" aria-expanded="false" aria-label="Open navigation menu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      
+      <span class="frame-title" aria-hidden="true"><i class="bi bi-shop"></i> Store</span>
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link nav-ctl dropdown-toggle d-flex align-items-center gap-2" href="#"
+             data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+            <span>Send SMS</span>
+          </a>
+          <ul class="dropdown-menu shadow" style="min-width:320px">
+            
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/">
+                <i class="bi bi-speedometer2 mt-1"></i>
+                <span><strong>Dashboard</strong><br>
+                  <small class="text-muted">Today's sales, low stock and the last few bills</small></span>
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/customers/">
+                <i class="bi bi-people mt-1"></i>
+                <span><strong>Customers</strong><br>
+                  <small class="text-muted">Customer master, loyalty points and history</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/orders/">
+                <i class="bi bi-bag mt-1"></i>
+                <span><strong>Customer Orders</strong><br>
+                  <small class="text-muted">Orders taken for later — what, by when, and what was paid</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/loyalty/">
+                <i class="bi bi-award mt-1"></i>
+                <span><strong>Loyalty Management</strong><br>
+                  <small class="text-muted">Points earned and redeemed, by card, phone or name</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/gift-vouchers/">
+                <i class="bi bi-gift mt-1"></i>
+                <span><strong>Gift Voucher</strong><br>
+                  <small class="text-muted">Sell vouchers by denomination; they are spent at Settlement</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/coupons/">
+                <i class="bi bi-ticket-perforated mt-1"></i>
+                <span><strong>Gift Coupon</strong><br>
+                  <small class="text-muted">Coupon schemes, issuing, rewards to coupon and their history</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/price-list/">
+                <i class="bi bi-tags mt-1"></i>
+                <span><strong>Price List</strong><br>
+                  <small class="text-muted">Price categories, the designs on them and who buys on them</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-analyser/">
+                <i class="bi bi-bar-chart-line mt-1"></i>
+                <span><strong>CRM Analyser</strong><br>
+                  <small class="text-muted">Who buys, how often, how much — and who has stopped coming</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        active"
+                 href="/pos/send-sms/">
+                <i class="bi bi-chat-dots mt-1"></i>
+                <span><strong>Send SMS</strong><br>
+                  <small class="text-muted">Pick customers by what they bought, where and when, and message them</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/">
+                <i class="bi bi-speedometer2 mt-1"></i>
+                <span><strong>Feedback Dashboard</strong><br>
+                  <small class="text-muted">How customers rate the store, question by question</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/questions">
+                <i class="bi bi-patch-question mt-1"></i>
+                <span><strong>Feedback Questions</strong><br>
+                  <small class="text-muted">The questions customers are asked</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/report">
+                <i class="bi bi-clipboard-data mt-1"></i>
+                <span><strong>Feedback Report</strong><br>
+                  <small class="text-muted">Every response with its answers, filtered and exported</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/crm-feedback/form">
+                <i class="bi bi-ui-checks mt-1"></i>
+                <span><strong>Feedback Form Config</strong><br>
+                  <small class="text-muted">What the customer&#39;s feedback page asks and says</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/customer-divert/">
+                <i class="bi bi-signpost-split mt-1"></i>
+                <span><strong>Customer Divert</strong><br>
+                  <small class="text-muted">Meet walk-ins at the door and send them to a floor and a salesperson</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/leads/">
+                <i class="bi bi-person-plus mt-1"></i>
+                <span><strong>Lead Management</strong><br>
+                  <small class="text-muted">Enquiries to follow up, and which of them became customers</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/registration/">
+                <i class="bi bi-qr-code mt-1"></i>
+                <span><strong>Self Registration</strong><br>
+                  <small class="text-muted">The sign-up QR, its form, and the sign-ups waiting for approval</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/promotions/">
+                <i class="bi bi-gift mt-1"></i>
+                <span><strong>Promotions</strong><br>
+                  <small class="text-muted">Offers the till applies by itself, and what they have given away</small></span>
+              </a>
+            </li>
+            
+          </ul>
+        </li>
+      </ul>
+      
+      
+    </div>
+  </div>
+</nav>
+
+
+<main class="container-fluid py-3">
+  
+    
+  
+  
+<div class="page-head">
+  <h4><i class="bi bi-chat-dots"></i> Send SMS</h4>
+  <div class="d-flex gap-2">
+    <a href="/pos/customers/messages" class="btn btn-outline-secondary btn-sm"><i class="bi bi-list-ul"></i> Message log</a>
+    <button form="sendForm" class="btn btn-brand btn-sm" id="sendTop"><i class="bi bi-send"></i> Send SMS</button>
+  </div>
+</div>
+
+<div class="alert alert-warning py-2 small"><i class="bi bi-exclamation-triangle"></i> No SMS gateway is set up, so messages are queued and kept in the log, but nothing leaves the shop. Set <code>MESSAGE_WEBHOOK_URL</code> to send them.</div>
+
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    <form class="card p-3" id="filterForm">
+      <input type="hidden" name="run" value="1">
+      <div class="row g-2">
+        <div class="col-12"><label class="form-label small">Source</label>
+          <select class="form-select form-select-sm" name="source" onchange="this.form.submit()">
+            <option value="customers" selected>Customers</option>
+            <option value="leads" >Leads</option>
+          </select></div>
+        
+        <div class="col-6"><label class="form-label small">Customer category</label>
+          <select class="form-select form-select-sm" name="category"><option value="">Any</option>
+            <option >Gold</option><option >Platinum</option><option >Regular</option><option >Wholesale</option></select></div>
+        <div class="col-6"><label class="form-label small">Location</label>
+          <select class="form-select form-select-sm" name="location_id"><option value="">Any</option>
+            </select></div>
+        <div class="col-12"><label class="form-label small">Birth date <span class="text-muted">(day and month — any year)</span></label>
+          <div class="input-group input-group-sm">
+            <input class="form-control" type="date" name="dob_from" value="" aria-label="Birthday from">
+            <input class="form-control" type="date" name="dob_to" value="" aria-label="Birthday to"></div></div>
+        <div class="col-12"><label class="form-label small">Bill date</label>
+          <div class="input-group input-group-sm">
+            <input class="form-control" type="date" name="bill_from" value="" aria-label="Bill from">
+            <input class="form-control" type="date" name="bill_to" value="" aria-label="Bill to"></div></div>
+        <div class="col-6"><label class="form-label small">Floor</label>
+          <select class="form-select form-select-sm" name="floor_id"><option value="">Any</option>
+            </select></div>
+        <div class="col-6"><label class="form-label small">Product category</label>
+          <select class="form-select form-select-sm" name="product_category"><option value="">Any</option>
+            <option value="214" >AARAM</option><option value="215" >ACC-AARAM</option><option value="216" >ACC-B COVER &amp; P COVER</option><option value="217" >ACC-BAG</option><option value="218" >ACC-BED COVER</option><option value="219" >ACC-BED SHEET</option><option value="220" >ACC-BELT</option><option value="221" >ACC-BLANKET</option><option value="222" >ACC-BOX</option><option value="223" >ACC-BRACELET</option><option value="224" >ACC-COSMETICS</option><option value="225" >ACC-DISPLAY CARD</option><option value="226" >ACC-FANCY ITEMS</option><option value="227" >ACC-FLOOR MAT</option><option value="228" >ACC-GIFT (STOCK)</option><option value="229" >ACC-GIFT ITEM</option><option value="230" >ACC-KERCHIEF</option><option value="231" >ACC-KITCHEN TOWEL</option><option value="232" >ACC-LACE</option><option value="233" >ACC-MASK</option><option value="234" >ACC-NECKLACE</option><option value="235" >ACC-PERFUME</option><option value="236" >ACC-PILLOW</option><option value="237" >ACC-PILLOW COVER</option><option value="238" >ACC-PRICE TAG</option><option value="239" >ACC-REETH</option><option value="240" >ACC-SAFETY PIN</option><option value="241" >ACC-STATIONERY ITEMS</option><option value="242" >ACC-TOWEL</option><option value="243" >ACC-TOYS</option><option value="244" >ACC-WALLET</option><option value="245" >BABASUIT</option><option value="246" >BABULA</option><option value="247" >BABY ITEMS</option><option value="248" >BABY TOWEL</option><option value="249" >BANGLE</option><option value="250" >BED</option><option value="251" >BED COVER</option><option value="252" >BED SHEET</option><option value="253" >BEDSHEET &amp; PILLOWCOVER</option><option value="254" >BELT</option><option value="255" >BLANKET</option><option value="256" >BLAZER</option><option value="257" >BLOUSE</option><option value="258" >BLOUSE BIT</option><option value="259" >BLOUSE MATERIAL</option><option value="260" >BOX</option><option value="261" >BRACELET</option><option value="262" >BRASSIER</option><option value="263" >CAP</option><option value="264" >CHAIN</option><option value="265" >CHAPPAL</option><option value="266" >CHIMMIES</option><option value="267" >CHOLI</option><option value="268" >CHUDI MATERIAL</option><option value="269" >CHUDITHAR</option><option value="270" >COAT</option><option value="271" >COAT SUIT</option><option value="272" >COSMETICS</option><option value="273" >CROPTOP</option><option value="274" >DHOTI</option><option value="275" >DHOTI SET</option><option value="276" >DHOTIE SET</option><option value="277" >DISPLAY CARD</option><option value="278" >DRAWER</option><option value="279" >EARINGS</option><option value="280" >EARRING</option><option value="281" >WAREXX ACC-MASK</option><option value="282" >WAREXX KIDS-3/4TH PANT</option><option value="283" >WAREXX KIDS-DRAWER</option><option value="284" >WAREXX KIDS-FROCK</option><option value="285" >WAREXX KIDS-JETTY</option><option value="286" >WAREXX KIDS-LEGGINGS</option><option value="287" >WAREXX KIDS-NIGHT SUIT</option><option value="288" >WAREXX KIDS-PANT</option><option value="289" >WAREXX KIDS-SET ITEM</option><option value="290" >WAREXX KIDS-SHORTS</option><option value="291" >WAREXX KIDS-SLIPS</option><option value="292" >WAREXX KIDS-T-SHIRT</option><option value="293" >WAREXX KIDS-TRUNK</option><option value="294" >WAREXX KIDS-VEST</option><option value="295" >WAREXX LADIES-BRASSIER</option><option value="296" >WAREXX LADIES-CHIMMIES</option><option value="297" >WAREXX LADIES-LEGGINGS</option><option value="298" >WAREXX LADIES-NIGHT SUIT</option><option value="299" >WAREXX LADIES-PANT</option><option value="300" >WAREXX LADIES-PANTIES</option><option value="301" >WAREXX LADIES-PATIYALA</option><option value="302" >WAREXX LADIES-SET ITEM</option><option value="303" >WAREXX LADIES-SHORTS</option><option value="304" >WAREXX LADIES-SLIPS</option><option value="305" >WAREXX LADIES-T-SHIRT</option><option value="306" >WAREXX MENS-BRIEF</option><option value="307" >WAREXX MENS-PANT</option><option value="308" >WAREXX MENS-SET ITEM</option><option value="309" >WAREXX MENS-SHORTS</option><option value="310" >WAREXX MENS-T-SHIRT</option><option value="311" >WAREXX MENS-TRUNK</option><option value="312" >WAREXX MENS-VEST</option><option value="313" >EYE LINER</option><option value="314" >FALLS</option><option value="315" >FLOOR MAT</option><option value="316" >FROCK</option><option value="317" >GARARA SET</option><option value="318" >GIFT ITEM</option><option value="319" >GIFT-2SET PEGION TIFFEN BOX</option><option value="320" >GIFT-2SET TIFFEN BOX</option><option value="321" >GIFT-3LIT COOKER</option><option value="322" >GIFT-3SET DISH</option><option value="323" >GIFT-3SET TIFFEN CARRIER</option><option value="324" >GIFT-7NO DISH</option><option value="325" >GIFT-8NO DISH</option><option value="326" >GIFT-BENGO (M)</option><option value="327" >GIFT-BIG CHAMBADAM</option><option value="328" >GIFT-BIG DISH</option><option value="329" >GIFT-BOWL</option><option value="330" >GIFT-BUCKET</option><option value="331" >GIFT-BUTTERFLY GAS STOVE</option><option value="332" >GIFT-DISH</option><option value="333" >GIFT-DOSA TAWA</option><option value="334" >GIFT-EL OVEN</option><option value="335" >GIFT-EL STOVE</option><option value="336" >GIFT-GRINDER</option><option value="337" >GIFT-HEAVY BIG CHAMBADAM</option><option value="338" >GIFT-HOTBOX</option><option value="339" >GIFT-LAYS BIG</option><option value="340" >GIFT-LW CHAMBADAM</option><option value="341" >GIFT-M CHAMBADAM</option><option value="342" >GIFT-PLATE</option><option value="343" >GIFT-S CHAMBADAM</option><option value="344" >GIFT-S TUKKU</option><option value="345" >GIFT-SMALL CHAMBADAM</option><option value="346" >GIFT-SMALL DISH</option><option value="347" >GIFT-SMALL IDLY POT</option><option value="348" >GIFT-SS ELANTRA FRYPAN 24CM</option><option value="349" >GIFT-SS ELANTRA SAUCE PAN</option><option value="350" >GIFT-SS GIFT SET 3PCS</option><option value="351" >GIFT-SS KADAI SMALL</option><option value="352" >GIFT-SWEET CON BOX</option><option value="353" >GIFT-TABLE FAN</option><option value="354" >GIFT-TOASTER</option><option value="355" >GIFT-TOMATO (M)</option><option value="356" >GIFT-TOMATO (S)</option><option value="357" >GIFT-TOWER FAN</option><option value="358" >GIFT-UNO POT JUMBO</option><option value="359" >GIFT-WATER BOTTLE 1</option><option value="360" >GIFT-WATER BOTTLE 2</option><option value="361" >GIFT-XS CHAMBADAM</option><option value="362" >GIRLS-PANT</option><option value="363" >GROUP A</option><option value="364" >GROUP B</option><option value="365" >GROUP C</option><option value="366" >GROUP D</option><option value="367" >GROUP E</option><option value="368" >GROUP F</option><option value="369" >GROUP G</option><option value="370" >GROUP H</option><option value="371" >GROUP I</option><option value="372" >GROUP J</option><option value="373" >GROUP K</option><option value="374" >GROUP L</option><option value="375" >GROUP M</option><option value="376" >GROUP N</option><option value="377" >GROUP O</option><option value="378" >HALF SAREE</option><option value="379" >HAND BAG</option><option value="380" >INSKIRT</option><option value="381" >JABULA</option><option value="382" >JEGGINGS</option><option value="383" >JERKIN</option><option value="384" >JETTY</option><option value="385" >JEWEL</option><option value="386" >KERCHIEF</option><option value="134" >KIDS-3/4TH PANT</option><option value="135" >KIDS-BABASUIT</option><option value="136" >KIDS-BABULA</option><option value="137" >KIDS-BABY ITEMS</option><option value="138" >KIDS-BABY TOWEL</option><option value="139" >KIDS-BED</option><option value="140" >KIDS-BERMUDA</option><option value="141" >KIDS-BOYS 3/4TH PANT</option><option value="142" >KIDS-BOYS BERMUDA</option><option value="143" >KIDS-BOYS PANT</option><option value="144" >KIDS-BOYS SHORTS</option><option value="145" >KIDS-BRIEF</option><option value="146" >KIDS-CAP</option><option value="147" >KIDS-CHAPPAL</option><option value="148" >KIDS-CHIMMIES</option><option value="149" >KIDS-CHOLI</option><option value="150" >KIDS-CHUDITHAR</option><option value="151" >KIDS-COAT</option><option value="152" >KIDS-COAT SUIT</option><option value="153" >KIDS-COTTON FROCK</option><option value="154" >KIDS-CROPTOP</option><option value="155" >KIDS-DHAVANI SET</option><option value="156" >KIDS-DHOTI</option><option value="157" >KIDS-DHOTIE SET</option><option value="158" >KIDS-DRAWER</option><option value="159" >KIDS-FROCK</option><option value="160" >KIDS-GARARA SET</option><option value="161" >KIDS-GIRLS PANT</option><option value="162" >KIDS-GOWN</option><option value="163" >KIDS-HALF SAREE</option><option value="164" >KIDS-HALF SUIT</option><option value="165" >KIDS-JABULA</option><option value="166" >KIDS-JEGGINGS</option><option value="167" >KIDS-JERKIN</option><option value="168" >KIDS-JETTY</option><option value="169" >KIDS-JODHPURI</option><option value="170" >KIDS-KERCHIEF</option><option value="171" >KIDS-KURTA SET</option><option value="172" >KIDS-LEGGINGS</option><option value="173" >KIDS-LEHANGA</option><option value="174" >KIDS-LUNGI</option><option value="175" >KIDS-MIDI</option><option value="176" >KIDS-MIDI SET</option><option value="177" >KIDS-NIGHT SUIT</option><option value="178" >KIDS-NIGHTY</option><option value="179" >KIDS-OVER COAT</option><option value="180" >KIDS-P P MATERIAL</option><option value="181" >KIDS-P PAVADAI MAT</option><option value="182" >KIDS-PALAZZO SET</option><option value="183" >KIDS-PANCHAKACHAM</option><option value="184" >KIDS-PANT</option><option value="185" >KIDS-PANTIES</option><option value="186" >KIDS-PATIYALA</option><option value="187" >KIDS-PATTU PAVADAI</option><option value="188" >KIDS-RAIN COAT</option><option value="189" >KIDS-ROMPER SUIT</option><option value="190" >KIDS-SAREE</option><option value="191" >KIDS-SCARF</option><option value="192" >KIDS-SET ITEM</option><option value="193" >KIDS-SHAWL</option><option value="194" >KIDS-SHERWANI</option><option value="195" >KIDS-SHIRT</option><option value="196" >KIDS-SHOE</option><option value="197" >KIDS-SHORTS</option><option value="198" >KIDS-SIMMIES</option><option value="199" >KIDS-SKIRT</option><option value="200" >KIDS-SLIPS</option><option value="201" >KIDS-SOCKS</option><option value="202" >KIDS-SWATER</option><option value="203" >KIDS-SWEATER</option><option value="204" >KIDS-SWEATER SET</option><option value="205" >KIDS-T-SHIRT</option><option value="206" >KIDS-TOP</option><option value="207" >KIDS-TOWEL</option><option value="208" >KIDS-TOYS</option><option value="209" >KIDS-TRUNK</option><option value="210" >KIDS-UNSPECIFIED</option><option value="211" >KIDS-VEST</option><option value="212" >KIDS-WAIST COAT</option><option value="213" >KIDS-WESTERN</option><option value="387" >KITCHEN TOWEL</option><option value="388" >KOLUSU</option><option value="389" >KURTA SET</option><option value="390" >KURTHI PANT</option><option value="391" >KW-BRIEF</option><option value="392" >KW-DRAWER</option><option value="393" >KW-JETTY</option><option value="394" >KW-PANT</option><option value="395" >KW-PANTIES</option><option value="396" >KW-SET ITEM</option><option value="397" >KW-T-SHIRT</option><option value="398" >KW-TRUNK</option><option value="399" >KW-VEST</option><option value="52" >LADIES-AARAM</option><option value="53" >LADIES-BANGLE</option><option value="54" >LADIES-BLAZER</option><option value="55" >LADIES-BLOUSE</option><option value="56" >LADIES-BLOUSE BIT</option><option value="57" >LADIES-BLOUSE MATERIAL</option><option value="58" >LADIES-BRACELET</option><option value="59" >LADIES-BRASSIER</option><option value="60" >LADIES-BRIEF</option><option value="61" >LADIES-CAP</option><option value="62" >LADIES-CHAIN</option><option value="63" >LADIES-CHIMMIES</option><option value="64" >LADIES-CHOLI</option><option value="65" >LADIES-CHUDI MATERIAL</option><option value="66" >LADIES-CHUDITHAR</option><option value="67" >LADIES-COUPLE DRESS</option><option value="68" >LADIES-CROPTOP</option><option value="69" >LADIES-DHAVANI</option><option value="70" >LADIES-DHAVANI SET</option><option value="71" >LADIES-EARINGS</option><option value="72" >LADIES-EARRING</option><option value="73" >LADIES-EYE LINER</option><option value="74" >LADIES-FALLS</option><option value="75" >LADIES-FROCK</option><option value="76" >LADIES-GOWN</option><option value="77" >LADIES-HALF SAREE</option><option value="78" >LADIES-HAND BAG</option><option value="79" >LADIES-INSKIRT</option><option value="80" >LADIES-JACKET</option><option value="81" >LADIES-JEGGINGS</option><option value="82" >LADIES-JEWEL</option><option value="83" >LADIES-KERCHIEF</option><option value="84" >LADIES-KOLUSU</option><option value="85" >LADIES-KURTHI PANT</option><option value="86" >LADIES-LEGGINGS</option><option value="87" >LADIES-LEHANGA</option><option value="88" >LADIES-LINING MATERIAL</option><option value="89" >LADIES-LIP STICK</option><option value="90" >LADIES-MAKE UP KIT</option><option value="91" >LADIES-MAXI</option><option value="92" >LADIES-NAIL POLISH</option><option value="93" >LADIES-NECKLACE</option><option value="94" >LADIES-NIGHT SUIT</option><option value="95" >LADIES-NIGHTY</option><option value="96" >LADIES-NIGHTY SLIP</option><option value="97" >LADIES-OVER COAT</option><option value="98" >LADIES-P P MATERIAL</option><option value="99" >LADIES-P PAVADAI MAT</option><option value="100" >LADIES-PALAZZO SET</option><option value="101" >LADIES-PANT</option><option value="102" >LADIES-PANTIES</option><option value="103" >LADIES-PATIYALA</option><option value="104" >LADIES-PATTU PAVADAI</option><option value="105" >LADIES-RAIN COAT</option><option value="106" >LADIES-RING</option><option value="107" >LADIES-RM BLOUSE</option><option value="108" >LADIES-RM SAREE</option><option value="109" >LADIES-SAREE</option><option value="110" >LADIES-SCARF</option><option value="111" >LADIES-SET ITEM</option><option value="112" >LADIES-SHAPEWEAR</option><option value="113" >LADIES-SHAPEWEAR PANTY</option><option value="114" >LADIES-SHAWL</option><option value="115" >LADIES-SHIRT</option><option value="116" >LADIES-SHORTS</option><option value="117" >LADIES-SHRUG</option><option value="118" >LADIES-SKIRT</option><option value="119" >LADIES-SLIPS</option><option value="120" >LADIES-SOCKS</option><option value="121" >LADIES-STUD</option><option value="122" >LADIES-SWEATER</option><option value="123" >LADIES-T-SHIRT</option><option value="124" >LADIES-TOP</option><option value="125" >LADIES-TOP MATERIAL</option><option value="126" >LADIES-UNSPECIFIED</option><option value="127" >LADIES-WALLET</option><option value="128" >LADIES-WED-CHUDI</option><option value="129" >LADIES-WED-CROPTOP</option><option value="130" >LADIES-WED-GOWN</option><option value="131" >LADIES-WED-SLIPPER</option><option value="132" >LADIES-WESTERN</option><option value="133" >LADIES-Z SAREE</option><option value="400" >LAPTOP BAG</option><option value="401" >LEGGINGS</option><option value="402" >LEHANGA</option><option value="403" >LINING MATERIAL</option><option value="404" >LIP STICK</option><option value="405" >LUNGI</option><option value="406" >LW-LEGGINGS</option><option value="407" >LW-PANT</option><option value="408" >LW-PANTIES</option><option value="409" >LW-SET ITEM</option><option value="410" >LW-T-SHIRT</option><option value="411" >MAKE UP KIT</option><option value="412" >MASK</option><option value="413" >MAXI</option><option value="1" >MENS-3/4TH PANT</option><option value="2" >MENS-BED COVER</option><option value="3" >MENS-BED SHEET</option><option value="4" >MENS-BELT</option><option value="5" >MENS-BERMUDA</option><option value="6" >MENS-BLAZER</option><option value="7" >MENS-BRIEF</option><option value="8" >MENS-BUNDI COAT</option><option value="9" >MENS-CAP</option><option value="10" >MENS-CHAPPAL</option><option value="11" >MENS-COAT</option><option value="12" >MENS-COAT SUIT</option><option value="13" >MENS-DHOTI</option><option value="14" >MENS-DHOTI SET</option><option value="15" >MENS-FLEET PANT</option><option value="16" >MENS-IHRAM SET</option><option value="17" >MENS-JERKIN</option><option value="18" >MENS-JODHPURI</option><option value="19" >MENS-KERCHIEF</option><option value="20" >MENS-KITCHEN TOWEL</option><option value="21" >MENS-KURTA SET</option><option value="22" >MENS-LUNGI</option><option value="23" >MENS-MASK</option><option value="24" >MENS-MUFFLER</option><option value="25" >MENS-PANT</option><option value="26" >MENS-PANT BIT</option><option value="27" >MENS-PILLOW COVER</option><option value="28" >MENS-RAIN COAT</option><option value="29" >MENS-SET ITEM</option><option value="30" >MENS-SHAWL</option><option value="31" >MENS-SHERWANI</option><option value="32" >MENS-SHERWANI CAP</option><option value="33" >MENS-SHERWANI SHOE</option><option value="34" >MENS-SHIRT</option><option value="35" >MENS-SHIRT &amp; PANT BIT</option><option value="36" >MENS-SHIRT BIT</option><option value="37" >MENS-SHIRTING</option><option value="38" >MENS-SHOE</option><option value="39" >MENS-SHORTS</option><option value="40" >MENS-SLIPPER</option><option value="41" >MENS-SOCKS</option><option value="42" >MENS-SUITING</option><option value="43" >MENS-SWEATER</option><option value="44" >MENS-T-SHIRT</option><option value="45" >MENS-TIE</option><option value="46" >MENS-TOWEL</option><option value="47" >MENS-TRUNK</option><option value="48" >MENS-UNSPECIFIED</option><option value="49" >MENS-VEST</option><option value="50" >MENS-WAIST COAT</option><option value="51" >MENS-WALLET</option><option value="414" >MIDI</option><option value="415" >MIDI SET</option><option value="416" >MUFFLER</option><option value="417" >MW-BRIEF</option><option value="418" >MW-KERCHIEF</option><option value="419" >MW-PANT</option><option value="420" >MW-T-SHIRT</option><option value="421" >MW-TRUNK</option><option value="422" >MW-VEST</option><option value="423" >NAIL POLISH</option><option value="424" >NECKLACE</option><option value="425" >NIGHT SUIT</option><option value="426" >NIGHTY SLIP</option><option value="427" >OVER COAT</option><option value="428" >PANCHAKACHAM</option><option value="429" >PANT</option><option value="430" >PANT BIT</option><option value="431" >PANTIES</option><option value="432" >PATIYALA</option><option value="433" >PATTU PAVADAI</option><option value="434" >PATTU PAVADAI MATERIAL</option><option value="435" >PILLOW</option><option value="436" >PILLOW COVER</option><option value="437" >PRICE TAG</option><option value="438" >RAIN COAT</option><option value="439" >READYMADE BLOUSE</option><option value="440" >REETH</option><option value="441" >RING</option><option value="442" >SAFETY PIN</option><option value="443" >SAREE</option><option value="444" >SCARF</option><option value="445" >SET ITEM</option><option value="446" >SHAPEWEAR</option><option value="447" >SHAWL</option><option value="448" >SHERWANI</option><option value="449" >SHIRT</option><option value="450" >SHIRT &amp; PANT BIT</option><option value="451" >SHIRT BIT</option><option value="452" >SHIRTING</option><option value="453" >SHOE</option><option value="454" >SHORTS</option><option value="455" >SIMMIES</option><option value="456" >SKIRT</option><option value="457" >SLIPS</option><option value="458" >SOCKS</option><option value="459" >STUD</option><option value="460" >SUITING</option><option value="461" >SWATER</option><option value="462" >SWEATER</option><option value="463" >T-SHIRT</option><option value="464" >TIE</option><option value="465" >TOP MATERIAL</option><option value="466" >TOWEL</option><option value="467" >TOYS</option><option value="468" >TRUNK</option><option value="469" >UNSPECIFIED</option><option value="470" >VEST</option><option value="471" >WAIST COAT</option><option value="472" >WALLET</option><option value="473" >WESTERN</option></select></div>
+        <div class="col-6"><label class="form-label small">Brand</label>
+          <select class="form-select form-select-sm" name="brand"><option value="">Any</option>
+            </select></div>
+        <div class="col-6"><label class="form-label small">Size</label>
+          <select class="form-select form-select-sm" name="size"><option value="">Any</option>
+            <option >-</option><option >10Y</option><option >6Y</option><option >8Y</option><option >Free</option><option >L</option><option >M</option><option >XL</option></select></div>
+        <div class="col-6"><label class="form-label small">Religion</label>
+          <select class="form-select form-select-sm" name="religion"><option value="">Any</option>
+            </select></div>
+        <div class="col-6"><label class="form-label small">City</label>
+          <select class="form-select form-select-sm" name="city"><option value="">Any</option>
+            <option >Chennai</option><option >Coimbatore</option><option >Erode</option><option >Madurai</option><option >Salem</option><option >Tiruppur</option></select></div>
+        <div class="col-6"><label class="form-label small">Area</label>
+          <select class="form-select form-select-sm" name="area"><option value="">Any</option>
+            <option >Avinashi Road</option><option >Gandhipuram</option><option >Peelamedu</option><option >RS Puram</option><option >Saibaba Colony</option><option >Town Hall</option></select></div>
+        <div class="col-6"></div>
+        <div class="col-12"><label class="form-label small">Bill value <span class="text-muted">(their total in the bill dates)</span></label>
+          <div class="input-group input-group-sm">
+            <input class="form-control" type="number" step="0.01" name="value_from" placeholder="From" value="" aria-label="Value from">
+            <input class="form-control" type="number" step="0.01" name="value_to" placeholder="To" value="" aria-label="Value to"></div></div>
+        <div class="col-12"><label class="form-label small">Leave out customers who bought between</label>
+          <div class="input-group input-group-sm">
+            <input class="form-control" type="date" name="exclude_from" value="" aria-label="Exclude from">
+            <input class="form-control" type="date" name="exclude_to" value="" aria-label="Exclude to"></div></div>
+        
+        <div class="col-12 d-flex gap-2 mt-2">
+          <button class="btn btn-brand btn-sm flex-grow-1"><i class="bi bi-search"></i> Search</button>
+          <a href="/pos/send-sms/?source=customers" class="btn btn-outline-secondary btn-sm">Clear</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="col-lg-8">
+    <form method="post" action="/pos/send-sms/send" id="sendForm">
+      <div class="card mb-3">
+        <div class="card-header d-flex align-items-center gap-2 flex-wrap">
+          <span>Recipients · <b id="pickCount">0</b> ticked</span>
+          <div class="input-group input-group-sm ms-auto" style="max-width:300px">
+            <input class="form-control" id="addMobile" placeholder="Add a mobile number" inputmode="tel" aria-label="Add a mobile number">
+            <button type="button" class="btn btn-brand" id="addBtn" title="Add to list" aria-label="Add to list"><i class="bi bi-plus-lg"></i></button>
+            <button type="button" class="btn btn-danger" id="clearExtra" title="Clear added numbers" aria-label="Clear added numbers"><i class="bi bi-x-lg"></i></button>
+          </div>
+        </div>
+        <div id="extraList" class="px-3 pt-2 d-flex flex-wrap gap-1"></div>
+        <div class="table-responsive" style="max-height:420px">
+          <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="sticky-top"><tr>
+              <th style="width:32px"><input type="checkbox" class="form-check-input" id="tickAll" aria-label="Tick all"></th>
+              <th>Name</th><th>Mobile no</th>
+              <th>DOB</th><th class="text-end">Total pur. value</th><th class="text-end">No of bills</th>
+            </tr></thead>
+            <tbody>
+              
+                
+                <tr><td colspan="6" class="text-center text-muted p-4">Choose who to message on the left and press Search — or press Search with nothing chosen for everyone.</td></tr>
+                
+              
+            </tbody>
+          </table>
+        </div>
+        <div class="card-footer small text-muted">Showing 0.</div>
+      </div>
+
+      <div class="card p-3">
+        <label class="form-label small">URL <span class="text-muted">(added at the end of the message)</span></label>
+        <input class="form-control form-control-sm mb-2" name="url" type="url" placeholder="https://…">
+        <label class="form-label small d-flex justify-content-between"><span>Message</span><span class="text-muted"><span id="chars">0</span> characters · <span id="parts">0</span> SMS</span></label>
+        <textarea class="form-control form-control-sm mb-1" name="message" id="msg" rows="3" required placeholder="Hi {name}, our festive collection is in at {shop}…"></textarea>
+        <div class="small text-muted mb-2"><code>{name}</code> becomes each customer's name, <code>{shop}</code> the shop's.</div>
+        <div class="row g-2 align-items-end">
+          <div class="col-md-5"><label class="form-label small">Send at <span class="text-muted">(blank = now)</span></label>
+            <input class="form-control form-control-sm" type="datetime-local" name="when"></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="now" value="1" id="sendNow" checked>
+            <label class="form-check-label small" for="sendNow">Send straight away</label></div></div>
+          <div class="col-md-3"><button class="btn btn-brand btn-sm w-100"><i class="bi bi-send"></i> Send SMS</button></div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+</main>
+
+<script>
+  // Where the shop is mounted: '' when it runs on its own, '/pos' when it is
+  // served inside the WAREXX backend. Every same-app fetch is written against this
+  // — a hardcoded '/floor/…' is right standalone and 404s under the mount, where
+  // it lands on the backend's own routes instead of the shop's.
+  const SHOP_ROOT = "/pos";
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  // Every chart on every screen in the design's colours: gridlines in the border
+  // green-grey, 11px muted axis text, a dark-green tooltip. Set once, here, before
+  // any page draws a chart.
+  if (window.Chart) {
+    Chart.defaults.font.family = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    Chart.defaults.font.size = 11;
+    Chart.defaults.color = '#68756E';
+    Chart.defaults.borderColor = '#DCE5DF';
+    Object.assign(Chart.defaults.plugins.tooltip, {
+      backgroundColor: '#0B3D2E', titleColor: '#FFFFFF', bodyColor: '#E7F4EC',
+      cornerRadius: 8, padding: 8, displayColors: false,
+      titleFont: {size: 11, weight: '600'}, bodyFont: {size: 11},
+    });
+  }
+</script>
+
+<script>
+const ticks = () => document.querySelectorAll('.tick');
+function count(){
+  const n = [...ticks()].filter((t) => t.checked).length + document.querySelectorAll('#extraList input').length;
+  document.getElementById('pickCount').innerText = n;
+}
+document.getElementById('tickAll').checked = true;
+document.getElementById('tickAll').addEventListener('change', (e) => { ticks().forEach((t) => { t.checked = e.target.checked; }); count(); });
+ticks().forEach((t) => t.addEventListener('change', count));
+function addExtra(){
+  const box = document.getElementById('addMobile'), v = box.value.replace(/[\s-]/g, '');
+  if (!/^\+?\d{10,13}$/.test(v)){ box.classList.add('is-invalid'); return; }
+  box.classList.remove('is-invalid');
+  const chip = document.createElement('span');
+  chip.className = 'badge text-bg-info';
+  chip.innerHTML = `${v} <input type="hidden" name="extra" value="${v}"><i class="bi bi-x" role="button" aria-label="Remove"></i>`;
+  chip.querySelector('i').onclick = () => { chip.remove(); count(); };
+  document.getElementById('extraList').appendChild(chip);
+  box.value = ''; count();
+}
+document.getElementById('addBtn').onclick = addExtra;
+document.getElementById('addMobile').addEventListener('keydown', (e) => { if (e.key === 'Enter'){ e.preventDefault(); addExtra(); } });
+document.getElementById('clearExtra').onclick = () => { document.getElementById('extraList').innerHTML = ''; count(); };
+const msg = document.getElementById('msg');
+msg.addEventListener('input', () => {
+  const n = msg.value.length;
+  document.getElementById('chars').innerText = n;
+  document.getElementById('parts').innerText = n ? Math.ceil(n / (n > 160 ? 153 : 160)) : 0;
+});
+document.getElementById('sendForm').addEventListener('submit', (e) => {
+  const n = Number(document.getElementById('pickCount').innerText);
+  if (!n){ e.preventDefault(); alert('Tick at least one recipient, or add a mobile number.'); return; }
+  if (!confirm(`Send this message to ${n} recipient(s)?`)) e.preventDefault();
+});
+count();
+</script>
+
+<script>
+  // Most forms put a <label> straight above its box without a for="…", so it
+  // reads right but a screen reader cannot tie the two together and clicking
+  // the label does nothing. Link each such label to the control that follows it.
+  document.querySelectorAll('label:not([for])').forEach(function (l) {
+    if (l.querySelector('input, select, textarea')) return;
+    var c = l.nextElementSibling;
+    if (c && !c.matches('input, select, textarea')) c = c.querySelector('input, select, textarea');
+    if (!c || c.type === 'hidden') return;
+    if (!c.id) c.id = 'fld-' + Math.random().toString(36).slice(2, 9);
+    l.htmlFor = c.id;
+  });
+</script>
+<script src="/pos/static/js/fit.js"></script>
+</body>
+</html>

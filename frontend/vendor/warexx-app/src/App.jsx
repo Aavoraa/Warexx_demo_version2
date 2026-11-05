@@ -5,6 +5,8 @@ import { BrandMark, Wordmark } from './brand.jsx'
 import { WarehouseArt } from './art.jsx'
 import heroImg from './assets/warehouse-hero.webp'
 import { parseDictation, coerceSpoken, dictationTargets } from './voicefill.js'
+import HR, { HR_SCREENS } from './HR.jsx'
+import Finance, { FIN_SCREENS } from './Finance.jsx'
 
 import { Icon, ICONS } from './ui/icons.jsx'
 import { PageCtx, usePage, Crumbs, PageHeader, Tabs, Kpis, DataPanel, Toolbar, StatusBadge, EmptyState, LoadingState, ErrorState, Drawer, FormSection, ActionBar, Stat as WxStat, RecordHead } from './ui/kit.jsx'
@@ -325,23 +327,41 @@ const inRange = (iso, from, to) => {
 // shown in a text box the app does own, anything typed into it goes through the
 // same day-first parser the rest of the system uses, and the native picker is
 // kept for anyone who would rather point at a calendar than type.
-function DateField({ label, value, onChange, style, width, required, title, inline }) {
+// `past`: a date of birth or an anniversary, which may well be before 1990 —
+// the floor saneDate keeps for ledgers does not apply to people.
+const toISODatePast = (value) => {
   const iso = toISODate(value)
+  if (iso || !value) return iso
+  const s = String(value).trim()
+  const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/) || s.match(/^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})$/)
+  if (!m) return ''
+  const [y, mo, d] = m[1].length === 4 ? [m[1], m[2], m[3]] : [m[3], m[2], m[1]]
+  if (+y < 1900) return ''
+  const out = `${y}-${pad2(mo)}-${pad2(d)}`
+  const t = new Date(out + 'T00:00:00Z')
+  return !isNaN(t) && t.toISOString().slice(0, 10) === out ? out : ''
+}
+const readablePast = (iso) => (iso ? iso.split('-').reverse().join(DISPLAY_SEP) : '')
+
+function DateField({ label, value, onChange, style, width, required, title, inline, past }) {
+  const toISODate_ = past ? toISODatePast : toISODate
+  const readableDate_ = past ? readablePast : readableDate
+  const iso = toISODate_(value)
   const unreadable = value && !iso
   const picker = useRef(null)
-  const [text, setText] = useState(() => readableDate(iso))
+  const [text, setText] = useState(() => readableDate_(iso))
   // Follow the value when something OUTSIDE the box changes it — a form reset, a
   // row filling itself in from a matched invoice. Keyed on the ISO value, so it
   // cannot fire mid-typing and snatch back half a date.
-  useEffect(() => { setText(readableDate(iso)) }, [iso])
+  useEffect(() => { setText(readableDate_(iso)) }, [iso])
   const commit = () => {
     const s = text.trim()
     if (!s) { setText(''); if (iso) onChange(''); return }
-    const next = toISODate(s)
+    const next = toISODate_(s)
     // Unreadable: put back what the field actually holds. Leaving half-typed
     // text sitting there would look saved, and isn't.
-    if (!next) { setText(readableDate(iso)); return }
-    setText(readableDate(next))
+    if (!next) { setText(readableDate_(iso)); return }
+    setText(readableDate_(next))
     if (next !== iso) onChange(next)
   }
   const input = (
@@ -16541,7 +16561,7 @@ const IN_STOCK_AUDIT = { physical_audit: 'qty' }
 
 //: The whole company-level menu. Anything not here needs a warehouse first.
 const COMPANY_LEVEL = new Set(['command', 'audit', 'central', 'locator', 'reports',
-                               'locations', 'users'])
+                               'locations', 'users', ...HR_SCREENS.map(([k]) => k), ...FIN_SCREENS.map(([k]) => k)])
 
 //: Four ranked roles — services/users.py holds the same four, and everything is
 //: compared by RANK so the top one inherits every screen below it.
@@ -16607,6 +16627,11 @@ const MODULES = [
   { key: 'inward', icon: '📥', label: 'Stock Inward', blurb: 'Accept a dispatched transfer, line by line' },
   { key: 'returns', icon: '↩', label: 'Returns', blurb: 'Debit notes raised against a posted GRN', min: 'admin' },
   { key: 'payments', icon: '₹', label: 'Payments', blurb: 'Settle supplier bills and read the ledger', min: 'admin' },
+  // People and their pay (HR.jsx, from ESSA) — the company's, like the books:
+  // one payroll pays every warehouse and store.
+  ...HR_SCREENS.map(([key, label, blurb]) => ({ key, icon: '👥', label, blurb, min: 'admin', perm: 'hr' })),
+  // The books (Finance.jsx, from ESSA). One grant covers them all: they are one set of books.
+  ...FIN_SCREENS.map(([key, label, blurb]) => ({ key, icon: '₹', label, blurb, min: 'admin', perm: 'finance' })),
   { key: 'reports', icon: '📊', label: 'Reports', blurb: 'Every register, filtered and exportable', min: 'admin' },
   { key: 'suppliers', icon: '🏭', label: 'Suppliers', blurb: 'Supplier master and trained invoice formats', min: 'admin' },
   { key: 'masters', icon: '⚙', label: 'Masters', blurb: 'Categories, agents, transporters and the dropdown lists', min: 'admin' },
@@ -16673,6 +16698,36 @@ const POS_SCREENS = [
     blurb: 'Scan or filter to find an item and where it is' },
   { key: 'pos:customers', icon: '🧍', label: 'Customers', path: '/customers/',
     blurb: 'Customer master, loyalty points and history' },
+  // CRM — everything about the customer after the master, in the reference
+  // software's order. Listed under the Store menu's CRM section (NAV_SECTIONS.store).
+  { key: 'pos:crm_orders', icon: '🛍', label: 'Customer Orders', path: '/orders/',
+    blurb: 'Orders taken for later — what, by when, and what was paid' },
+  { key: 'pos:loyalty', icon: '🏅', label: 'Loyalty Management', path: '/loyalty/',
+    blurb: 'Points earned and redeemed, by card, phone or name' },
+  { key: 'pos:gift_vouchers', icon: '🎁', label: 'Gift Voucher', path: '/gift-vouchers/',
+    blurb: 'Sell vouchers by denomination; they are spent at Settlement' },
+  { key: 'pos:gift_coupons', icon: '🎟', label: 'Gift Coupon', path: '/coupons/',
+    blurb: 'Coupon schemes, issuing, rewards to coupon and their history' },
+  { key: 'pos:price_list', icon: '🏷', label: 'Price List', path: '/price-list/',
+    blurb: 'Price categories, the designs on them and who buys on them' },
+  { key: 'pos:crm_analyser', icon: '📊', label: 'CRM Analyser', path: '/crm-analyser/',
+    blurb: 'Who buys, how often, how much — and who has stopped coming' },
+  { key: 'pos:send_sms', icon: '💬', label: 'Send SMS', path: '/send-sms/',
+    blurb: 'Pick customers by what they bought, where and when, and message them' },
+  { key: 'pos:feedback_dashboard', icon: '⭐', label: 'Feedback Dashboard', path: '/crm-feedback/',
+    blurb: 'How customers rate the store, question by question' },
+  { key: 'pos:feedback_questions', icon: '❓', label: 'Feedback Questions', path: '/crm-feedback/questions',
+    blurb: 'The questions customers are asked' },
+  { key: 'pos:feedback_report', icon: '📋', label: 'Feedback Report', path: '/crm-feedback/report',
+    blurb: 'Every response with its answers, filtered and exported' },
+  { key: 'pos:feedback_form', icon: '⚙️', label: 'Feedback Form Config', path: '/crm-feedback/form',
+    blurb: 'What the customer\'s feedback page asks and says' },
+  { key: 'pos:customer_divert', icon: '🪧', label: 'Customer Divert', path: '/customer-divert/',
+    blurb: 'Meet walk-ins at the door and send them to a floor and a salesperson' },
+  { key: 'pos:leads', icon: '🙋', label: 'Lead Management', path: '/leads/',
+    blurb: 'Enquiries to follow up, and which of them became customers' },
+  { key: 'pos:self_registration', icon: '🔳', label: 'Self Registration', path: '/registration/',
+    blurb: 'The sign-up QR, its form, and the sign-ups waiting for approval' },
   { key: 'pos:invoices', icon: '🧾', label: 'Invoices', path: '/pos/invoices',
     blurb: 'Every bill raised, searchable and reprintable' },
   { key: 'pos:returns', icon: '↩️', label: 'Returns', path: '/returns/',
@@ -16690,6 +16745,13 @@ const POS_SCREENS = [
 ]
 
 const POS_ITEMS = [POS_HOME, null, ...POS_SCREENS]
+
+//: The CRM's screens. The customer book is the company's, not one building's, so
+//: they are offered at Central as well as in a store (ESSA keeps them at Central).
+const CRM_KEYS = new Set(['pos:customers', 'pos:crm_orders', 'pos:loyalty', 'pos:gift_vouchers', 'pos:gift_coupons',
+  'pos:promotions', 'pos:price_list', 'pos:crm_analyser', 'pos:send_sms', 'pos:feedback_dashboard',
+  'pos:feedback_questions', 'pos:feedback_report', 'pos:feedback_form', 'pos:customer_divert', 'pos:leads',
+  'pos:self_registration'])
 
 // A Store USER (Users & Access → Store / POS) gets these two and nothing else —
 // not the Store Dashboard either, which is the store's takings at a glance. The
@@ -16749,6 +16811,13 @@ const NAV_ICON = {
   'pos:returns': 'undo', 'pos:alterations': 'scissors', 'pos:stores': 'layers',
   'pos:promotions': 'percent', 'pos:staff': 'users', 'pos:reports': 'spreadsheet',
   'ws:central': 'grid', 'ws:warehouse': 'building', 'ws:store': 'store',
+  'pos:crm_orders': 'bag', 'pos:loyalty': 'award',
+  'pos:gift_vouchers': 'gift', 'pos:gift_coupons': 'ticket', 'pos:price_list': 'tag',
+  'pos:crm_analyser': 'barchart', 'pos:send_sms': 'message', 'pos:feedback_dashboard': 'gauge',
+  'pos:feedback_questions': 'help', 'pos:feedback_report': 'cliplist', 'pos:feedback_form': 'listchecks',
+  'pos:customer_divert': 'signpost', 'pos:leads': 'userplus', 'pos:self_registration': 'qr',
+  ...Object.fromEntries(HR_SCREENS.map(([k, , , icon]) => [k, icon])),
+  ...Object.fromEntries(FIN_SCREENS.map(([k, , , icon]) => [k, icon])),
 }
 
 // Two letters for the avatar: the initials of a two-word name, or the first two
@@ -16823,6 +16892,20 @@ const NAV_SECTIONS = {
       { key: 'purchases' },
       { id: 'templates', label: 'Labels & Templates', icon: 'qr', keys: ['labels', 'labelprint'] },
     ] },
+    { title: 'Finance', entries: [
+      { id: 'fin_entry', label: 'Payments & Vouchers', icon: 'receipt',
+        keys: ['fin_vouchers', 'fin_collection', 'fin_creditnote', 'fin_transport', 'fin_agent', 'fin_petty'] },
+      { id: 'fin_bank', label: 'Banking & Loans', icon: 'building', keys: ['fin_cheques', 'fin_brs', 'fin_loans'] },
+      { id: 'fin_books', label: 'Statements', icon: 'spreadsheet',
+        keys: ['fin_daybook', 'fin_trial', 'fin_trading', 'fin_pl', 'fin_bs', 'fin_dailypl'] },
+      { id: 'fin_analysis', label: 'Outstanding & Tax', icon: 'calc',
+        keys: ['fin_payable', 'fin_receivable', 'fin_analyser', 'fin_tds', 'fin_gst', 'fin_incentive'] },
+      { id: 'fin_setup', label: 'Ledgers & Tally', icon: 'book',
+        keys: ['fin_ledgers', 'fin_opening', 'fin_tally', 'fin_tallycfg'] },
+    ] },
+    { title: 'People', entries: [
+      { id: 'hr', label: 'HR & Payroll', icon: 'users', keys: HR_SCREENS.map(([k]) => k) },
+    ] },
     { title: 'Analytics', entries: [{ key: 'reports' }, { key: 'payments' }] },
     { title: 'Administration', entries: [
       { key: 'locations' }, { key: 'users' },
@@ -16837,12 +16920,45 @@ const NAV_SECTIONS = {
       { key: 'pickwh' }, { key: 'ws:warehouse', label: 'Warehouses', icon: 'building' },
       { key: 'locator' },
     ] },
+    { title: 'Finance', entries: [
+      { id: 'fin_entry', label: 'Payments & Vouchers', icon: 'receipt',
+        keys: ['fin_vouchers', 'fin_collection', 'fin_creditnote', 'fin_transport', 'fin_agent', 'fin_petty'] },
+      { id: 'fin_bank', label: 'Banking & Loans', icon: 'building', keys: ['fin_cheques', 'fin_brs', 'fin_loans'] },
+      { id: 'fin_books', label: 'Statements', icon: 'spreadsheet',
+        keys: ['fin_daybook', 'fin_trial', 'fin_trading', 'fin_pl', 'fin_bs', 'fin_dailypl'] },
+      { id: 'fin_analysis', label: 'Outstanding & Tax', icon: 'calc',
+        keys: ['fin_payable', 'fin_receivable', 'fin_analyser', 'fin_tds', 'fin_gst', 'fin_incentive'] },
+      { id: 'fin_setup', label: 'Ledgers & Tally', icon: 'book',
+        keys: ['fin_ledgers', 'fin_opening', 'fin_tally', 'fin_tallycfg'] },
+    ] },
+    { title: 'People', entries: [
+      { id: 'hr', label: 'HR & Payroll', icon: 'users', keys: HR_SCREENS.map(([k]) => k) },
+    ] },
+    { title: 'CRM', entries: [
+      { key: 'pos:customers' },
+      { id: 'crm_sales', label: 'Orders & Loyalty', icon: 'crm',
+        keys: ['pos:crm_orders', 'pos:loyalty', 'pos:gift_vouchers', 'pos:gift_coupons', 'pos:promotions', 'pos:price_list'] },
+      { id: 'crm_reach', label: 'Analyse & Reach', icon: 'barchart', keys: ['pos:crm_analyser', 'pos:send_sms'] },
+      { id: 'crm_feedback', label: 'Feedback', icon: 'gauge',
+        keys: ['pos:feedback_dashboard', 'pos:feedback_questions', 'pos:feedback_report', 'pos:feedback_form'] },
+      { id: 'crm_people', label: 'Walk-ins & Leads', icon: 'userplus',
+        keys: ['pos:customer_divert', 'pos:leads', 'pos:self_registration'] },
+    ] },
     { title: 'Analytics', entries: [{ key: 'reports' }, { key: 'audit' }] },
     { title: 'Administration', entries: [{ key: 'locations' }, { key: 'users' }] },
   ],
   store: [
     { title: 'Selling', entries: [{ key: 'pos:floor' }, { key: 'pos:counter' }, { key: 'pos:delivery' }] },
     { title: 'Stock', entries: [{ key: 'pos:inventory' }, { key: 'pos:audits' }, { key: 'pos:checker' }] },
+    { title: 'CRM', entries: [
+      { id: 'crm_sales', label: 'Orders & Loyalty', icon: 'crm',
+        keys: ['pos:crm_orders', 'pos:loyalty', 'pos:gift_vouchers', 'pos:gift_coupons', 'pos:price_list'] },
+      { id: 'crm_reach', label: 'Analyse & Reach', icon: 'barchart', keys: ['pos:crm_analyser', 'pos:send_sms'] },
+      { id: 'crm_feedback', label: 'Feedback', icon: 'gauge',
+        keys: ['pos:feedback_dashboard', 'pos:feedback_questions', 'pos:feedback_report', 'pos:feedback_form'] },
+      { id: 'crm_people', label: 'Walk-ins & Leads', icon: 'userplus',
+        keys: ['pos:customer_divert', 'pos:leads', 'pos:self_registration'] },
+    ] },
     { title: 'Customers & Bills', entries: [
       { key: 'pos:customers' }, { key: 'pos:invoices' }, { key: 'pos:returns' }, { key: 'pos:alterations' },
     ] },
@@ -18776,7 +18892,7 @@ export default function App() {
   const settleTab = (t) => {
     if (here && COMPANY_ONLY.has(t)) return 'dashboard'
     let next = t
-    if (!here && t !== 'pickwh' && !COMPANY_LEVEL.has(t)) next = homeTab
+    if (!here && t !== 'pickwh' && !COMPANY_LEVEL.has(t) && !CRM_KEYS.has(t)) next = homeTab
     if (!here && t === 'central' && !canCentral) next = 'pickwh'
     // The same for the Command Center: a terminal left on it by the owner must
     // not greet an admin with a screen the server will refuse.
@@ -19009,7 +19125,7 @@ export default function App() {
   useEffect(() => { if (foldsIntoInvoiceEntry(tab) || IN_STOCK_AUDIT[tab]) setTab(tab) }, [tab, modules.length])
   const availableHere = (k) => {
     // The shop is reached from inside the warehouse that supplies it.
-    if (String(k).startsWith('pos:')) return !!here && posItems.some((p) => p && p.key === k)
+    if (String(k).startsWith('pos:')) return (!!here || CRM_KEYS.has(k)) && posItems.some((p) => p && p.key === k)
     const m = MODULES.find((x) => x.key === k)
     if (!m) return false
     return modules.includes(m)
@@ -19124,7 +19240,8 @@ export default function App() {
       : [...modules.filter((m) => m.key === 'command' || m.key === 'central'),
          ...(canCentral ? [] : [{ key: 'pickwh', label: 'Choose a warehouse',
            blurb: 'Pick the building you are working in' }]),
-         null, ...modules.filter((m) => m.key !== 'central' && m.key !== 'command')]
+         null, ...modules.filter((m) => m.key !== 'central' && m.key !== 'command'),
+         ...posItems.filter((p) => p && CRM_KEYS.has(p.key))]
   const companyName = status?.company?.name || 'WAREXX'
   const navKind = ws === 'store' ? 'Retail Store' : ws === 'warehouse' ? 'Warehouse Ops' : 'Central Admin'
   const navContext = ws === 'store' ? `${storeLabel} · ${here.name}`
@@ -19502,6 +19619,10 @@ export default function App() {
         <Returns toast={toast} />
       ) : k === 'payments' ? (
         <Payments toast={toast} />
+      ) : String(k).startsWith('fin_') ? (
+        <Finance key={k} screen={k} toast={toast} />
+      ) : String(k).startsWith('hr_') ? (
+        <HR key={k} screen={k} toast={toast} go={setTab} />
       ) : k === 'reports' ? (
         <Reports />
       ) : k === 'masters' ? (
@@ -19537,3 +19658,6 @@ export default function App() {
     )
   }
 }
+
+// What HR.jsx and hr-kit.jsx draw with — the same pieces every WAREXX screen uses.
+export { Stat, DateField, money, fmtDate, Icon, Section, SearchBox }

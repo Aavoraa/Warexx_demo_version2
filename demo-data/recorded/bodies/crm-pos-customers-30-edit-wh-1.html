@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+  
+  <script>
+    try { if (window.self !== window.top) document.documentElement.classList.add('in-frame'); }
+    catch (e) { document.documentElement.classList.add('in-frame'); }
+  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+  <title>Sample Company</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="/pos/static/css/app.css">
+  <link rel="manifest" href="/pos/static/manifest.json">
+  <meta name="theme-color" content="#0B3D2E">
+</head>
+<body>
+
+
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top brand-nav">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/pos/">
+      <span class="brand-logo" aria-hidden="true">W</span>
+      <span class="brand-text">
+        <span class="brand-name">Sample Company <span class="brand-tag d-none d-sm-inline">· POS</span></span>
+        <span class="brand-sub d-none d-md-block">Billing, stock and customers for this store</span>
+      </span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
+            aria-controls="nav" aria-expanded="false" aria-label="Open navigation menu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      
+      <span class="frame-title" aria-hidden="true"><i class="bi bi-shop"></i> Store</span>
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link nav-ctl dropdown-toggle d-flex align-items-center gap-2" href="#"
+             data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+            <span>Customers</span>
+          </a>
+          <ul class="dropdown-menu shadow" style="min-width:320px">
+            
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/">
+                <i class="bi bi-speedometer2 mt-1"></i>
+                <span><strong>Dashboard</strong><br>
+                  <small class="text-muted">Today's sales, low stock and the last few bills</small></span>
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/floor/">
+                <i class="bi bi-phone mt-1"></i>
+                <span><strong>Floor Sales</strong><br>
+                  <small class="text-muted">Build a sale on the phone while walking the floor</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/pos/">
+                <i class="bi bi-cart-check mt-1"></i>
+                <span><strong>Billing Counter</strong><br>
+                  <small class="text-muted">Scan and bill, and print the delivery copy</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/pos/settle">
+                <i class="bi bi-cash-coin mt-1"></i>
+                <span><strong>Settlement</strong><br>
+                  <small class="text-muted">Take payment for billed bills and print the customer copy</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/delivery/">
+                <i class="bi bi-bag-check mt-1"></i>
+                <span><strong>Delivery</strong><br>
+                  <small class="text-muted">Scan the bill, scan each garment, hand the goods over</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/inventory/">
+                <i class="bi bi-box-seam mt-1"></i>
+                <span><strong>Inventory</strong><br>
+                  <small class="text-muted">What the shop holds, with the warehouse QR on every item</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/stock-inward/">
+                <i class="bi bi-box-arrow-in-down mt-1"></i>
+                <span><strong>Stock Inward</strong><br>
+                  <small class="text-muted">Count in what the warehouse or another branch sent here</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/transfer-goods/">
+                <i class="bi bi-box-arrow-up-right mt-1"></i>
+                <span><strong>Transfer Goods</strong><br>
+                  <small class="text-muted">Send goods back to a warehouse, or across to another branch</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/audits/">
+                <i class="bi bi-clipboard-check mt-1"></i>
+                <span><strong>Stock audit</strong><br>
+                  <small class="text-muted">Count a floor, item by item, and see where the books disagree</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/floor-products/">
+                <i class="bi bi-layers mt-1"></i>
+                <span><strong>Floor Products</strong><br>
+                  <small class="text-muted">What is kept on each floor, and moving products between floors</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/stock-check/">
+                <i class="bi bi-search mt-1"></i>
+                <span><strong>Stock check</strong><br>
+                  <small class="text-muted">Scan or filter to find an item and where it is</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        active"
+                 href="/pos/customers/">
+                <i class="bi bi-people mt-1"></i>
+                <span><strong>Customers</strong><br>
+                  <small class="text-muted">Customer master, loyalty points and history</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/pos/invoices">
+                <i class="bi bi-receipt mt-1"></i>
+                <span><strong>Invoices</strong><br>
+                  <small class="text-muted">Every bill raised, searchable and reprintable</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/returns/">
+                <i class="bi bi-arrow-return-left mt-1"></i>
+                <span><strong>Returns</strong><br>
+                  <small class="text-muted">Take goods back against a bill and raise a credit note</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/alterations/">
+                <i class="bi bi-scissors mt-1"></i>
+                <span><strong>Alteration</strong><br>
+                  <small class="text-muted">Garments out for tailoring, and what each tailor is holding</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/stores/">
+                <i class="bi bi-building mt-1"></i>
+                <span><strong>Floors &amp; tills</strong><br>
+                  <small class="text-muted">Which storey each till bills from, and what its bills are called</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/promotions/">
+                <i class="bi bi-gift mt-1"></i>
+                <span><strong>Promotions</strong><br>
+                  <small class="text-muted">Offers the till applies by itself, and what they have given away</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/staff/">
+                <i class="bi bi-person-badge mt-1"></i>
+                <span><strong>Staff</strong><br>
+                  <small class="text-muted">Attendance, roles, ID cards and sales commission</small></span>
+              </a>
+            </li>
+            
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        "
+                 href="/pos/reports/">
+                <i class="bi bi-graph-up mt-1"></i>
+                <span><strong>Reports</strong><br>
+                  <small class="text-muted">Every register — or just ask a question in plain words</small></span>
+              </a>
+            </li>
+            
+          </ul>
+        </li>
+      </ul>
+      
+      
+    </div>
+  </div>
+</nav>
+
+
+<main class="container-fluid py-3">
+  
+    
+  
+  
+
+
+
+<div class="page-head">
+  <h4><i class="bi bi-person"></i> Edit Customer
+    <span class="badge">CUS0123</span>
+    </h4>
+  <div class="d-flex gap-2">
+    <a href="/pos/customers/30" class="btn btn-outline-secondary btn-sm">Cancel</a>
+    <button form="custForm" class="btn btn-brand btn-sm"><i class="bi bi-save"></i> Save</button>
+  </div>
+</div>
+
+<form method="post" id="custForm" class="card p-3">
+  <div class="row g-4">
+    
+    <div class="col-lg-6">
+      <div class="row g-2">
+        <div class="col-md-6"><label class="form-label small">Customer type *</label>
+          <select class="form-select form-select-sm" name="customer_type">
+            <option value="customer" >Customer</option><option value="wholesale" >Wholesale</option><option value="corporate" >Corporate</option><option value="staff" >Staff</option>
+          </select></div>
+        <div class="col-md-6"><label class="form-label small">Customer category</label>
+          <input class="form-control form-control-sm" name="category" list="dlCategory" value="Wholesale" placeholder="e.g. Regular, VIP, Bridal">
+          <datalist id="dlCategory"><option value="Gold"><option value="Platinum"><option value="Regular"><option value="Wholesale"></datalist></div>
+        <div class="col-md-6"><label class="form-label small">Customer code</label>
+          <input class="form-control form-control-sm" name="code" value="CUS0123" placeholder="Given automatically when blank"></div>
+        <div class="col-md-6"><label class="form-label small">Customer name *</label>
+          <input class="form-control form-control-sm" name="name" required value="Bala N"></div>
+        <div class="col-md-6"><label class="form-label small">Mobile</label>
+          <input class="form-control form-control-sm" name="phone" inputmode="tel" value="9000020851"></div>
+        <div class="col-md-6"><label class="form-label small">Other number</label>
+          <input class="form-control form-control-sm" name="alt_phone" inputmode="tel" value=""></div>
+        <div class="col-md-6"><label class="form-label small">Billing name</label>
+          <input class="form-control form-control-sm" name="billing_name" value="" placeholder="When the bill is made out to someone else"></div>
+        <div class="col-md-6"><label class="form-label small">Email</label>
+          <input class="form-control form-control-sm" type="email" name="email" value="bala@sample-customer.example"></div>
+        <div class="col-md-6"><label class="form-label small">Gender</label>
+          <select class="form-select form-select-sm" name="gender">
+            <option value="">—</option>
+            <option value="female" >Female</option><option value="male" >Male</option><option value="other" >Other</option>
+          </select></div>
+        <div class="col-md-6"><label class="form-label small">Date of birth</label>
+          <input class="form-control form-control-sm" type="date" name="dob" value="1998-12-27"></div>
+        <div class="col-md-6 d-flex align-items-end">
+          <div class="form-check mb-1">
+            <input class="form-check-input" type="checkbox" name="married" id="fMarried" >
+            <label class="form-check-label small" for="fMarried">Married</label>
+          </div></div>
+        <div class="col-md-6"><label class="form-label small">Marriage date</label>
+          <input class="form-control form-control-sm" type="date" name="anniversary" value=""></div>
+        <div class="col-6 col-md-3"><label class="form-label small">Kids · boys</label>
+          <input class="form-control form-control-sm" type="number" min="0" name="kids_boys" value="0"></div>
+        <div class="col-6 col-md-3"><label class="form-label small">Kids · girls</label>
+          <input class="form-control form-control-sm" type="number" min="0" name="kids_girls" value="0"></div>
+        <div class="col-md-6"><label class="form-label small">Loyalty card number</label>
+          <div class="input-group input-group-sm">
+            <input class="form-control" name="loyalty_card" value="LC500299" placeholder="CUST000030">
+            <span class="input-group-text" title="Points held">30 pts</span>
+          </div></div>
+        <div class="col-md-6"><label class="form-label small">Supply type</label>
+          <select class="form-select form-select-sm" name="supply_type">
+            <option value="">—</option>
+            <option >B2C</option><option >B2B</option><option >SEZ</option><option >EXPORT</option>
+          </select></div>
+        <div class="col-md-6"><label class="form-label small">GST number</label>
+          <input class="form-control form-control-sm" name="gstin" maxlength="15" value="" style="text-transform:uppercase"></div>
+        <div class="col-md-6"><label class="form-label small">TAN</label>
+          <input class="form-control form-control-sm" name="tan" value=""></div>
+        <div class="col-md-6"><label class="form-label small">PAN</label>
+          <input class="form-control form-control-sm" name="pan" maxlength="10" value="" style="text-transform:uppercase"></div>
+        <div class="col-12">
+          <div class="d-flex flex-wrap align-items-end gap-2">
+            <div class="form-check mb-1 me-2">
+              <input class="form-check-input" type="checkbox" name="credit_allowed" id="fCredit" >
+              <label class="form-check-label small" for="fCredit">Allow credit</label>
+            </div>
+            <div><label class="form-label small mb-0">Days</label>
+              <input class="form-control form-control-sm" type="number" min="0" name="credit_days" value="" style="width:90px"></div>
+            <div><label class="form-label small mb-0">Limit (₹)</label>
+              <input class="form-control form-control-sm" type="number" min="0" step="0.01" name="credit_limit" value="" style="width:140px"></div>
+          </div></div>
+      </div>
+    </div>
+
+    
+    <div class="col-lg-6">
+      <div class="row g-2">
+        <div class="col-12"><label class="form-label small">Address</label>
+          <textarea class="form-control form-control-sm" name="address" rows="3"></textarea></div>
+        <div class="col-md-6"><label class="form-label small">City</label>
+          <input class="form-control form-control-sm" name="city" list="dlCity" value="Tiruppur">
+          <datalist id="dlCity"><option value="Chennai"><option value="Coimbatore"><option value="Erode"><option value="Madurai"><option value="Salem"><option value="Tiruppur"></datalist></div>
+        <div class="col-md-6"><label class="form-label small">District</label>
+          <input class="form-control form-control-sm" name="district" value=""></div>
+        <div class="col-md-6"><label class="form-label small">Area</label>
+          <input class="form-control form-control-sm" name="area" list="dlArea" value="Peelamedu">
+          <datalist id="dlArea"><option value="Avinashi Road"><option value="Gandhipuram"><option value="Peelamedu"><option value="RS Puram"><option value="Saibaba Colony"><option value="Town Hall"></datalist></div>
+        <div class="col-md-6"><label class="form-label small">PIN code</label>
+          <input class="form-control form-control-sm" name="pincode" inputmode="numeric" maxlength="12" value=""></div>
+        <div class="col-md-4"><label class="form-label small">State</label>
+          <input class="form-control form-control-sm" name="state" list="dlState" value="">
+          <datalist id="dlState"></datalist></div>
+        <div class="col-md-4"><label class="form-label small">State code (GST)</label>
+          <input class="form-control form-control-sm" name="state_code" maxlength="4" value="33"></div>
+        <div class="col-md-4"><label class="form-label small">Country</label>
+          <input class="form-control form-control-sm" name="country" value="India"></div>
+        <div class="col-md-6"><label class="form-label small">Religion</label>
+          <input class="form-control form-control-sm" name="religion" list="dlReligion" value="">
+          <datalist id="dlReligion"></datalist></div>
+        <div class="col-md-6"><label class="form-label small">Grouping</label>
+          <input class="form-control form-control-sm" name="customer_group" list="dlGroup" value="" placeholder="e.g. Family of R Kumar">
+          <datalist id="dlGroup"></datalist></div>
+        <div class="col-md-6"><label class="form-label small">Registering at</label>
+          <select class="form-select form-select-sm" name="registered_location_id">
+            <option value="">—</option>
+            
+          </select></div>
+        <div class="col-md-6"><label class="form-label small">Price list</label>
+          <select class="form-select form-select-sm" name="price_category_id">
+            <option value="">Ordinary prices</option>
+            <option value="3" >Bulk order (50+)</option><option value="2" >Staff</option><option value="1" >Wholesale</option>
+          </select></div>
+        <div class="col-12"><label class="form-label small">Bank account name</label>
+          <input class="form-control form-control-sm" name="bank_account_name" value=""></div>
+        <div class="col-md-7"><label class="form-label small">Account number</label>
+          <input class="form-control form-control-sm" name="bank_account_no" value=""></div>
+        <div class="col-md-5"><label class="form-label small">IFSC</label>
+          <input class="form-control form-control-sm" name="bank_ifsc" maxlength="11" value="" style="text-transform:uppercase"></div>
+        <div class="col-12 d-flex flex-wrap gap-4 pt-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="active" id="fActive" checked>
+            <label class="form-check-label small" for="fActive">Active</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="loyalty_disabled" id="fNoLoyalty" >
+            <label class="form-check-label small" for="fNoLoyalty">Disable loyalty <span class="text-muted">(earns and redeems no points)</span></label>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mt-3 pt-3 border-top d-flex gap-2">
+    <button class="btn btn-brand"><i class="bi bi-save"></i> Save</button>
+    <a href="/pos/customers/30" class="btn btn-outline-secondary">Cancel</a>
+  </div>
+</form>
+
+</main>
+
+<script>
+  // Where the shop is mounted: '' when it runs on its own, '/pos' when it is
+  // served inside the WAREXX backend. Every same-app fetch is written against this
+  // — a hardcoded '/floor/…' is right standalone and 404s under the mount, where
+  // it lands on the backend's own routes instead of the shop's.
+  const SHOP_ROOT = "/pos";
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  // Every chart on every screen in the design's colours: gridlines in the border
+  // green-grey, 11px muted axis text, a dark-green tooltip. Set once, here, before
+  // any page draws a chart.
+  if (window.Chart) {
+    Chart.defaults.font.family = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    Chart.defaults.font.size = 11;
+    Chart.defaults.color = '#68756E';
+    Chart.defaults.borderColor = '#DCE5DF';
+    Object.assign(Chart.defaults.plugins.tooltip, {
+      backgroundColor: '#0B3D2E', titleColor: '#FFFFFF', bodyColor: '#E7F4EC',
+      cornerRadius: 8, padding: 8, displayColors: false,
+      titleFont: {size: 11, weight: '600'}, bodyFont: {size: 11},
+    });
+  }
+</script>
+
+<script>
+  // Most forms put a <label> straight above its box without a for="…", so it
+  // reads right but a screen reader cannot tie the two together and clicking
+  // the label does nothing. Link each such label to the control that follows it.
+  document.querySelectorAll('label:not([for])').forEach(function (l) {
+    if (l.querySelector('input, select, textarea')) return;
+    var c = l.nextElementSibling;
+    if (c && !c.matches('input, select, textarea')) c = c.querySelector('input, select, textarea');
+    if (!c || c.type === 'hidden') return;
+    if (!c.id) c.id = 'fld-' + Math.random().toString(36).slice(2, 9);
+    l.htmlFor = c.id;
+  });
+</script>
+<script src="/pos/static/js/fit.js"></script>
+</body>
+</html>
