@@ -1,33 +1,56 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "cd frontend && npm ci && npm run build:site",
-  "installCommand": "echo 'dependencies are installed by the build command'",
-  "outputDirectory": "frontend/dist/site",
-  "framework": null,
-  "functions": {
-    "api/leads.py": {
-      "maxDuration": 30,
-      "includeFiles": "lead-api/**"
+  "services": {
+    "web": {
+      "root": ".",
+      "framework": null,
+      "installCommand": "echo 'dependencies are installed by the build command'",
+      "buildCommand": "cd frontend && npm ci && npm run build:site",
+      "outputDirectory": "frontend/dist/site",
+      "rewrites": [
+        {
+          "source": "/admin",
+          "destination": "/admin/index.html"
+        },
+        {
+          "source": "/pricing",
+          "destination": "/pricing/index.html"
+        },
+        {
+          "source": "/legal",
+          "destination": "/legal/index.html"
+        },
+        {
+          "source": "/pay",
+          "destination": "/pay/index.html"
+        },
+        {
+          "source": "/demo",
+          "destination": "/demo/index.html"
+        },
+        {
+          "source": "/demo/((?!assets/).*)",
+          "destination": "/demo/index.html"
+        },
+        {
+          "source": "/m",
+          "destination": "/m/index.html"
+        },
+        {
+          "source": "/m/(.*)",
+          "destination": "/m/index.html"
+        }
+      ]
     },
-    "api/trial.py": {
-      "maxDuration": 30,
-      "includeFiles": "lead-api/**"
-    },
-    "api/admin.py": {
-      "maxDuration": 30,
-      "includeFiles": "lead-api/**"
-    },
-    "api/subscribe.py": {
-      "maxDuration": 60,
-      "includeFiles": "lead-api/**"
-    },
-    "api/payment_return.py": {
-      "maxDuration": 60,
-      "includeFiles": "lead-api/**"
-    },
-    "api/payment_webhook.py": {
-      "maxDuration": 60,
-      "includeFiles": "lead-api/**"
+    "api": {
+      "root": "lead-api",
+      "runtime": "python",
+      "entrypoint": "vercel_app:app",
+      "functions": {
+        "vercel_app.py": {
+          "maxDuration": 60
+        }
+      }
     }
   },
   "redirects": [
@@ -39,44 +62,22 @@
   ],
   "rewrites": [
     {
-      "source": "/admin",
-      "destination": "/admin/index.html"
+      "source": "/api/(leads|trial|admin|subscribe|geo)",
+      "destination": {
+        "service": "api"
+      }
     },
     {
-      "source": "/pricing",
-      "destination": "/pricing/index.html"
+      "source": "/api/payment/(return|webhook)",
+      "destination": {
+        "service": "api"
+      }
     },
     {
-      "source": "/legal",
-      "destination": "/legal/index.html"
-    },
-    {
-      "source": "/api/payment/return",
-      "destination": "/api/payment_return"
-    },
-    {
-      "source": "/api/payment/webhook",
-      "destination": "/api/payment_webhook"
-    },
-    {
-      "source": "/pay",
-      "destination": "/pay/index.html"
-    },
-    {
-      "source": "/demo",
-      "destination": "/demo/index.html"
-    },
-    {
-      "source": "/demo/((?!assets/).*)",
-      "destination": "/demo/index.html"
-    },
-    {
-      "source": "/m",
-      "destination": "/m/index.html"
-    },
-    {
-      "source": "/m/(.*)",
-      "destination": "/m/index.html"
+      "source": "/(.*)",
+      "destination": {
+        "service": "web"
+      }
     }
   ],
   "headers": [
