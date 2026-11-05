@@ -3,7 +3,7 @@
   "services": {
     "web": {
       "root": ".",
-      "framework": null,
+      "framework": "vite",
       "installCommand": "echo 'dependencies are installed by the build command'",
       "buildCommand": "cd frontend && npm ci && npm run build:site",
       "outputDirectory": "frontend/dist/site",
@@ -44,8 +44,8 @@
     },
     "api": {
       "root": "lead-api",
-      "runtime": "python",
-      "entrypoint": "vercel_app:app",
+      "framework": "python",
+      "entrypoint": "vercel_app.py",
       "functions": {
         "vercel_app.py": {
           "maxDuration": 60
