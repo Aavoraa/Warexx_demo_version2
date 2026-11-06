@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block content %}
+{% set state = scheme.status(today) %}
+<div class="page-head align-items-start">
+  <div>
+    <h4 class="mb-1"><i class="bi bi-gift"></i> {{ scheme.name }}
+      <span class="badge text-bg-{{ {'active':'success','scheduled':'warning',
+                                     'expired':'secondary','inactive':'secondary'}[state] }}">
+        {{ {'inactive':'switched off'}.get(state, state) }}</span></h4>
+    <div class="page-sub"><span class="code-chip">{{ scheme.code }}</span> · {{ description }}</div>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('promotions.edit_scheme', sid=scheme.id) }}"
+       class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i> Edit</a>
+    <form method="post" action="{{ url_for('promotions.toggle', sid=scheme.id) }}">
+      <button class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-{{ 'pause' if scheme.active else 'play' }}"></i>
+        {{ 'Switch off' if scheme.active else 'Switch on' }}</button>
+    </form>
+    {% if current_user.is_admin %}
+    <form method="post" action="{{ url_for('promotions.delete', sid=scheme.id) }}"
+          onsubmit="return confirm('Delete this scheme? A scheme that has been used on bills is switched off instead, so its history stays reportable.')">
+      <button class="btn btn-outline-danger btn-sm" title="Delete" aria-label="Delete"><i class="bi bi-trash"></i></button>
+    </form>
+    {% endif %}
+    <a href="{{ url_for('promotions.legacy_index') }}" class="btn btn-outline-secondary btn-sm">All schemes</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  {% for label, value, hint in [
+       ('Bills', summary.bills, 'bills carrying this scheme'),
+       ('Times applied', summary.times, 'sets earned across those bills'),
+       ('Qualifying qty', summary.qualifying, 'pieces that earned it'),
+       ('Free qty', summary.free, 'pieces given'),
+       ('Given away', summary.benefit|inr, 'at what they would have sold for'),
+       ('Refused', summary.blocked, 'times the reward was out of stock')] %}
+  <div class="col-6 col-md-2">
+    <div class="kpi-card h-100">
+      <div class="kpi-label">{{ label }}</div>
+      <div class="kpi-value">{{ value }}</div>
+      <div class="kpi-sub">{{ hint }}</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="card p-3 mb-3">
+      <h6>How it is set up</h6>
+      <table class="table table-sm mb-0">
+        <tr><td class="text-muted">Runs</td><td>
+          {{ scheme.start_date|dmy or 'any time' }}
+          {% if scheme.end_date %} → {{ scheme.end_date|dmy }}{% else %} onwards{% endif %}</td></tr>
+        <tr><td class="text-muted">Priority</td><td>{{ scheme.priority }}
+          <span class="text-muted small">(lower runs first)</span></td></tr>
+        <tr><td class="text-muted">Max per bill</td>
+          <td>{{ scheme.max_applications or 'no limit' }}</td></tr>
+        <tr><td class="text-muted">Stacking</td>
+          <td>{{ 'allowed' if scheme.stackable else 'not allowed' }}</td></tr>
+        <tr><td class="text-muted">Reward choice</td>
+          <td>{{ {'cheapest':'cheapest eligible','dearest':'dearest eligible',
+                  'specific':'the first listed','choose':'cashier chooses'}[scheme.reward_selection] }}</td></tr>
+        <tr><td class="text-muted">Out of stock</td>
+          <td>{{ 'substitute another' if scheme.out_of_stock == 'substitute' else "don't apply" }}</td></tr>
+        <tr><td class="text-muted">On a return</td>
+          <td>{{ {'reclaim_value':'charge the value back',
+                  'require_return':'the free item must come back',
+                  'keep':'customer keeps it'}[scheme.return_policy] }}</td></tr>
+        <tr><td class="text-muted">Where</td><td>
+          {% if scheme.places %}
+            {% for p in scheme.places %}{{ p.label }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+          {% else %}everywhere{% endif %}</td></tr>
+      </table>
+    </div>
+
+    <div class="card p-3 mb-3">
+      <h6>Buy</h6>
+      {% for c in scheme.conditions %}
+      <div class="mb-2">
+        <strong>{{ c.min_qty }} ×</strong> {{ c.label or 'any of:' }}
+        <div class="small text-muted">
+          {% for i in c.items %}{{ i.label }}{% if not loop.last %} · {% endif %}{% endfor %}</div>
+      </div>
+      {% endfor %}
+      <h6 class="mt-3">Get</h6>
+      {% for r in scheme.rewards %}
+      <div class="mb-2">
+        <strong>{{ r.qty }} ×</strong>
+        {% if scheme.scheme_type == 'buy_get_free' %}free{% elif scheme.scheme_type == 'buy_get_percent' %}at {{ r.value }}% off{% else %}at {{ r.value|inr }}{% endif %}
+        <div class="small text-muted">
+          {% for i in r.items %}{{ i.label }}{% if not loop.last %} · {% endif %}{% endfor %}</div>
+      </div>
+      {% endfor %}
+      {% if scheme.terms %}
+      <h6 class="mt-3">Terms</h6>
+      <div class="small text-muted" style="white-space:pre-wrap">{{ scheme.terms }}</div>
+      {% endif %}
+      <div class="small text-muted mt-3 border-top pt-2">
+        Created {{ scheme.created_at|dmy }}{% if scheme.created_by %} by {{ scheme.created_by.full_name }}{% endif %}.
+        {% if scheme.updated_at %}Last changed {{ scheme.updated_at|dmy }}{% if scheme.updated_by %} by {{ scheme.updated_by.full_name }}{% endif %}.{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card mb-3">
+      <div class="card-header"><h6 class="mb-0"><i class="bi bi-receipt"></i> Bills it was applied to</h6></div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+          <thead><tr><th>Bill</th><th>When</th><th>Store · counter</th><th>By</th>
+            <th class="text-end">Times</th><th class="text-end">Qualifying</th>
+            <th class="text-end">Free</th><th class="text-end">Benefit</th><th></th></tr></thead>
+          <tbody>
+            {% for a in apps %}
+            <tr {% if a.status != 'applied' %}class="table-warning"{% endif %}>
+              <td><a href="{{ url_for('pos.view_invoice', iid=a.invoice_id) }}">
+                {{ a.invoice.invoice_number if a.invoice else a.invoice_id }}</a></td>
+              <td class="small">{{ a.invoice.invoice_date|dmy if a.invoice else '' }}</td>
+              <td class="small">
+                {{ a.invoice.location.name if a.invoice and a.invoice.location else '—' }}
+                {% if a.invoice and a.invoice.counter %} · {{ a.invoice.counter.name }}{% endif %}</td>
+              <td class="small">{{ a.invoice.staff.full_name if a.invoice and a.invoice.staff else '—' }}</td>
+              <td class="text-end">{{ a.times_applied }}</td>
+              <td class="text-end">{{ a.qualifying_qty }}</td>
+              <td class="text-end">{{ a.reward_qty }}</td>
+              <td class="text-end">{{ a.benefit_value|inr }}</td>
+              <td class="small">{% if a.status != 'applied' %}
+                <span class="badge text-bg-warning">{{ a.status }} by a return</span>{% endif %}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="9" class="text-center text-muted p-4">
+              Not applied to any bill yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h6 class="mb-0"><i class="bi bi-clock-history"></i> Audit trail</h6>
+        <div class="panel-sub">Every event, including the times this scheme
+          qualified and gave nothing — which is the only place that question is
+          answered.</div>
+      </div>
+      <div class="table-responsive" style="max-height:50vh">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>When</th><th>Event</th><th>Bill</th><th>Store</th>
+            <th>By</th><th>Detail</th></tr></thead>
+          <tbody>
+            {% for t in trail %}
+            <tr>
+              <td class="small text-nowrap">{{ t.created_at.strftime('%d-%m-%Y %H:%M') }}</td>
+              <td><span class="badge text-bg-{{ {'applied':'success','substituted':'info',
+                        'blocked_no_stock':'danger','reduced':'warning',
+                        'reversed':'warning'}.get(t.event, 'secondary') }}">
+                {{ t.event.replace('_', ' ') }}</span></td>
+              <td class="small">{% if t.invoice %}
+                <a href="{{ url_for('pos.view_invoice', iid=t.invoice_id) }}">{{ t.invoice.invoice_number }}</a>
+                {% else %}—{% endif %}</td>
+              <td class="small">{{ t.location.name if t.location else '—' }}</td>
+              <td class="small">{{ t.user.full_name if t.user else '—' }}</td>
+              <td class="small">{{ t.detail or '' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="text-center text-muted p-4">Nothing yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block content %}
+{% set c = customer %}
+{% macro v(field, default='') %}{{ (c[field] if c and c[field] is not none else default) }}{% endmacro %}
+{% macro dv(field) %}{{ c[field].isoformat() if c and c[field] else '' }}{% endmacro %}
+<div class="page-head">
+  <h4><i class="bi bi-person"></i> {{ 'Edit' if c and c.id else 'New' }} Customer
+    {% if c and c.id %}<span class="badge">{{ c.code or c.card_code }}</span>{% endif %}
+    {% if c and c.awaiting_approval %}<span class="status-badge pending sm">awaiting approval</span>{% endif %}</h4>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('customers.view_customer', cid=c.id) if c and c.id else url_for('customers.list_customers') }}" class="btn btn-outline-secondary btn-sm">Cancel</a>
+    <button form="custForm" class="btn btn-brand btn-sm"><i class="bi bi-save"></i> Save</button>
+  </div>
+</div>
+
+<form method="post" id="custForm" class="card p-3">
+  <div class="row g-4">
+    {# ---- who they are ---- #}
+    <div class="col-lg-6">
+      <div class="row g-2">
+        <div class="col-md-6"><label class="form-label small">Customer type *</label>
+          <select class="form-select form-select-sm" name="customer_type">
+            {% for t in types %}<option value="{{ t }}" {{ 'selected' if (c.customer_type if c else 'customer') == t }}>{{ t|title }}</option>{% endfor %}
+          </select></div>
+        <div class="col-md-6"><label class="form-label small">Customer category</label>
+          <input class="form-control form-control-sm" name="category" list="dlCategory" value="{{ v('category') }}" placeholder="e.g. Regular, VIP, Bridal">
+          <datalist id="dlCategory">{% for x in categories %}<option value="{{ x }}">{% endfor %}</datalist></div>
+        <div class="col-md-6"><label class="form-label small">Customer code</label>
+          <input class="form-control form-control-sm" name="code" value="{{ v('code') }}" placeholder="Given automatically when blank"></div>
+        <div class="col-md-6"><label class="form-label small">Customer name *</label>
+          <input class="form-control form-control-sm" name="name" required value="{{ v('name') }}"></div>
+        <div class="col-md-6"><label class="form-label small">Mobile</label>
+          <input class="form-control form-control-sm" name="phone" inputmode="tel" value="{{ v('phone') }}"></div>
+        <div class="col-md-6"><label class="form-label small">Other number</label>
+          <input class="form-control form-control-sm" name="alt_phone" inputmode="tel" value="{{ v('alt_phone') }}"></div>
+        <div class="col-md-6"><label class="form-label small">Billing name</label>
+          <input class="form-control form-control-sm" name="billing_name" value="{{ v('billing_name') }}" placeholder="When the bill is made out to someone else"></div>
+        <div class="col-md-6"><label class="form-label small">Email</label>
+          <input class="form-control form-control-sm" type="email" name="email" value="{{ v('email') }}"></div>
+        <div class="col-md-6"><label class="form-label small">Gender</label>
+          <select class="form-select form-select-sm" name="gender">
+            <option value="">—</option>
+            {% for g in genders %}<option value="{{ g }}" {{ 'selected' if c and c.gender == g }}>{{ g|title }}</option>{% endfor %}
+          </select></div>
+        <div class="col-md-6"><label class="form-label small">Date of birth</label>
+          <input class="form-control form-control-sm" type="date" name="dob" value="{{ dv('dob') }}"></div>
+        <div class="col-md-6 d-flex align-items-end">
+          <div class="form-check mb-1">
+            <input class="form-check-input" type="checkbox" name="married" id="fMarried" {{ 'checked' if c and c.married }}>
+            <label class="form-check-label small" for="fMarried">Married</label>
+          </div></div>
+        <div class="col-md-6"><label class="form-label small">Marriage date</label>
+          <input class="form-control form-control-sm" type="date" name="anniversary" value="{{ dv('anniversary') }}"></div>
+        <div class="col-6 col-md-3"><label class="form-label small">Kids · boys</label>
+          <input class="form-control form-control-sm" type="number" min="0" name="kids_boys" value="{{ v('kids_boys', 0) }}"></div>
+        <div class="col-6 col-md-3"><label class="form-label small">Kids · girls</label>
+          <input class="form-control form-control-sm" type="number" min="0" name="kids_girls" value="{{ v('kids_girls', 0) }}"></div>
+        <div class="col-md-6"><label class="form-label small">Loyalty card number</label>
+          <div class="input-group input-group-sm">
+            <input class="form-control" name="loyalty_card" value="{{ v('loyalty_card') }}" placeholder="{{ c.card_code if c and c.id else 'Card code when blank' }}">
+            <span class="input-group-text" title="Points held">{{ '%.0f'|format(c.loyalty_points or 0) if c else 0 }} pts</span>
+          </div></div>
+        <div class="col-md-6"><label class="form-label small">Supply type</label>
+          <select class="form-select form-select-sm" name="supply_type">
+            <option value="">—</option>
+            {% for t in supply_types %}<option {{ 'selected' if c and c.supply_type == t }}>{{ t }}</option>{% endfor %}
+          </select></div>
+        <div class="col-md-6"><label class="form-label small">GST number</label>
+          <input class="form-control form-control-sm" name="gstin" maxlength="15" value="{{ v('gstin') }}" style="text-transform:uppercase"></div>
+        <div class="col-md-6"><label class="form-label small">TAN</label>
+          <input class="form-control form-control-sm" name="tan" value="{{ v('tan') }}"></div>
+        <div class="col-md-6"><label class="form-label small">PAN</label>
+          <input class="form-control form-control-sm" name="pan" maxlength="10" value="{{ v('pan') }}" style="text-transform:uppercase"></div>
+        <div class="col-12">
+          <div class="d-flex flex-wrap align-items-end gap-2">
+            <div class="form-check mb-1 me-2">
+              <input class="form-check-input" type="checkbox" name="credit_allowed" id="fCredit" {{ 'checked' if c and c.credit_allowed }}>
+              <label class="form-check-label small" for="fCredit">Allow credit</label>
+            </div>
+            <div><label class="form-label small mb-0">Days</label>
+              <input class="form-control form-control-sm" type="number" min="0" name="credit_days" value="{{ v('credit_days') }}" style="width:90px"></div>
+            <div><label class="form-label small mb-0">Limit (₹)</label>
+              <input class="form-control form-control-sm" type="number" min="0" step="0.01" name="credit_limit" value="{{ v('credit_limit') }}" style="width:140px"></div>
+          </div></div>
+      </div>
+    </div>
+
+    {# ---- where they are, and how the shop treats them ---- #}
+    <div class="col-lg-6">
+      <div class="row g-2">
+        <div class="col-12"><label class="form-label small">Address</label>
+          <textarea class="form-control form-control-sm" name="address" rows="3">{{ v('address') }}</textarea></div>
+        <div class="col-md-6"><label class="form-label small">City</label>
+          <input class="form-control form-control-sm" name="city" list="dlCity" value="{{ v('city') }}">
+          <datalist id="dlCity">{% for x in cities %}<option value="{{ x }}">{% endfor %}</datalist></div>
+        <div class="col-md-6"><label class="form-label small">District</label>
+          <input class="form-control form-control-sm" name="district" value="{{ v('district') }}"></div>
+        <div class="col-md-6"><label class="form-label small">Area</label>
+          <input class="form-control form-control-sm" name="area" list="dlArea" value="{{ v('area') }}">
+          <datalist id="dlArea">{% for x in areas %}<option value="{{ x }}">{% endfor %}</datalist></div>
+        <div class="col-md-6"><label class="form-label small">PIN code</label>
+          <input class="form-control form-control-sm" name="pincode" inputmode="numeric" maxlength="12" value="{{ v('pincode') }}"></div>
+        <div class="col-md-4"><label class="form-label small">State</label>
+          <input class="form-control form-control-sm" name="state" list="dlState" value="{{ v('state') }}">
+          <datalist id="dlState">{% for x in states %}<option value="{{ x }}">{% endfor %}</datalist></div>
+        <div class="col-md-4"><label class="form-label small">State code (GST)</label>
+          <input class="form-control form-control-sm" name="state_code" maxlength="4" value="{{ v('state_code', '33') }}"></div>
+        <div class="col-md-4"><label class="form-label small">Country</label>
+          <input class="form-control form-control-sm" name="country" value="{{ v('country', 'India') }}"></div>
+        <div class="col-md-6"><label class="form-label small">Religion</label>
+          <input class="form-control form-control-sm" name="religion" list="dlReligion" value="{{ v('religion') }}">
+          <datalist id="dlReligion">{% for x in religions %}<option value="{{ x }}">{% endfor %}</datalist></div>
+        <div class="col-md-6"><label class="form-label small">Grouping</label>
+          <input class="form-control form-control-sm" name="customer_group" list="dlGroup" value="{{ v('customer_group') }}" placeholder="e.g. Family of R Kumar">
+          <datalist id="dlGroup">{% for x in groups %}<option value="{{ x }}">{% endfor %}</datalist></div>
+        <div class="col-md-6"><label class="form-label small">Registering at</label>
+          <select class="form-select form-select-sm" name="registered_location_id">
+            <option value="">—</option>
+            {% for l in locations %}<option value="{{ l.id }}" {{ 'selected' if c and c.registered_location_id == l.id }}>{{ l.name }}</option>{% endfor %}
+          </select></div>
+        <div class="col-md-6"><label class="form-label small">Price list</label>
+          <select class="form-select form-select-sm" name="price_category_id">
+            <option value="">Ordinary prices</option>
+            {% for pc in price_categories %}<option value="{{ pc.id }}" {{ 'selected' if c and c.price_category_id == pc.id }}>{{ pc.name }}</option>{% endfor %}
+          </select></div>
+        <div class="col-12"><label class="form-label small">Bank account name</label>
+          <input class="form-control form-control-sm" name="bank_account_name" value="{{ v('bank_account_name') }}"></div>
+        <div class="col-md-7"><label class="form-label small">Account number</label>
+          <input class="form-control form-control-sm" name="bank_account_no" value="{{ v('bank_account_no') }}"></div>
+        <div class="col-md-5"><label class="form-label small">IFSC</label>
+          <input class="form-control form-control-sm" name="bank_ifsc" maxlength="11" value="{{ v('bank_ifsc') }}" style="text-transform:uppercase"></div>
+        <div class="col-12 d-flex flex-wrap gap-4 pt-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="active" id="fActive" {{ 'checked' if not (c and c.inactive) }}>
+            <label class="form-check-label small" for="fActive">Active</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="loyalty_disabled" id="fNoLoyalty" {{ 'checked' if c and c.loyalty_disabled }}>
+            <label class="form-check-label small" for="fNoLoyalty">Disable loyalty <span class="text-muted">(earns and redeems no points)</span></label>
+          </div>
+          {% if c and c.awaiting_approval %}
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="approved" id="fApproved" checked>
+            <label class="form-check-label small" for="fApproved">Approve this sign-up</label>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mt-3 pt-3 border-top d-flex gap-2">
+    <button class="btn btn-brand"><i class="bi bi-save"></i> Save</button>
+    <a href="{{ url_for('customers.view_customer', cid=c.id) if c and c.id else url_for('customers.list_customers') }}" class="btn btn-outline-secondary">Cancel</a>
+  </div>
+</form>
+{% endblock %}

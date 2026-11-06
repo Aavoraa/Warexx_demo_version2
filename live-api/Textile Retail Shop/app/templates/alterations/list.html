@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h4><i class="bi bi-scissors"></i> Alteration jobs</h4>
+  <a href="{{ url_for('alterations.index') }}" class="btn btn-brand btn-sm">+ New</a>
+</div>
+
+<div class="mb-3">
+  {% for key, label in [('open','Open'), ('overdue','Overdue'), ('pending','At tailor'),
+                        ('ready','Ready'), ('delivered','Delivered'), ('all','All')] %}
+  <a href="{{ url_for('alterations.list_jobs', status=key) }}"
+     class="btn btn-sm {% if status == key %}btn-brand{% else %}btn-outline-secondary{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle">
+      <thead><tr>
+        <th>Job</th><th>Bill</th><th>Customer</th><th>Pieces</th><th>Tailor</th>
+        <th>Promised</th><th class="text-end">Charge</th><th>Status</th><th></th>
+      </tr></thead>
+      <tbody>
+        {% for a in jobs %}
+        <tr {% if a.is_overdue %}class="table-danger"{% endif %}>
+          <td><a href="{{ url_for('alterations.view_job', aid=a.id) }}">{{ a.number }}</a></td>
+          <td>{{ a.invoice.invoice_number }}</td>
+          <td>{{ a.invoice.customer.name if a.invoice.customer else 'Walk-in' }}</td>
+          <td>{{ a.total_qty }}</td>
+          <td>{{ a.tailor.name if a.tailor else '—' }}</td>
+          <td>
+            {% if a.promised_date %}{{ a.promised_date.strftime('%d %b') }}
+              {% if a.is_overdue %}<span class="badge text-bg-danger">overdue</span>{% endif %}
+            {% else %}—{% endif %}
+          </td>
+          <td class="text-end">{% if a.charge %}{{ a.charge|inr }}{% else %}—{% endif %}</td>
+          <td>
+            {% if a.status == 'delivered' %}<span class="badge text-bg-dark">delivered</span>
+            {% elif a.status == 'ready' %}<span class="badge text-bg-success">ready</span>
+            {% else %}<span class="badge text-bg-secondary">at tailor</span>{% endif %}
+          </td>
+          <td class="text-end">
+            {% if a.status == 'pending' %}
+            <form method="post" action="{{ url_for('alterations.mark_ready', aid=a.id) }}" class="d-inline">
+              <button class="btn btn-sm btn-outline-success">Ready</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="text-center text-muted p-4">Nothing here.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,710 @@
+{% extends "base.html" %}
+{% block title %}Floor Session {{ s.code }}{% endblock %}
+{% block content %}
+
+<!-- Step indicator -->
+<div id="stepBar" class="mb-3 no-print">
+  <div class="d-flex align-items-center gap-2">
+    <span class="badge">{{ s.code }}</span>
+    <span id="statusBadge" class="badge bg-secondary">{{ s.status }}</span>
+    <div class="ms-auto d-flex gap-1">
+      <div class="step-dot" data-step="basket" title="Basket"><i class="bi bi-basket"></i> Basket</div>
+      <div class="step-dot" data-step="review" title="Review & bill"><i class="bi bi-receipt"></i> Review</div>
+      <div class="step-dot" data-step="customer" title="Customer approval"><i class="bi bi-person-check"></i> Approve</div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* the steps, as the design's segmented control: dark green for where you are,
+   the tint for what is done */
+#stepBar > .d-flex { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  padding: 8px 10px; box-shadow: var(--shadow-1); flex-wrap: wrap; }
+#stepBar .ms-auto { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 2px; }
+.step-dot { padding: 5px 10px; border: 1px solid transparent; border-radius: 6px; font-size: .75rem;
+  font-weight: 600; color: #68756E; cursor: pointer; white-space: nowrap; }
+.step-dot.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+.step-dot.done { background: #E7F4EC; color: #0B3D2E; border-color: rgba(47,143,104,.3); }
+.big-total { font-size: 1.75rem; font-weight: 700; color: var(--brand-dark); font-family: var(--font-mono); letter-spacing: -.02em; }
+.basket-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid #DCE5DF; }
+.basket-item:last-child { border-bottom: 0; }
+.basket-item .name { font-weight: 600; font-size: .8125rem; }
+.basket-item .meta { color: #68756E; font-size: .6875rem; font-family: var(--font-mono); letter-spacing: 0; }
+.basket-item .amt { color: var(--brand-dark); font-weight: 700; font-family: var(--font-mono); font-size: .875rem; }
+.qty-controls { display: inline-flex; align-items: center; gap: 6px; }
+.qty-btn { width: 40px; height: 40px; border-radius: 8px; border: 1px solid #DCE5DF; background: #F7F9F7;
+  color: #17221D; font-size: 1.125rem; font-weight: 600; line-height: 1; }
+.qty-btn:hover { background: #fff; border-color: #C5D2CA; }
+.qty-btn:active { background: #E7F4EC; }
+.qty-val { min-width: 36px; text-align: center; font-weight: 700; font-family: var(--font-mono); color: var(--brand-dark); }
+.basket-item .rm { min-width: 40px; min-height: 40px; }
+#tSub, #tTax, #tDisc, #tRedeem, #basketSub, #cSub, #cTax, #cDisc, #cRedeem { font-family: var(--font-mono); }
+#stepCustomer .cust-head { background: var(--brand); border-bottom: 1px solid var(--brand-800); color: #fff; padding: 14px 16px; }
+</style>
+
+<!-- ========== STEP 1: BASKET (scan and add) ========== -->
+<div id="stepBasket">
+  <div class="card p-3 mb-3">
+    <h6 class="mb-2"><i class="bi bi-basket"></i> Add to basket</h6>
+    <div class="d-flex gap-2 mb-2">
+      <input id="skuInput" class="form-control form-control-lg" placeholder="Scan or type SKU…" autocomplete="off" autofocus>
+      <button id="skuAddBtn" class="btn btn-brand btn-lg flex-shrink-0" type="button">
+        <i class="bi bi-plus-lg"></i> Add
+      </button>
+    </div>
+    <div id="skuFeedback" class="small mb-2" style="min-height:1.1em"></div>
+    <div class="d-grid gap-2 mb-2">
+      <button id="scanBtn" class="btn btn-brand btn-lg">
+        <i class="bi bi-camera"></i> Scan barcode with camera
+      </button>
+      <button id="pickBtn" class="btn btn-outline-primary btn-lg" data-bs-toggle="modal" data-bs-target="#productPicker">
+        <i class="bi bi-list-ul"></i> Browse &amp; pick product
+      </button>
+    </div>
+    <div id="scannerBox" style="display:none">
+      <div id="reader" style="width:100%;"></div>
+      <div class="d-flex justify-content-between mt-2">
+        <span id="scanFeedback" class="small text-muted">Point the camera at the product barcode…</span>
+        <button id="stopScan" class="btn btn-outline-secondary btn-sm">Stop</button>
+      </div>
+    </div>
+    <div class="small text-muted mt-1">Each scan / pick adds one unit. Adjust quantity in the basket below.</div>
+  </div>
+
+  <!-- Product picker modal -->
+  <div class="modal fade" id="productPicker" tabindex="-1">
+    <div class="modal-dialog modal-fullscreen-sm-down modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-list-ul"></i> Pick product</h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input id="pickerSearch" class="form-control mb-2" placeholder="Search name, SKU, fabric, color…" autofocus>
+          <div id="pickerList" class="list-group" style="max-height:60vh; overflow:auto;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-basket2"></i> Basket <span id="basketCount" class="badge bg-secondary ms-1">0</span></span>
+      <span class="text-muted small">Subtotal: <strong id="basketSub">₹0.00</strong></span>
+    </div>
+    <div id="basketList"><div class="p-4 text-center text-muted">Basket is empty — scan or type a product SKU to start.</div></div>
+  </div>
+
+  <div class="d-grid mt-3">
+    <button id="toReviewBtn" class="btn btn-success btn-lg" disabled>
+      Review basket &amp; bill <i class="bi bi-arrow-right"></i>
+    </button>
+  </div>
+</div>
+
+<!-- ========== STEP 2: REVIEW & BILL ========== -->
+<div id="stepReview" style="display:none">
+  <div class="row g-3">
+    <div class="col-lg-7">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-basket2"></i> Basket items</span>
+          <button id="addMoreBtn" class="btn btn-outline-primary btn-sm"><i class="bi bi-plus"></i> Add more</button>
+        </div>
+        <div id="reviewList"></div>
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="card p-3 mb-3">
+        <label class="form-label small mb-1">Customer</label>
+        <div class="input-group input-group-sm mb-2">
+          <input id="custLookup" class="form-control" placeholder="Mobile / invoice # / scan">
+          <button id="custLookupBtn" class="btn btn-outline-primary" type="button" title="Search" aria-label="Search customer"><i class="bi bi-search"></i></button>
+          <button id="custScanBtn" class="btn btn-outline-primary" type="button" title="Scan barcode"><i class="bi bi-camera"></i></button>
+        </div>
+        <div id="custScannerBox" style="display:none">
+          <div id="custReader" style="width:100%"></div>
+          <button id="custStopScan" class="btn btn-outline-secondary btn-sm mt-1">Stop</button>
+        </div>
+
+        <div id="custCard" class="p-2 border rounded mb-2 d-none" style="background:var(--brand-50);">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-bold" id="custName">-</div>
+              <div class="small text-muted"><i class="bi bi-telephone"></i> <span id="custPhone">-</span></div>
+              <div class="small">
+                <span class="badge text-bg-info" id="custPoints">0 pts</span>
+                <span class="text-muted ms-1" id="custStats"></span>
+              </div>
+            </div>
+            <button id="custClear" class="btn btn-sm btn-outline-danger" title="Change / walk-in"><i class="bi bi-x"></i></button>
+          </div>
+        </div>
+        <div id="custWalkin" class="small text-muted mb-2 d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-person"></i> Walk-in customer</span>
+          <button id="custAddNew" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newCustModal">
+            <i class="bi bi-person-plus"></i> New
+          </button>
+        </div>
+
+        <div class="row g-2 mt-2">
+          <div class="col-6">
+            <label class="form-label small mb-1">Discount ₹</label>
+            <input id="discount" class="form-control form-control-sm" type="number" min="0" step="0.01" value="{{ s.discount }}">
+          </div>
+          <div class="col-6">
+            <label class="form-label small mb-1 d-flex justify-content-between">
+              <span>Redeem pts <span class="text-muted">(1 pt = ₹1)</span></span>
+              <button type="button" id="useAllPts" class="btn btn-link btn-sm p-0" style="display:none">Use all</button>
+            </label>
+            <input id="redeemPoints" class="form-control form-control-sm" type="number" min="0" step="1" value="{{ s.redeem_points }}">
+            <div id="ptsHelp" class="small text-muted mt-1"></div>
+          </div>
+        </div>
+
+        <label class="form-label small mt-2 mb-1">Payment</label>
+        <div class="btn-group w-100" role="group">
+          {% for m in ['cash','card','upi'] %}
+          <input type="radio" class="btn-check" name="pay" id="pay{{m}}" value="{{m}}" {% if s.payment_method==m %}checked{% endif %}>
+          <label class="btn btn-outline-primary btn-sm" for="pay{{m}}">{{ m|upper }}</label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="card p-3">
+        <div class="d-flex justify-content-between"><span>Subtotal</span><strong id="tSub">₹0.00</strong></div>
+        <div class="d-flex justify-content-between"><span>GST</span><strong id="tTax">₹0.00</strong></div>
+        <div class="d-flex justify-content-between"><span>Discount</span><strong id="tDisc">₹0.00</strong></div>
+        <div class="d-flex justify-content-between"><span>Loyalty redemption</span><strong id="tRedeem" class="text-success">- ₹0.00</strong></div>
+        <hr class="my-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <span>Total</span><span class="big-total" id="tTotal">₹0.00</span>
+        </div>
+
+        <div class="mt-3 d-grid gap-2">
+          <button id="showCustomerBtn" class="btn btn-brand btn-lg">
+            <i class="bi bi-eye"></i> Show bill to customer
+          </button>
+          <button id="finalizeBtn" class="btn btn-success btn-lg" disabled>
+            <i class="bi bi-receipt"></i> Finalize &amp; print bill
+          </button>
+          <div id="approvedNote" class="alert alert-success mb-0 py-2 small text-center" style="display:none">
+            <i class="bi bi-check-circle"></i> Customer approved. Ready to finalize.
+          </div>
+        </div>
+      </div>
+
+      <button id="cancelBtn" class="btn btn-outline-danger btn-sm w-100 mt-2">Cancel session</button>
+    </div>
+  </div>
+</div>
+
+<!-- New customer quick-add modal -->
+<div class="modal fade" id="newCustModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Add new customer</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div class="mb-2"><label class="form-label small">Name *</label>
+          <input id="ncName" class="form-control" required></div>
+        <div class="mb-2"><label class="form-label small">Mobile</label>
+          <input id="ncPhone" class="form-control" placeholder="+91 …"></div>
+        <div class="mb-2"><label class="form-label small">Email</label>
+          <input id="ncEmail" class="form-control"></div>
+        <div class="mb-2"><label class="form-label small">State code</label>
+          <input id="ncState" class="form-control" value="33"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="ncSave" class="btn btn-brand">Save &amp; use</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== STEP 3: CUSTOMER FULL-SCREEN MODE ========== -->
+<div id="stepCustomer" style="display:none; position:fixed; inset:0; background:var(--bg); z-index:1050; overflow-y:auto;">
+  <div class="cust-head d-flex align-items-center gap-2">
+    <span class="brand-logo" aria-hidden="true">E</span>
+    <div>
+      <div style="font-size:1rem; font-weight:700; letter-spacing:-.02em;">{{ SHOP_NAME }}</div>
+      <div class="small" style="color:rgba(231,244,236,.8)">Please review your bill</div>
+    </div>
+  </div>
+
+  <div id="custStatus" class="p-2 text-center fw-bold" style="background:#FFFBEB; color:#78350F;">
+    Review the items and total below
+  </div>
+
+  <div id="custItems" class="bg-white"></div>
+
+  <div class="bg-white p-3 mt-2">
+    <div class="d-flex justify-content-between py-1"><span>Subtotal</span><span id="cSub">₹0.00</span></div>
+    <div class="d-flex justify-content-between py-1"><span>GST</span><span id="cTax">₹0.00</span></div>
+    <div class="d-flex justify-content-between py-1"><span>Discount</span><span id="cDisc">- ₹0.00</span></div>
+    <div class="d-flex justify-content-between py-1"><span>Loyalty redemption</span><span id="cRedeem">- ₹0.00</span></div>
+    <hr>
+    <div class="d-flex justify-content-between align-items-center">
+      <span style="font-size:1.2rem;">Total to pay</span>
+      <span id="cTotal" style="font-size:1.75rem; font-weight:700; color:var(--brand-dark); font-family:var(--font-mono)">₹0.00</span>
+    </div>
+  </div>
+
+  <div class="p-3" style="padding-bottom:100px !important;">
+    <div class="d-grid gap-2">
+      <button id="custApprove" class="btn btn-success btn-lg" style="padding:16px; font-size:1.1rem;">
+        <i class="bi bi-check-circle"></i> I approve this bill
+      </button>
+      <button id="custReject" class="btn btn-outline-danger btn-lg">
+        <i class="bi bi-x-circle"></i> Something's wrong
+      </button>
+    </div>
+    <div class="text-center mt-3">
+      <button id="backToSales" class="btn btn-sm btn-link text-muted">Return to salesperson view</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script src="https://unpkg.com/html5-qrcode@2.3.10/html5-qrcode.min.js"></script>
+<script>
+const CODE = "{{ s.code }}";
+let step = "basket";  // basket | review | customer
+let currentStatus = "{{ s.status }}";
+
+function fmt(n){ return '₹' + Number(n||0).toFixed(2); }
+
+async function api(path, body){
+  const r = await fetch(path, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body||{})});
+  const j = await r.json();
+  if (j.error) alert(j.error);
+  return j;
+}
+
+function paintStepBar(){
+  document.querySelectorAll('.step-dot').forEach(d => {
+    d.classList.remove('active','done');
+    const s = d.dataset.step;
+    if (s === step) d.classList.add('active');
+    else if (
+      (step === 'review' && s === 'basket') ||
+      (step === 'customer' && (s === 'basket' || s === 'review'))
+    ) d.classList.add('done');
+  });
+}
+
+function statusChip(status){
+  const el = document.getElementById('statusBadge');
+  el.innerText = status;
+  el.className = 'badge ' + (
+    status==='approved' ? 'bg-success' :
+    status==='awaiting_approval' ? 'bg-warning text-dark' :
+    status==='rejected' ? 'bg-danger' :
+    status==='completed' ? 'bg-primary' :
+    status==='cancelled' ? 'bg-secondary' : 'bg-secondary'
+  );
+}
+
+function itemRow(it, editable){
+  const amt = fmt(it.line_total + it.tax_amount);
+  const qtyControls = editable ? `
+    <div class="qty-controls">
+      <button class="qty-btn dec" data-id="${it.id}">−</button>
+      <span class="qty-val">${it.quantity}</span>
+      <button class="qty-btn inc" data-id="${it.id}">+</button>
+      <button class="btn btn-sm btn-outline-danger rm ms-2" data-id="${it.id}" title="Remove" aria-label="Remove"><i class="bi bi-trash"></i></button>
+    </div>` : `<span class="text-muted small">Qty: ${it.quantity}</span>`;
+  return `
+    <div class="basket-item">
+      <div>
+        <div class="name">${it.name}</div>
+        <div class="meta">SKU ${it.sku} · ${fmt(it.unit_price)} × ${it.quantity} · GST ${it.gst_rate}%</div>
+      </div>
+      <div class="text-end">
+        <div class="amt mb-1">${amt}</div>
+        ${qtyControls}
+      </div>
+    </div>`;
+}
+
+function wireQtyButtons(){
+  document.querySelectorAll('.qty-btn.inc').forEach(b => b.onclick = async e => {
+    const id = e.currentTarget.dataset.id;
+    const row = document.querySelectorAll(`[data-id="${id}"]`)[0].closest('.basket-item');
+    const cur = parseFloat(row.querySelector('.qty-val').innerText) || 0;
+    await api(`/floor/s/${CODE}/update`, {item_id: id, quantity: cur + 1}); refresh();
+  });
+  document.querySelectorAll('.qty-btn.dec').forEach(b => b.onclick = async e => {
+    const id = e.currentTarget.dataset.id;
+    const row = document.querySelectorAll(`[data-id="${id}"]`)[0].closest('.basket-item');
+    const cur = parseFloat(row.querySelector('.qty-val').innerText) || 0;
+    await api(`/floor/s/${CODE}/update`, {item_id: id, quantity: Math.max(0, cur - 1)}); refresh();
+  });
+  document.querySelectorAll('.rm').forEach(b => b.onclick = async e => {
+    if (!confirm('Remove this item from the basket?')) return;
+    await api(`/floor/s/${CODE}/update`, {item_id: e.currentTarget.dataset.id, remove: true}); refresh();
+  });
+}
+
+function render(state){
+  currentStatus = state.status;
+  statusChip(state.status);
+  paintStepBar();
+
+  // Basket panel
+  document.getElementById('basketCount').innerText = state.items.length;
+  document.getElementById('basketSub').innerText = fmt(state.subtotal);
+  document.getElementById('basketList').innerHTML = state.items.length
+    ? state.items.map(it => itemRow(it, true)).join('')
+    : '<div class="p-4 text-center text-muted">Basket is empty — scan or type a product SKU to start.</div>';
+  document.getElementById('toReviewBtn').disabled = state.items.length === 0;
+
+  // Review panel
+  document.getElementById('reviewList').innerHTML = state.items.length
+    ? state.items.map(it => itemRow(it, true)).join('')
+    : '<div class="p-4 text-center text-muted">No items. Go back to add some.</div>';
+  document.getElementById('tSub').innerText = fmt(state.subtotal);
+  document.getElementById('tTax').innerText = fmt(state.tax);
+  document.getElementById('tDisc').innerText = fmt(state.discount);
+  document.getElementById('tRedeem').innerText = '- ' + fmt(state.redeem);
+  document.getElementById('tTotal').innerText = fmt(state.total);
+
+  // Loyalty helper text + Use-all button
+  const help = document.getElementById('ptsHelp');
+  const useAll = document.getElementById('useAllPts');
+  if (state.customer){
+    const bal = Math.round(state.customer.points || 0);
+    help.innerHTML = `Available: <strong>${bal} pts</strong> (₹${bal} off) —
+       ${state.redeem>0 ? `applying <strong>${Math.round(state.redeem)} pt</strong> = ₹${state.redeem.toFixed(2)} off` : 'not redeeming'}`;
+    useAll.style.display = bal > 0 ? '' : 'none';
+    useAll.onclick = async () => {
+      const cap = Math.min(bal, state.subtotal - state.discount + state.tax);
+      await api(`/floor/s/${CODE}/update`, {redeem_points: Math.floor(cap)});
+      document.getElementById('redeemPoints').value = Math.floor(cap);
+      refresh();
+    };
+  } else {
+    help.innerText = 'Attach a customer to redeem loyalty points.';
+    useAll.style.display = 'none';
+  }
+  wireQtyButtons();
+
+  document.getElementById('finalizeBtn').disabled = (state.status !== 'approved');
+  document.getElementById('approvedNote').style.display = (state.status === 'approved') ? 'block' : 'none';
+  document.getElementById('showCustomerBtn').disabled = (state.status === 'completed' || state.status === 'cancelled' || state.items.length === 0);
+
+  // Customer full-screen mirror
+  document.getElementById('custItems').innerHTML = state.items.length ? state.items.map(it => `
+    <div style="display:flex;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #DCE5DF">
+      <div>
+        <div style="font-weight:600">${it.name}</div>
+        <div class="small text-muted">${it.quantity} × ${fmt(it.unit_price)} · GST ${it.gst_rate}%</div>
+      </div>
+      <div style="color:var(--brand-dark); font-weight:700;">${fmt(it.line_total + it.tax_amount)}</div>
+    </div>`).join('') : '<div class="p-4 text-center text-muted">No items yet.</div>';
+  document.getElementById('cSub').innerText = fmt(state.subtotal);
+  document.getElementById('cTax').innerText = fmt(state.tax);
+  document.getElementById('cDisc').innerText = '- ' + fmt(state.discount);
+  // Emphasize redemption on the customer-facing screen — needs their consent
+  const cRedeem = document.getElementById('cRedeem');
+  const cRedeemRow = cRedeem.closest('div');
+  if (state.redeem > 0){
+    cRedeem.innerHTML = `<span class="text-success">- ${fmt(state.redeem)}</span>
+      <div class="small text-muted">Using ${Math.round(state.redeem)} loyalty points</div>`;
+    cRedeemRow.style.background = '#F5FBF7';
+    cRedeemRow.style.border = '1px dashed #2F8F68';
+    cRedeemRow.style.borderRadius = '6px';
+    cRedeemRow.style.padding = '6px 8px';
+  } else {
+    cRedeem.innerText = '- ' + fmt(0);
+    cRedeemRow.style.background = ''; cRedeemRow.style.border = '';
+    cRedeemRow.style.borderRadius = ''; cRedeemRow.style.padding = '';
+  }
+  document.getElementById('cTotal').innerText = fmt(state.total);
+
+  const custStatus = document.getElementById('custStatus');
+  if (state.status === 'awaiting_approval'){ custStatus.style.background='#FFFBEB'; custStatus.style.color='#78350F'; custStatus.innerText='Please review and approve'; }
+  else if (state.status === 'approved'){ custStatus.style.background='#E7F4EC'; custStatus.style.color='#0B3D2E'; custStatus.innerText='Approved — thank you!'; }
+  else { custStatus.style.background='#F7F9F7'; custStatus.style.color='#0B3D2E'; custStatus.innerText='Reviewing your bill'; }
+
+  if (state.status === 'completed' && state.invoice_id){
+    window.location = `${SHOP_ROOT}/pos/invoice/${state.invoice_id}/print`;
+  }
+  if (step === 'customer' && (state.status === 'approved' || state.status === 'rejected')){
+    setTimeout(() => goto('review'), 900);
+  }
+}
+
+async function refresh(){
+  const r = await fetch(`${SHOP_ROOT}/floor/s/${CODE}/state`);
+  render(await r.json());
+}
+refresh();
+setInterval(refresh, 1500);
+
+// ---- Step navigation ----
+function goto(newStep){
+  step = newStep;
+  document.getElementById('stepBasket').style.display   = (newStep === 'basket')   ? '' : 'none';
+  document.getElementById('stepReview').style.display   = (newStep === 'review')   ? '' : 'none';
+  document.getElementById('stepCustomer').style.display = (newStep === 'customer') ? 'block' : 'none';
+  paintStepBar();
+  // Stop camera when leaving basket step
+  if (newStep !== 'basket') stopScanner();
+  // Re-focus the SKU field so the next scan/type is captured immediately
+  if (newStep === 'basket') setTimeout(() => document.getElementById('skuInput')?.focus(), 50);
+}
+document.getElementById('toReviewBtn').onclick = () => goto('review');
+document.getElementById('addMoreBtn').onclick = () => goto('basket');
+document.getElementById('backToSales').onclick = () => goto('review');
+
+document.querySelectorAll('.step-dot').forEach(d => d.onclick = () => {
+  const s = d.dataset.step;
+  if (s === 'customer'){ showCustomerMode(); } else { goto(s); }
+});
+
+// ---- Type / scan SKU into text field (works with USB & handheld scanners) ----
+const skuInput = document.getElementById('skuInput');
+const skuFeedback = document.getElementById('skuFeedback');
+let skuBusy = false;
+
+async function addBySku(){
+  const code = skuInput.value.trim();
+  if (!code || skuBusy) return;
+  skuBusy = true;
+  skuFeedback.className = 'small mb-2 text-muted';
+  skuFeedback.innerHTML = `Adding <code>${code}</code>…`;
+  const j = await api(`/floor/s/${CODE}/add`, {code});
+  if (j.error){
+    skuFeedback.className = 'small mb-2 text-danger';
+    skuFeedback.innerText = j.error;
+  } else {
+    skuFeedback.className = 'small mb-2 text-success';
+    skuFeedback.innerHTML = `<i class="bi bi-check-circle"></i> Added`;
+    render(j);
+  }
+  skuInput.value = '';
+  skuStart = 0;
+  skuInput.focus();   // ready for the next scan/entry
+  skuBusy = false;
+}
+document.getElementById('skuAddBtn').onclick = addBySku;
+skuInput.addEventListener('keydown', e => {
+  // Handheld/USB scanners that send an Enter terminator auto-add here
+  if (e.key === 'Enter'){ e.preventDefault(); addBySku(); }
+});
+
+// Auto-add scans even when the scanner sends NO Enter key.
+// A barcode scanner types the whole code in a rapid burst (a few ms per char);
+// a human types far slower — so we only auto-submit fast bursts and leave
+// manual typing to the Enter key / Add button.
+let skuTimer = null, skuStart = 0;
+skuInput.addEventListener('input', () => {
+  const now = Date.now();
+  if (skuInput.value === ''){ skuStart = 0; clearTimeout(skuTimer); return; }
+  if (skuStart === 0) skuStart = now;
+  const elapsed = now - skuStart;         // time to type everything so far
+  const chars = skuInput.value.length;
+  clearTimeout(skuTimer);
+  skuTimer = setTimeout(() => {
+    // ~<40ms/char is faster than any human — treat as a scanner burst
+    if (chars >= 3 && elapsed <= 40 * chars){ skuStart = 0; addBySku(); }
+  }, 120);   // wait for the burst to finish before submitting
+});
+
+// ---- Camera barcode scanner ----
+let html5Qr = null;
+let lastScan = { code: null, at: 0 };  // debounce duplicate reads
+
+async function startScanner(){
+  document.getElementById('scannerBox').style.display = 'block';
+  document.getElementById('scanFeedback').innerText = 'Requesting camera…';
+  if (html5Qr) return;
+  html5Qr = new Html5Qrcode("reader");
+  const config = { fps: 12, qrbox: { width: 260, height: 160 } };
+  if (window.Html5QrcodeSupportedFormats){
+    const F = window.Html5QrcodeSupportedFormats;
+    config.formatsToSupport = [F.EAN_13, F.EAN_8, F.CODE_128, F.CODE_39, F.UPC_A, F.UPC_E, F.QR_CODE];
+  }
+  try {
+    await html5Qr.start(
+      { facingMode: "environment" },
+      config,
+      async (decoded) => {
+        const now = Date.now();
+        if (decoded === lastScan.code && (now - lastScan.at) < 2000) return;  // debounce
+        lastScan = { code: decoded, at: now };
+        document.getElementById('scanFeedback').innerHTML = `Read <code>${decoded}</code> — adding…`;
+        const j = await api(`/floor/s/${CODE}/add`, {code: decoded});
+        if (j.error){
+          document.getElementById('scanFeedback').innerHTML = `<span class="text-danger">${j.error}</span>`;
+        } else {
+          document.getElementById('scanFeedback').innerHTML = `<span class="text-success">✓ Added</span>`;
+        }
+        refresh();
+      },
+      () => {}
+    );
+    document.getElementById('scanFeedback').innerText = 'Point the camera at the barcode…';
+  } catch (err) {
+    document.getElementById('scanFeedback').innerHTML = `<span class="text-danger">Camera error: ${err}. Use "Browse & pick product" instead.</span>`;
+  }
+}
+async function stopScanner(){
+  if (html5Qr){ try { await html5Qr.stop(); html5Qr.clear(); } catch(e){} html5Qr = null; }
+  document.getElementById('scannerBox').style.display = 'none';
+}
+document.getElementById('scanBtn').onclick = startScanner;
+document.getElementById('stopScan').onclick = stopScanner;
+
+// ---- Product picker (search + tap to add) ----
+async function loadPicker(q){
+  const r = await fetch(`${SHOP_ROOT}/floor/api/products?q=${encodeURIComponent(q||'')}`);
+  const list = await r.json();
+  const box = document.getElementById('pickerList');
+  box.innerHTML = list.length ? list.map(p => `
+    <button type="button" class="list-group-item list-group-item-action pick-item" data-id="${p.id}">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="fw-bold">${p.name}</div>
+          <div class="small text-muted">SKU ${p.sku} · ${p.category || '-'} · ${p.fabric || ''} ${p.color || ''}</div>
+        </div>
+        <div class="text-end">
+          <div style="color:var(--brand-dark);font-weight:700">${fmt(p.price)}</div>
+          <div class="small text-muted">Stock ${p.stock} ${p.unit}</div>
+        </div>
+      </div>
+    </button>`).join('') : '<div class="text-center text-muted p-3">No products match.</div>';
+  document.querySelectorAll('.pick-item').forEach(el => el.onclick = async () => {
+    await api(`/floor/s/${CODE}/add`, {product_id: parseInt(el.dataset.id)});
+    refresh();
+    document.getElementById('scanFeedback')?.remove?.();
+  });
+}
+document.getElementById('pickBtn').addEventListener('click', () => loadPicker(''));
+document.getElementById('pickerSearch').addEventListener('input', e => loadPicker(e.target.value));
+
+// ---- Customer lookup ----
+function paintCustomer(c){
+  const card = document.getElementById('custCard');
+  const walkin = document.getElementById('custWalkin');
+  if (c){
+    document.getElementById('custName').innerText = c.name;
+    document.getElementById('custPhone').innerText = c.phone || '(no phone)';
+    document.getElementById('custPoints').innerText = Math.round(c.loyalty_points || 0) + ' pts';
+    document.getElementById('custStats').innerText =
+      `· ${c.invoice_count || 0} invoices · spent ${fmt(c.total_spent || 0)}`;
+    card.classList.remove('d-none');
+    walkin.classList.add('d-none');
+  } else {
+    card.classList.add('d-none');
+    walkin.classList.remove('d-none');
+  }
+}
+
+async function lookupAndAttach(q){
+  q = (q || '').trim(); if (!q) return;
+  const r = await fetch(`${SHOP_ROOT}/floor/api/customer-lookup?q=${encodeURIComponent(q)}`);
+  const j = await r.json();
+  if (j.error){ alert(j.error); return; }
+  await api(`/floor/s/${CODE}/update`, {customer_id: j.id});
+  paintCustomer(j);
+  document.getElementById('custLookup').value = '';
+  refresh();
+}
+document.getElementById('custLookupBtn').onclick = () =>
+  lookupAndAttach(document.getElementById('custLookup').value);
+document.getElementById('custLookup').addEventListener('keydown', e => {
+  if (e.key === 'Enter'){ e.preventDefault(); lookupAndAttach(e.target.value); }
+});
+document.getElementById('custClear').onclick = async () => {
+  await api(`/floor/s/${CODE}/update`, {customer_id: ''});
+  paintCustomer(null);
+  refresh();
+};
+
+// Camera scan for customer lookup (reads phone / invoice # printed as barcode)
+let custQr = null;
+document.getElementById('custScanBtn').onclick = async () => {
+  document.getElementById('custScannerBox').style.display = 'block';
+  if (custQr) return;
+  custQr = new Html5Qrcode("custReader");
+  const cfg = { fps: 12, qrbox: { width: 240, height: 140 } };
+  try {
+    await custQr.start({ facingMode: "environment" }, cfg, async (decoded) => {
+      await custQr.stop(); custQr.clear(); custQr = null;
+      document.getElementById('custScannerBox').style.display = 'none';
+      lookupAndAttach(decoded);
+    }, () => {});
+  } catch (err){ alert('Camera error: ' + err); }
+};
+document.getElementById('custStopScan').onclick = async () => {
+  if (custQr){ try { await custQr.stop(); custQr.clear(); } catch(e){} custQr = null; }
+  document.getElementById('custScannerBox').style.display = 'none';
+};
+
+// Quick-add new customer
+document.getElementById('ncSave').onclick = async () => {
+  const name = document.getElementById('ncName').value.trim();
+  if (!name){ alert('Name required'); return; }
+  const r = await fetch(`${SHOP_ROOT}/floor/api/customer/new`, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      name,
+      phone: document.getElementById('ncPhone').value.trim(),
+      email: document.getElementById('ncEmail').value.trim(),
+      state_code: document.getElementById('ncState').value.trim() || '33',
+    })
+  });
+  const j = await r.json();
+  if (j.error){ alert(j.error); return; }
+  await api(`/floor/s/${CODE}/update`, {customer_id: j.id});
+  paintCustomer(j);
+  bootstrap.Modal.getInstance(document.getElementById('newCustModal')).hide();
+  ['ncName','ncPhone','ncEmail'].forEach(id => document.getElementById(id).value = '');
+  refresh();
+};
+
+// Load already-attached customer on first paint
+(async () => {
+  const r = await fetch(`${SHOP_ROOT}/floor/s/${CODE}/state`);
+  const st = await r.json();
+  if (st.customer) paintCustomer({
+    id: st.customer.id, name: st.customer.name, phone: st.customer.phone,
+    loyalty_points: st.customer.points || 0,
+    invoice_count: 0, total_spent: 0,
+  });
+})();
+
+// ---- Other bill fields ----
+document.getElementById('discount').onchange = async e => { await api(`/floor/s/${CODE}/update`, {discount: e.target.value}); refresh(); };
+document.getElementById('redeemPoints').onchange = async e => { await api(`/floor/s/${CODE}/update`, {redeem_points: e.target.value}); refresh(); };
+document.querySelectorAll('input[name=pay]').forEach(r => r.onchange = async e => { await api(`/floor/s/${CODE}/update`, {payment_method: e.target.value}); });
+
+// ---- Show to customer ----
+async function showCustomerMode(){
+  await stopScanner();
+  if (currentStatus !== 'approved') await api(`/floor/s/${CODE}/request-approval`);
+  goto('customer'); refresh();
+}
+document.getElementById('showCustomerBtn').onclick = showCustomerMode;
+document.getElementById('custApprove').onclick = async () => { await api(`/floor/view/${CODE}/approve`); refresh(); };
+document.getElementById('custReject').onclick = async () => {
+  if (!confirm('Return to salesperson to make changes?')) return;
+  await api(`/floor/view/${CODE}/reject`); refresh();
+};
+
+document.getElementById('finalizeBtn').onclick = async () => {
+  const j = await api(`/floor/s/${CODE}/finalize`);
+  if (j.invoice_id) window.location = `${SHOP_ROOT}/pos/invoice/${j.invoice_id}/print`;
+};
+document.getElementById('cancelBtn').onclick = async () => {
+  if (!confirm('Cancel this session?')) return;
+  await api(`/floor/s/${CODE}/cancel`);
+  window.location = "{{ url_for('floor.index') }}";
+};
+</script>
+{% endblock %}

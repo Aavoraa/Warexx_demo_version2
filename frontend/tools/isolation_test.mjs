@@ -116,6 +116,13 @@ ok(outbound.every((o) => o.method === 'GET' && o.url.startsWith(ORIGIN + '/data/
   listeners.fetch({ request: new Request(ORIGIN + '/api/trial/x', { method: 'POST', body: '{}' }),
     respondWith: () => { other = true }, waitUntil: () => {} })
   ok(other, '…and nothing else under /api is (POST /api/trial/x is still answered by the demo)')
+  // WAREXX Live (live-api/): real data, for signed-in staff. The worker must never
+  // answer for it, and the demo must never be able to reach it by accident.
+  for (const p of ['/live/', '/live/api/hr/employees', '/live/api/auth/login', '/live/pos/orders/']) {
+    let called = false
+    listeners.fetch({ request: new Request(ORIGIN + p), respondWith: () => { called = true }, waitUntil: () => {} })
+    ok(!called, `${p} is left alone by the worker: live and recorded data never mix`)
+  }
 }
 const loginReply = await (await ask('POST', '/api/auth/login', { username: 'admin', password: 'x' })).json()
 ok(loginReply.token === 'demo', 'demo sign-in is the demo account, whatever is typed (token "demo", never a production token)')

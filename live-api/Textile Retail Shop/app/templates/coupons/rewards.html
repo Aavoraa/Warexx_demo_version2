@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "coupons/_head.html" %}
+<div class="row g-3">
+  <div class="col-lg-3">
+    <form class="card p-3">
+      <label class="form-label small">Mobile no, card no or customer code</label>
+      <div class="input-group input-group-sm">
+        <input class="form-control" name="mobile" value="{{ q }}" autofocus>
+        <button class="btn btn-brand" title="Find" aria-label="Find"><i class="bi bi-search"></i></button>
+      </div>
+      {% if q and not c %}<div class="small text-danger mt-2">No customer matches “{{ q }}”.</div>{% endif %}
+    </form>
+  </div>
+
+  {% if c %}
+  <div class="col-lg-4">
+    <div class="card p-3 h-100 small">
+      {% for label, val in [('Name', c.name), ('Mobile', c.phone or '—'), ('Loyalty no', c.card_no),
+                            ('Available reward points', '%g'|format(c.loyalty_points or 0)),
+                            ('One point is worth', '₹' ~ '%g'|format(point_value)),
+                            ('Max coupon value', max_value|inr)] %}
+      <div class="d-flex justify-content-between py-1 border-bottom"><span class="fw-semibold">{{ label }}</span><span>{{ val }}</span></div>
+      {% endfor %}
+      {% if c.loyalty_disabled %}<div class="mt-2"><span class="status-badge danger sm">loyalty switched off</span></div>{% endif %}
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <form method="post" class="card p-3" id="rwForm">
+      <input type="hidden" name="customer_id" value="{{ c.id }}">
+      <div class="fw-semibold mb-2">Select coupon generating mode</div>
+      <div class="d-flex gap-4 mb-3">
+        <div class="form-check"><input class="form-check-input" type="radio" name="mode" value="single" id="mSingle" checked>
+          <label class="form-check-label" for="mSingle">Single coupon</label></div>
+        <div class="form-check"><input class="form-check-input" type="radio" name="mode" value="multiple" id="mMulti">
+          <label class="form-check-label" for="mMulti">Multiple coupons</label></div>
+      </div>
+      <div class="row g-2 align-items-end">
+        <div class="col-6"><label class="form-label small">Coupon value (₹)</label>
+          <input class="form-control form-control-sm" type="number" min="1" step="1" name="value" id="rwValue" required></div>
+        <div class="col-6" id="rwCountBox" hidden><label class="form-label small">How many</label>
+          <input class="form-control form-control-sm" type="number" min="1" max="50" value="2" name="count" id="rwCount"></div>
+        <div class="col-12"><label class="form-label small">Adjusting reward points</label>
+          <input class="form-control form-control-sm" id="rwPoints" readonly style="background:var(--panel-3)" aria-label="Points it will use"></div>
+        {% if pin_needed %}
+        <div class="col-12"><label class="form-label small">Enter the PIN sent to the customer</label>
+          <div class="input-group input-group-sm">
+            <input class="form-control" name="pin" inputmode="numeric" maxlength="4" required autocomplete="one-time-code">
+            <button class="btn btn-outline-primary" type="submit" form="pinForm"><i class="bi bi-plus-circle"></i> Generate PIN</button>
+          </div></div>
+        {% else %}
+        <div class="col-12 small text-muted">No SMS gateway is set up, so no PIN is sent — confirm the customer in person.</div>
+        {% endif %}
+        <div class="col-12 small" id="rwWarn" style="color:#BE123C"></div>
+        <div class="col-12"><button class="btn btn-brand btn-sm" id="rwGo" {{ 'disabled' if c.loyalty_disabled }}><i class="bi bi-save"></i> Generate coupon</button></div>
+      </div>
+    </form>
+    {% if pin_needed %}
+    <form method="post" action="{{ url_for('coupons.reward_pin') }}" id="pinForm"><input type="hidden" name="customer_id" value="{{ c.id }}"></form>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="col-lg-9"><div class="card p-4 text-center text-muted">Find the customer whose points are being turned into a coupon.</div></div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+{% if c %}
+<script>
+const PV = {{ point_value }}, HAVE = {{ c.loyalty_points or 0 }};
+const val = document.getElementById('rwValue'), cnt = document.getElementById('rwCount');
+function paint(){
+  const multi = document.getElementById('mMulti').checked;
+  document.getElementById('rwCountBox').hidden = !multi;
+  const n = multi ? Math.max(1, parseInt(cnt.value) || 1) : 1;
+  const pts = Math.round((parseFloat(val.value) || 0) * n / PV * 100) / 100;
+  document.getElementById('rwPoints').value = pts ? pts + ' points' : '';
+  const over = pts > HAVE + 0.001;
+  document.getElementById('rwWarn').innerText = over ? `That needs ${pts} points; the customer has ${HAVE}.` : '';
+  document.getElementById('rwGo').disabled = over || {{ 'true' if c.loyalty_disabled else 'false' }};
+}
+document.querySelectorAll('#rwForm input').forEach((el) => el.addEventListener('input', paint));
+paint();
+</script>
+{% endif %}
+{% endblock %}

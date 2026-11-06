@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "coupons/_head.html" %}
+{% set a = request.args %}
+<div class="row g-3">
+  <div class="col-lg-3">
+    <form class="card p-3 mb-3">
+      <label class="form-label small">Coupon</label>
+      <select class="form-select form-select-sm mb-2" name="campaign_id">
+        <option value="">Every campaign</option>
+        {% for c in campaigns %}<option value="{{ c.id }}" {{ 'selected' if a.get('campaign_id')|int == c.id }}>{{ c.name }}</option>{% endfor %}
+      </select>
+      <label class="form-label small">Coupon code</label>
+      <input class="form-control form-control-sm mb-2 text-uppercase" name="code" value="{{ a.get('code', '') }}">
+      <label class="form-label small">Bill date</label>
+      <div class="input-group input-group-sm mb-3">
+        <input class="form-control" type="date" name="from" value="{{ a.get('from', '') }}" aria-label="From">
+        <input class="form-control" type="date" name="to" value="{{ a.get('to', '') }}" aria-label="To">
+      </div>
+      <button class="btn btn-brand btn-sm"><i class="bi bi-search"></i> Search</button>
+    </form>
+    <div class="card p-3">
+      <div class="fw-bold mb-2" style="color:var(--brand)">Summary</div>
+      <div class="d-flex justify-content-between small"><span class="text-muted">Issued</span><b>{{ count }}</b></div>
+      <div class="d-flex justify-content-between small"><span class="text-muted">Consumed</span><b>{{ consumed }}</b></div>
+      <div class="d-flex justify-content-between small"><span class="text-muted">Discount given</span><b>{{ disc|inr }}</b></div>
+    </div>
+  </div>
+  <div class="col-lg-9">
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+          <thead><tr><th>Scheme name</th><th>Code</th><th>Issue to</th><th>Issue mobile</th><th>Valid from</th><th>Valid to</th><th>Bill no</th><th>Bill date</th><th class="text-end">Bill value</th><th class="text-end">Discount</th><th>Mobile no</th><th>Customer name</th></tr></thead>
+          <tbody>
+            {% for r, cp, inv in rows %}
+            <tr>
+              <td class="small">{{ cp.campaign.name }}</td>
+              <td><code>{{ cp.code }}</code></td>
+              <td class="small">{{ cp.customer.name if cp.customer else 'anyone' }}</td>
+              <td class="small">{{ cp.customer.phone if cp.customer and cp.customer.phone else '—' }}</td>
+              <td class="small text-nowrap">{{ cp.valid_from|dmy }}</td>
+              <td class="small text-nowrap">{{ cp.valid_to|dmy if cp.valid_to else 'open' }}</td>
+              <td class="small"><a href="{{ url_for('pos.view_invoice', iid=inv.id) }}">{{ inv.invoice_number }}</a></td>
+              <td class="small text-nowrap">{{ inv.invoice_date|dmy }}</td>
+              <td class="text-end">{{ inv.total|inr }}</td>
+              <td class="text-end">{{ r.amount|inr }}</td>
+              <td class="small">{{ inv.customer.phone if inv.customer and inv.customer.phone else '—' }}</td>
+              <td class="small">{{ inv.customer.name if inv.customer else 'Walk-in' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="12" class="text-center text-muted p-4">No coupon has been redeemed{{ ' in this search' if a }}.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

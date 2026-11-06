@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h4><i class="bi bi-chat-dots"></i> Send SMS</h4>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('customers.messages') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-list-ul"></i> Message log</a>
+    <button form="sendForm" class="btn btn-brand btn-sm" id="sendTop"><i class="bi bi-send"></i> Send SMS</button>
+  </div>
+</div>
+{% if not provider %}
+<div class="alert alert-warning py-2 small"><i class="bi bi-exclamation-triangle"></i> No SMS gateway is set up, so messages are queued and kept in the log, but nothing leaves the shop. Set <code>MESSAGE_WEBHOOK_URL</code> to send them.</div>
+{% endif %}
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    <form class="card p-3" id="filterForm">
+      <input type="hidden" name="run" value="1">
+      <div class="row g-2">
+        <div class="col-12"><label class="form-label small">Source</label>
+          <select class="form-select form-select-sm" name="source" onchange="this.form.submit()">
+            <option value="customers" {{ 'selected' if source == 'customers' }}>Customers</option>
+            <option value="leads" {{ 'selected' if source == 'leads' }}>Leads</option>
+          </select></div>
+        {% if source == 'leads' %}
+          <div class="col-6"><label class="form-label small">Lead status</label>
+            <select class="form-select form-select-sm" name="lead_status"><option value="">Any</option>
+              {% for s in lead_statuses %}<option value="{{ s }}" {{ 'selected' if request.args.get('lead_status') == s }}>{{ s|title }}</option>{% endfor %}</select></div>
+          <div class="col-6"><label class="form-label small">Lead source</label>
+            <select class="form-select form-select-sm" name="lead_source"><option value="">Any</option>
+              {% for s in lead_sources %}<option value="{{ s }}" {{ 'selected' if request.args.get('lead_source') == s }}>{{ s|replace('_', ' ')|title }}</option>{% endfor %}</select></div>
+        {% else %}
+        <div class="col-6"><label class="form-label small">Customer category</label>
+          <select class="form-select form-select-sm" name="category"><option value="">Any</option>
+            {% for x in categories %}<option {{ 'selected' if f.category == x }}>{{ x }}</option>{% endfor %}</select></div>
+        <div class="col-6"><label class="form-label small">Location</label>
+          <select class="form-select form-select-sm" name="location_id"><option value="">Any</option>
+            {% for l in locations %}<option value="{{ l.id }}" {{ 'selected' if f.location_id == l.id|string }}>{{ l.name }}</option>{% endfor %}</select></div>
+        <div class="col-12"><label class="form-label small">Birth date <span class="text-muted">(day and month — any year)</span></label>
+          <div class="input-group input-group-sm">
+            <input class="form-control" type="date" name="dob_from" value="{{ f.dob_from }}" aria-label="Birthday from">
+            <input class="form-control" type="date" name="dob_to" value="{{ f.dob_to }}" aria-label="Birthday to"></div></div>
+        <div class="col-12"><label class="form-label small">Bill date</label>
+          <div class="input-group input-group-sm">
+            <input class="form-control" type="date" name="bill_from" value="{{ f.bill_from }}" aria-label="Bill from">
+            <input class="form-control" type="date" name="bill_to" value="{{ f.bill_to }}" aria-label="Bill to"></div></div>
+        <div class="col-6"><label class="form-label small">Floor</label>
+          <select class="form-select form-select-sm" name="floor_id"><option value="">Any</option>
+            {% for fl in floors %}<option value="{{ fl.id }}" {{ 'selected' if f.floor_id == fl.id|string }}>{{ fl.name }}</option>{% endfor %}</select></div>
+        <div class="col-6"><label class="form-label small">Product category</label>
+          <select class="form-select form-select-sm" name="product_category"><option value="">Any</option>
+            {% for pc in product_categories %}<option value="{{ pc.id }}" {{ 'selected' if f.product_category == pc.id|string }}>{{ pc.name }}</option>{% endfor %}</select></div>
+        <div class="col-6"><label class="form-label small">Brand</label>
+          <select class="form-select form-select-sm" name="brand"><option value="">Any</option>
+            {% for x in brands %}<option {{ 'selected' if f.brand == x }}>{{ x }}</option>{% endfor %}</select></div>
+        <div class="col-6"><label class="form-label small">Size</label>
+          <select class="form-select form-select-sm" name="size"><option value="">Any</option>
+            {% for x in sizes %}<option {{ 'selected' if f.size == x }}>{{ x }}</option>{% endfor %}</select></div>
+        <div class="col-6"><label class="form-label small">Religion</label>
+          <select class="form-select form-select-sm" name="religion"><option value="">Any</option>
+            {% for x in religions %}<option {{ 'selected' if f.religion == x }}>{{ x }}</option>{% endfor %}</select></div>
+        <div class="col-6"><label class="form-label small">City</label>
+          <select class="form-select form-select-sm" name="city"><option value="">Any</option>
+            {% for x in cities %}<option {{ 'selected' if f.city == x }}>{{ x }}</option>{% endfor %}</select></div>
+        <div class="col-6"><label class="form-label small">Area</label>
+          <select class="form-select form-select-sm" name="area"><option value="">Any</option>
+            {% for x in areas %}<option {{ 'selected' if f.area == x }}>{{ x }}</option>{% endfor %}</select></div>
+        <div class="col-6"></div>
+        <div class="col-12"><label class="form-label small">Bill value <span class="text-muted">(their total in the bill dates)</span></label>
+          <div class="input-group input-group-sm">
+            <input class="form-control" type="number" step="0.01" name="value_from" placeholder="From" value="{{ f.value_from }}" aria-label="Value from">
+            <input class="form-control" type="number" step="0.01" name="value_to" placeholder="To" value="{{ f.value_to }}" aria-label="Value to"></div></div>
+        <div class="col-12"><label class="form-label small">Leave out customers who bought between</label>
+          <div class="input-group input-group-sm">
+            <input class="form-control" type="date" name="exclude_from" value="{{ f.exclude_from }}" aria-label="Exclude from">
+            <input class="form-control" type="date" name="exclude_to" value="{{ f.exclude_to }}" aria-label="Exclude to"></div></div>
+        {% endif %}
+        <div class="col-12 d-flex gap-2 mt-2">
+          <button class="btn btn-brand btn-sm flex-grow-1"><i class="bi bi-search"></i> Search</button>
+          <a href="{{ url_for('sms.index', source=source) }}" class="btn btn-outline-secondary btn-sm">Clear</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="col-lg-8">
+    <form method="post" action="{{ url_for('sms.send') }}" id="sendForm">
+      <div class="card mb-3">
+        <div class="card-header d-flex align-items-center gap-2 flex-wrap">
+          <span>Recipients · <b id="pickCount">0</b> ticked</span>
+          <div class="input-group input-group-sm ms-auto" style="max-width:300px">
+            <input class="form-control" id="addMobile" placeholder="Add a mobile number" inputmode="tel" aria-label="Add a mobile number">
+            <button type="button" class="btn btn-brand" id="addBtn" title="Add to list" aria-label="Add to list"><i class="bi bi-plus-lg"></i></button>
+            <button type="button" class="btn btn-danger" id="clearExtra" title="Clear added numbers" aria-label="Clear added numbers"><i class="bi bi-x-lg"></i></button>
+          </div>
+        </div>
+        <div id="extraList" class="px-3 pt-2 d-flex flex-wrap gap-1"></div>
+        <div class="table-responsive" style="max-height:420px">
+          <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="sticky-top"><tr>
+              <th style="width:32px"><input type="checkbox" class="form-check-input" id="tickAll" aria-label="Tick all"></th>
+              <th>Name</th><th>Mobile no</th>
+              {% if source == 'leads' %}<th>Status</th><th>Source</th><th>Interest</th>
+              {% else %}<th>DOB</th><th class="text-end">Total pur. value</th><th class="text-end">No of bills</th>{% endif %}
+            </tr></thead>
+            <tbody>
+              {% if source == 'leads' %}
+                {% for l in leads %}
+                <tr><td><input type="checkbox" class="form-check-input tick" name="lead_ids" value="{{ l.id }}" checked aria-label="Tick {{ l.name }}"></td>
+                  <td>{{ l.name }}</td><td>{{ l.phone }}</td><td class="small">{{ l.status|title }}</td><td class="small">{{ l.source|replace('_', ' ') }}</td><td class="small">{{ l.interest or '' }}</td></tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center text-muted p-4">{{ 'No lead with a mobile matches.' if asked else 'Search to list leads.' }}</td></tr>
+                {% endfor %}
+              {% else %}
+                {% for c, total, bills, last in rows %}
+                <tr><td><input type="checkbox" class="form-check-input tick" name="ids" value="{{ c.id }}" checked aria-label="Tick {{ c.name }}"></td>
+                  <td>{{ c.name }}</td><td>{{ c.phone }}</td><td class="small">{{ c.dob|dmy if c.dob else '—' }}</td>
+                  <td class="text-end">{{ (total or 0)|inr }}</td><td class="text-end">{{ bills or 0 }}</td></tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center text-muted p-4">{{ 'No customer with a mobile number matches.' if asked else 'Choose who to message on the left and press Search — or press Search with nothing chosen for everyone.' }}</td></tr>
+                {% endfor %}
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+        <div class="card-footer small text-muted">Showing {{ (rows or leads)|length }}{{ ' — the first ' ~ limit ~ '; narrow the search' if (rows or leads)|length >= limit }}.</div>
+      </div>
+
+      <div class="card p-3">
+        <label class="form-label small">URL <span class="text-muted">(added at the end of the message)</span></label>
+        <input class="form-control form-control-sm mb-2" name="url" type="url" placeholder="https://…">
+        <label class="form-label small d-flex justify-content-between"><span>Message</span><span class="text-muted"><span id="chars">0</span> characters · <span id="parts">0</span> SMS</span></label>
+        <textarea class="form-control form-control-sm mb-1" name="message" id="msg" rows="3" required placeholder="Hi {name}, our festive collection is in at {shop}…"></textarea>
+        <div class="small text-muted mb-2"><code>{name}</code> becomes each customer's name, <code>{shop}</code> the shop's.</div>
+        <div class="row g-2 align-items-end">
+          <div class="col-md-5"><label class="form-label small">Send at <span class="text-muted">(blank = now)</span></label>
+            <input class="form-control form-control-sm" type="datetime-local" name="when"></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="now" value="1" id="sendNow" checked>
+            <label class="form-check-label small" for="sendNow">Send straight away</label></div></div>
+          <div class="col-md-3"><button class="btn btn-brand btn-sm w-100"><i class="bi bi-send"></i> Send SMS</button></div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const ticks = () => document.querySelectorAll('.tick');
+function count(){
+  const n = [...ticks()].filter((t) => t.checked).length + document.querySelectorAll('#extraList input').length;
+  document.getElementById('pickCount').innerText = n;
+}
+document.getElementById('tickAll').checked = true;
+document.getElementById('tickAll').addEventListener('change', (e) => { ticks().forEach((t) => { t.checked = e.target.checked; }); count(); });
+ticks().forEach((t) => t.addEventListener('change', count));
+function addExtra(){
+  const box = document.getElementById('addMobile'), v = box.value.replace(/[\s-]/g, '');
+  if (!/^\+?\d{10,13}$/.test(v)){ box.classList.add('is-invalid'); return; }
+  box.classList.remove('is-invalid');
+  const chip = document.createElement('span');
+  chip.className = 'badge text-bg-info';
+  chip.innerHTML = `${v} <input type="hidden" name="extra" value="${v}"><i class="bi bi-x" role="button" aria-label="Remove"></i>`;
+  chip.querySelector('i').onclick = () => { chip.remove(); count(); };
+  document.getElementById('extraList').appendChild(chip);
+  box.value = ''; count();
+}
+document.getElementById('addBtn').onclick = addExtra;
+document.getElementById('addMobile').addEventListener('keydown', (e) => { if (e.key === 'Enter'){ e.preventDefault(); addExtra(); } });
+document.getElementById('clearExtra').onclick = () => { document.getElementById('extraList').innerHTML = ''; count(); };
+const msg = document.getElementById('msg');
+msg.addEventListener('input', () => {
+  const n = msg.value.length;
+  document.getElementById('chars').innerText = n;
+  document.getElementById('parts').innerText = n ? Math.ceil(n / (n > 160 ? 153 : 160)) : 0;
+});
+document.getElementById('sendForm').addEventListener('submit', (e) => {
+  const n = Number(document.getElementById('pickCount').innerText);
+  if (!n){ e.preventDefault(); alert('Tick at least one recipient, or add a mobile number.'); return; }
+  if (!confirm(`Send this message to ${n} recipient(s)?`)) e.preventDefault();
+});
+count();
+</script>
+{% endblock %}

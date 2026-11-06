@@ -58,6 +58,12 @@ for (const name of readdirSync(TMP)) {
 }
 rmSync(TMP, { recursive: true, force: true })
 
+// 3a. WAREXX Live (/live): the signed-in app on the real backend (live-api/)
+const liveBuild = spawnSync(process.execPath, [vite, 'build', '--config', 'vite.live.config.js'], {
+  cwd: FRONTEND, stdio: 'inherit', env: { ...process.env, LIVE_OUT: path.join(SITE, 'live') },
+})
+if (liveBuild.status !== 0) process.exit(liveBuild.status || 1)
+
 // 3b. the leads admin (/admin): one self-contained page; its data comes from
 //     /api/admin (api/admin.py), locked by ADMIN_PASSWORD on the server
 cpSync(path.join(FRONTEND, 'admin'), path.join(SITE, 'admin'), { recursive: true })

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}{{ note.number }} — {{ SHOP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-head d-print-none">
+  <h4><i class="bi bi-arrow-return-left"></i> Credit note {{ note.number }}</h4>
+  <div>
+    <button onclick="window.print()" class="btn btn-brand btn-sm"><i class="bi bi-printer"></i> Print</button>
+    {% if note.refund_method == 'store_credit' %}
+    <a href="{{ url_for('pos.counter', credit_note=note.number) }}" class="btn btn-outline-primary btn-sm"
+       title="Open a new bill with this store credit applied"><i class="bi bi-arrow-left-right"></i> New bill with this credit</a>
+    {% endif %}
+    <a href="{{ url_for('returns.index') }}" class="btn btn-outline-secondary btn-sm">New return</a>
+  </div>
+</div>
+
+<div class="card p-4" style="max-width:820px">
+  <div class="d-flex justify-content-between">
+    <div>
+      <div class="fw-bold fs-5">{{ SHOP_NAME }}</div>
+      <div class="small text-muted">{{ SHOP_ADDRESS }}</div>
+      <div class="small text-muted">GSTIN {{ SHOP_GSTIN }}</div>
+    </div>
+    <div class="text-end">
+      <div class="fw-bold">CREDIT NOTE</div>
+      <div>{{ note.number }}</div>
+      <div class="small text-muted">{{ note.created_at.strftime('%d %b %Y, %H:%M') }}</div>
+      <div class="small">against invoice <strong>{{ note.invoice.invoice_number }}</strong></div>
+    </div>
+  </div>
+
+  <hr>
+  <div class="row small">
+    <div class="col-6">
+      <div><strong>{{ note.invoice.customer.name if note.invoice.customer else 'Walk-in customer' }}</strong></div>
+      {% if note.invoice.customer and note.invoice.customer.phone %}
+      <div class="text-muted">{{ note.invoice.customer.phone }}</div>
+      {% endif %}
+    </div>
+    <div class="col-6 text-end">
+      {% if note.staff %}<div>Handled by: {{ note.staff.full_name }} ({{ note.staff.staff_code }})</div>{% endif %}
+      <div>Refunded by: {{ note.refund_method|replace('_',' ')|capitalize }}</div>
+      {% if note.reason %}<div class="text-muted">Reason: {{ note.reason }}</div>{% endif %}
+    </div>
+  </div>
+
+  <table class="table table-sm mt-3">
+    <thead><tr>
+      <th>Item</th><th class="text-end">Qty</th><th class="text-end">Price</th>
+      <th class="text-end">GST</th><th class="text-end">Amount</th><th>Condition</th>
+    </tr></thead>
+    <tbody>
+      {% for it in note.items %}
+      <tr>
+        <td>{{ it.product.name }}<br><small class="text-muted">SKU {{ it.product.sku }}</small></td>
+        <td class="text-end">{{ it.quantity }}</td>
+        <td class="text-end">{{ it.unit_price|inr }}</td>
+        <td class="text-end">{{ it.gst_rate }}%</td>
+        <td class="text-end">{{ it.line_total|inr }}</td>
+        <td>
+          {% if it.condition == 'damaged' %}
+          <span class="badge text-bg-warning">written off</span>
+          {% else %}
+          <span class="badge text-bg-light">back in stock</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="d-flex justify-content-end">
+    <table class="table table-sm w-auto">
+      <tr><td class="text-muted">Goods returned</td><td class="text-end">{{ note.subtotal|inr }}</td></tr>
+      {% if note.discount %}
+      <tr><td class="text-muted">Discount reversed</td><td class="text-end">- {{ note.discount|inr }}</td></tr>
+      {% endif %}
+      {% if note.igst %}
+      <tr><td class="text-muted">IGST</td><td class="text-end">{{ note.igst|inr }}</td></tr>
+      {% else %}
+      <tr><td class="text-muted">CGST</td><td class="text-end">{{ note.cgst|inr }}</td></tr>
+      <tr><td class="text-muted">SGST</td><td class="text-end">{{ note.sgst|inr }}</td></tr>
+      {% endif %}
+      {% if note.loyalty_reversed %}
+      <tr><td class="text-muted">Loyalty points taken back</td><td class="text-end">{{ '%.0f'|format(note.loyalty_reversed) }} pts</td></tr>
+      {% endif %}
+      {# The free goods the customer is keeping after returning what earned them.
+         Its own line and not folded into the discount, because it is neither a
+         discount nor a tax adjustment — it is the price of goods that were given
+         away on the strength of a purchase that has now been undone. #}
+      {% if note.promo_clawback %}
+      <tr><td class="text-muted">Free items kept, no longer earned</td>
+        <td class="text-end">- {{ note.promo_clawback|inr }}</td></tr>
+      {% endif %}
+      <tr class="fw-bold"><td>Refunded</td><td class="text-end">{{ note.total|inr }}</td></tr>
+    </table>
+  </div>
+</div>
+
+{% if print_mode %}
+<script>window.addEventListener('load', () => window.print());</script>
+{% endif %}
+<style>
+  @media print { .brand-nav, .alert, .d-print-none { display: none !important; } body { background:#fff; } }
+</style>
+{% endblock %}

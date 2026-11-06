@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h4 class="mb-0"><i class="bi bi-hourglass-split"></i> Still to collect</h4>
+    <div class="page-sub">Paid for and not yet carried out of the shop.</div>
+  </div>
+  <div class="d-flex gap-2 align-items-center">
+    <form class="d-flex gap-1 align-items-center">
+      <label class="small text-muted mb-0">Bills from the last</label>
+      <select class="form-select form-select-sm" name="days" onchange="this.form.submit()"
+              style="width:auto">
+        {% for d in [7, 30, 90, 365] %}
+        <option value="{{ d }}" {% if days == d %}selected{% endif %}>{{ d }} days</option>
+        {% endfor %}
+      </select>
+    </form>
+    <a class="btn btn-brand btn-sm" href="{{ url_for('delivery.index') }}">Delivery desk</a>
+  </div>
+</div>
+
+{% if rows %}
+<div class="alert alert-warning py-2">
+  <strong>{{ rows|length }} bill(s)</strong> with <strong>{{ owed }}</strong> piece(s)
+  waiting behind the counter.
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle">
+      <thead><tr>
+        <th>Bill</th><th>When</th><th>Customer</th><th>Contact</th>
+        <th class="text-end">Sold</th><th class="text-end">Collected</th>
+        <th class="text-end">Owed</th><th></th><th></th>
+      </tr></thead>
+      <tbody>
+        {% for inv in rows %}
+        <tr>
+          <td><a href="{{ url_for('pos.view_invoice', iid=inv.id) }}">{{ inv.invoice_number }}</a></td>
+          <td class="small">{{ inv.invoice_date.strftime('%d %b %Y') }}</td>
+          <td>{{ inv.customer.name if inv.customer else 'Walk-in' }}</td>
+          {# The reason this list is worth having: a walk-in with goods left
+             behind cannot be rung, and that is worth seeing at a glance. #}
+          <td class="small">
+            {% if inv.customer and inv.customer.phone %}{{ inv.customer.phone }}
+            {% else %}<span class="text-muted">no contact</span>{% endif %}
+          </td>
+          <td class="text-end">{{ inv.total_qty }}</td>
+          <td class="text-end">{{ inv.delivered_qty }}</td>
+          <td class="text-end fw-bold text-danger">{{ inv.pending_qty }}</td>
+          <td>
+            {% if inv.delivery_status == 'part' %}
+            <span class="badge text-bg-warning">part collected</span>
+            {% else %}
+            <span class="badge text-bg-secondary">not collected</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-primary"
+               href="{{ url_for('delivery.index') }}">Hand over</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="text-center text-muted py-5">
+          Nothing is waiting — every bill in this window has been collected.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<p class="small text-muted mt-2">
+  Bills older than the window are not listed. What is owed is worked out from the
+  delivery lines and any credit notes against the bill, so it cannot disagree with
+  either — and a bill whose goods came back on a return stops appearing here.
+</p>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% from "crm/_ui.html" import customer_lookup, customer_lookup_script %}
+{% block content %}
+{% include "crm/vouchers/_head.html" %}
+<form method="post" id="gvForm">
+<div class="row g-3">
+  <div class="col-lg-5">
+    <div class="card p-3">
+      <div class="row g-2">
+        <div class="col-12"><label class="form-label small">Company</label>
+          <select class="form-select form-select-sm" name="company_id">
+            {% for c in companies %}<option value="{{ c.id }}" {{ 'selected' if company and company.id == c.id }}>{{ c.name }}</option>{% endfor %}
+          </select></div>
+        <div class="col-6"><span class="form-label small d-block">Location</span>
+          <div class="fw-semibold small" style="color:var(--brand)">{{ location.name if location else 'Not chosen at this till' }}</div></div>
+        <div class="col-6"><span class="form-label small d-block">Counter</span>
+          <div class="fw-semibold small" style="color:var(--brand)">{{ counter.name if counter else '—' }}</div></div>
+        <div class="col-6"><label class="form-label small">Mode</label>
+          <select class="form-select form-select-sm" name="mode" id="gvMode">
+            {% for m in modes %}<option value="{{ m }}">{{ m|title }}</option>{% endfor %}
+          </select></div>
+        <div class="col-6"><label class="form-label small">Issued on</label>
+          <input class="form-control form-control-sm" type="date" name="issued_on" value="{{ today.isoformat() }}"></div>
+        <div class="col-12">
+          {{ customer_lookup('customer') }}
+        </div>
+        <div class="col-12 pay-only"><label class="form-label small">Paid by / amount</label>
+          <div class="input-group input-group-sm">
+            <select class="form-select" name="method" id="gvMethod" style="max-width:110px" aria-label="Paid by">
+              {% for m in methods %}<option value="{{ m }}">{{ m|upper }}</option>{% endfor %}
+            </select>
+            <span class="input-group-text">₹</span>
+            <input class="form-control" type="number" min="0" step="0.01" name="amount" id="gvAmount" aria-label="Amount received">
+          </div></div>
+        <div class="col-6 pay-only"><label class="form-label small">Bank</label>
+          <input class="form-control form-control-sm" name="bank" id="gvBank" placeholder="For card or bank transfer"></div>
+        <div class="col-6 pay-only"><label class="form-label small">Reference</label>
+          <input class="form-control form-control-sm" name="reference" maxlength="64" placeholder="Approval / UTR"></div>
+        <div class="col-12"><label class="form-label small">Value / remarks</label>
+          <div class="input-group input-group-sm">
+            <input class="form-control" id="gvValue" readonly style="max-width:140px;background:var(--panel-3)" aria-label="Face value" value="₹0">
+            <input class="form-control" name="remarks" maxlength="256" placeholder="Remarks" aria-label="Remarks">
+          </div></div>
+        <div class="col-12"><label class="form-label small">Valid range</label>
+          <div class="input-group input-group-sm">
+            <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+            <input class="form-control" type="date" name="valid_from" value="{{ today.isoformat() }}" aria-label="Valid from">
+            <input class="form-control" type="date" name="valid_to" value="{{ valid_to.isoformat() }}" aria-label="Valid to">
+          </div></div>
+        <div class="col-6"><label class="form-label small">Issued by</label>
+          <select class="form-select form-select-sm" name="issued_by_id">
+            {% for u in staff %}<option value="{{ u.id }}" {{ 'selected' if u.id == current_user.id }}>{{ u.full_name }}</option>{% endfor %}
+          </select></div>
+        <div class="col-6"><label class="form-label small">Received by</label>
+          <input class="form-control form-control-sm" name="received_by" maxlength="128" placeholder="Who took the vouchers"></div>
+        <div class="col-6"><label class="form-label small">Given to <span class="text-muted">(optional)</span></label>
+          <input class="form-control form-control-sm" name="given_to" maxlength="128" placeholder="Who it's a gift for"></div>
+        <div class="col-6"><label class="form-label small">Their mobile</label>
+          <input class="form-control form-control-sm" name="given_to_phone" maxlength="32" inputmode="tel"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span style="color:var(--danger, #9F1239)" class="fw-semibold">Denomination</span>
+        <span class="small text-muted">How many vouchers of each value</span>
+      </div>
+      <div class="card-body">
+        <div class="row g-2">
+          {% for d in denominations %}
+          <div class="col-sm-6 col-xl-4">
+            <div class="d-flex align-items-center gap-2 border rounded px-2 py-1">
+              <label class="small fw-semibold mb-0" style="width:70px" for="d{{ d }}">₹{{ '{:,}'.format(d) }}</label>
+              <input class="form-control form-control-sm text-end den" type="number" min="0" step="1" value="0"
+                     id="d{{ d }}" name="d{{ d }}" data-value="{{ d }}" style="width:72px">
+              <span class="small fw-semibold ms-auto den-total" style="color:var(--brand)">₹0</span>
+            </div>
+          </div>
+          {% endfor %}
+          <div class="col-sm-12 col-xl-8">
+            <div class="d-flex align-items-center gap-2 border rounded px-2 py-1">
+              <span class="small fw-semibold mb-0" style="width:70px">Other ₹</span>
+              <input class="form-control form-control-sm text-end" type="number" min="0" step="0.01" id="otherValue" name="other_value" value="0" style="width:100px" aria-label="Other value">
+              <span class="small text-muted">×</span>
+              <input class="form-control form-control-sm text-end" type="number" min="0" step="1" id="otherCount" name="other_count" value="0" style="width:72px" aria-label="How many">
+              <span class="small fw-semibold ms-auto" id="otherTotal" style="color:var(--brand)">₹0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer d-flex justify-content-between align-items-center">
+        <span class="small"><span id="gvCount">0</span> voucher(s)</span>
+        <span class="fw-bold">Total <span id="gvTotal">₹0</span></span>
+      </div>
+    </div>
+    <div class="d-flex justify-content-end gap-2 mt-3">
+      <button class="btn btn-brand"><i class="bi bi-save"></i> Save &amp; print vouchers</button>
+    </div>
+    <p class="small text-muted mt-2 mb-0 text-end">Vouchers are spent at <b>Settlement</b> under <b>Gift voucher</b> — any part of one can be used, and the rest stays on it.</p>
+  </div>
+</div>
+</form>
+{% endblock %}
+{% block scripts %}
+{{ customer_lookup_script() }}
+<script>
+const rs = (n) => '₹' + (Math.round(n * 100) / 100).toLocaleString('en-IN');
+const amount = document.getElementById('gvAmount');
+let amountTouched = false;
+amount.addEventListener('input', () => { amountTouched = true; });
+function recount(){
+  let total = 0, count = 0;
+  document.querySelectorAll('.den').forEach((el) => {
+    const n = Math.max(0, parseInt(el.value) || 0), v = n * Number(el.dataset.value);
+    el.parentElement.querySelector('.den-total').innerText = rs(v);
+    total += v; count += n;
+  });
+  const ov = parseFloat(document.getElementById('otherValue').value) || 0, oc = parseInt(document.getElementById('otherCount').value) || 0;
+  document.getElementById('otherTotal').innerText = rs(ov * oc);
+  total += ov * oc; count += oc;
+  document.getElementById('gvTotal').innerText = rs(total);
+  document.getElementById('gvValue').value = rs(total);
+  document.getElementById('gvCount').innerText = count;
+  if (!amountTouched) amount.value = total ? total.toFixed(2) : '';
+}
+document.querySelectorAll('.den, #otherValue, #otherCount').forEach((el) => el.addEventListener('input', recount));
+function modeChanged(){
+  const direct = document.getElementById('gvMode').value === 'direct';
+  document.querySelectorAll('.pay-only').forEach((el) => el.style.display = direct ? '' : 'none');
+  document.querySelectorAll('.cl-phone, #customer_name').forEach((el) => el.required = direct);
+}
+document.getElementById('gvMode').addEventListener('change', modeChanged);
+modeChanged(); recount();
+</script>
+{% endblock %}

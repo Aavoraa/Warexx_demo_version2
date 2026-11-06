@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+{% from "_pager.html" import pager with context %}
+<div class="d-print-none">{{ pager(page) }}</div>
+<div class="page-head">
+  <h4><i class="bi bi-exclamation-triangle text-warning"></i> Low stock report</h4>
+</div>
+<div class="card">
+  <table class="table mb-0">
+    <thead><tr><th>SKU</th><th>Name</th><th>Category</th><th class="text-end">Stock</th><th class="text-end">Reorder level</th><th class="text-end">Unit cost</th></tr></thead>
+    <tbody>
+      {% for p in items %}
+      <tr class="low-stock">
+        <td><code>{{ p.sku }}</code></td><td>{{ p.name }}</td>
+        <td>{{ p.category.name if p.category else '-' }}</td>
+        <td class="text-end fw-bold text-danger">{{ p.stock_qty }} {{ p.unit }}</td>
+        <td class="text-end">{{ p.reorder_level }}</td>
+        <td class="text-end">{{ p.cost_price|inr }}</td>
+      </tr>
+      {% else %}<tr><td colspan="6" class="text-center text-muted">All stock above reorder level.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+<div class="d-print-none">{{ pager(page) }}</div>
+{% endblock %}

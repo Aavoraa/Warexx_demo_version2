@@ -1,0 +1,1364 @@
+{% extends "base.html" %}
+{% block content %}
+{# The billing screen. Two halves, sized to the window and never scrolled:
+   a narrow column of inputs on the left — one scanner, the customer, the
+   reductions — and the bill itself, as large as the screen allows, on the right.
+
+   Taking the money is NOT on this screen. "Proceed to settlement" carries the
+   bill to its own page (pos/settle.html); nothing is written until that page's
+   Bill & print, where the server checks the cart and the tenders together. #}
+<div class="pos-screen" id="posScreen">
+
+  <aside class="pos-side">
+    {# ONE scanner for everything. The first scan is a garment; the scan after
+       it is the staff ID of whoever sold that garment, and it lands on that line.
+       A bill can carry garments sold by different people, so it is asked per
+       line rather than once for the sale. #}
+    <div class="card p-2">
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+        <input id="scanBox" class="form-control" autocomplete="off" autofocus
+               placeholder="Scan product, then staff ID">
+        <button id="camBtn" class="btn btn-outline-primary" type="button" title="Scan with the camera">
+          <i class="bi bi-camera"></i></button>
+      </div>
+      <div id="scanHint" class="scan-hint mt-1">Scan a product tag.</div>
+      <div id="camBox" style="display:none" class="mt-1">
+        <div id="camReader" style="width:100%"></div>
+        <button id="camStop" class="btn btn-outline-secondary btn-sm mt-1">Stop camera</button>
+      </div>
+    </div>
+
+    {# Which entity is billing, from where, at which till — and the number the
+       next bill will carry. Kept on screen (small) because a till left set to
+       the wrong branch or floor is only noticed if the answer is in view. #}
+    <div class="card p-2 small">
+      <div class="d-flex align-items-center gap-2">
+        <span id="billNoBox" class="badge {{ 'text-bg-dark' if next_bill.mapped else 'text-bg-secondary' }}"
+              title="{{ 'Next bill on ' ~ next_bill.floor if next_bill.mapped else 'No floor is set for this till, so it bills on the shop’s plain series' }}">
+          <span id="pbBillNo">{{ next_bill.number }}</span></span>
+        <i id="pbUnmapped" class="bi bi-exclamation-triangle-fill till-warn {{ 'd-none' if next_bill.mapped }}"
+           title="No floor set for this till — it bills on the shop's plain series. Press Change and pick the floor you are on, or ask a manager to put this till on one in the warehouse's Locations screen."
+           aria-label="No floor set — plain series"></i>
+        <span class="d-flex gap-1 ms-auto">
+          <button class="btn btn-outline-primary btn-xs" data-bs-toggle="modal" data-bs-target="#placeModal"
+                  title="Company / location / floor / counter"><i class="bi bi-shop"></i> Change</button>
+          <a href="{{ url_for('drawer.index') }}"
+             class="btn btn-xs {{ 'btn-outline-secondary' if drawer_open else 'btn-outline-warning' }}"
+             title="{{ ('Drawer open since ' ~ drawer_open.opened_at.strftime('%H:%M')) if drawer_open else 'The cash drawer on this till has not been opened' }}">
+            <i class="bi bi-inbox"></i>{{ '' if drawer_open else ' closed' }}</a>
+        </span>
+      </div>
+      <div class="text-muted text-truncate mt-1" id="pbWhere"
+           title="{{ (chosen_company or default_company).name }} {{ (chosen_company or default_company).gstin or '' }}">
+        <span id="pbLocation">{{ chosen_location.name if chosen_location else 'No location' }}</span> ·
+        <span id="pbFloor">{{ chosen_floor.name if chosen_floor else 'no floor' }}</span> ·
+        <span id="pbCounter">{{ chosen_counter.name if chosen_counter else 'no counter' }}</span>
+      </div>
+    </div>
+
+    {# The customer is optional — a walk-in is billed without one, and a new
+       customer needs only a name. The phone number is never required. #}
+    <div class="card p-2">
+      <div class="input-group input-group-sm">
+        <input id="custLookup" class="form-control" placeholder="Customer: mobile / bill # / card (optional)">
+        <button id="custLookupBtn" class="btn btn-outline-primary" type="button" title="Search"><i class="bi bi-search"></i></button>
+        <button class="btn btn-outline-primary" type="button" title="New customer"
+                data-bs-toggle="modal" data-bs-target="#newCustModal"><i class="bi bi-person-plus"></i></button>
+      </div>
+      <div id="custCard" class="d-none mt-1 small d-flex justify-content-between align-items-center">
+        <span class="text-truncate"><b id="custName">-</b> <span class="text-muted" id="custPhone"></span>
+          <span class="badge text-bg-info" id="custPoints">0 pts</span></span>
+        <button id="custClear" class="btn btn-xs btn-outline-danger" title="Remove customer"><i class="bi bi-x"></i></button>
+      </div>
+      <div id="custWalkin" class="small text-muted mt-1"><i class="bi bi-person"></i> Walk-in customer</div>
+    </div>
+
+    {# What the discount card's P.Code applied, and a return's store credit waiting
+       for this bill — shown only when there is something to say. Discounts are
+       given in the discount card (D + Enter) and the bill's % / AddIn % columns. #}
+    <div id="billNotes" class="small px-1">
+      <div id="couponHelp" class="d-none"></div>
+      <button type="button" id="couponClear" class="btn btn-link btn-sm p-0 d-none">Remove coupon</button>
+      <div id="exchangeNote" class="d-none" style="color:var(--brand-dark)"></div>
+    </div>
+
+    <div class="d-flex gap-1">
+      {# The salesman's list of what is on offer today, without leaving the bill. #}
+      <button type="button" id="offersBtn" class="btn btn-outline-primary btn-sm flex-fill">
+        <i class="bi bi-gift"></i> Salesman scheme</button>
+      <div class="dropdown flex-fill">
+        <button type="button" id="prevBtn" class="btn btn-outline-secondary btn-sm w-100 dropdown-toggle"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                data-bs-popper-config='{"strategy":"fixed"}'><i class="bi bi-clock-history"></i> Previous bill</button>
+        {# Fixed positioning lifts the list out of the left column, which hides
+           anything wider than itself — the download buttons were cut off. #}
+        <ul class="dropdown-menu dropdown-menu-end shadow" id="prevMenu"
+            style="min-width:340px; max-width:calc(100vw - 24px); max-height:70vh; overflow-y:auto">
+          <li class="dropdown-item-text small text-muted">Loading…</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-auto card p-2 pos-go">
+      <div class="d-flex justify-content-between align-items-baseline">
+        <span class="text-muted small">TOTAL</span>
+        <span class="pos-total fs-3 fw-bold" id="sideTotal">₹0.00</span>
+      </div>
+      <div id="goWarn" class="small d-none" style="color:#BE123C"></div>
+      <button id="goSettle" class="btn btn-brand w-100 mt-1" disabled
+              title="Saves the bill, prints the delivery copy, then opens Settlement">
+        <i class="bi bi-printer"></i> Bill &amp; print delivery copy</button>
+      <button id="clearBill" class="btn btn-link btn-sm w-100 text-decoration-none text-muted p-0 mt-1">Clear bill</button>
+    </div>
+  </aside>
+
+  <section class="card pos-bill">
+    <div class="pos-bill-head d-flex justify-content-between align-items-center px-3 py-2">
+      <div><span class="fw-bold"><i class="bi bi-receipt"></i> BILL</span>
+        <span class="font-monospace ms-2" id="headBillNo">{{ next_bill.number }}</span></div>
+      <div class="small text-muted"><span id="headCust">Walk-in</span> · <span id="headCount">0 items</span></div>
+    </div>
+    <div class="bill-lines">
+      <table class="table table-sm align-middle mb-0 bill-table">
+        <thead><tr>
+          <th style="width:42px">S.No</th><th style="width:104px">Barcode</th><th>Product</th>
+          <th class="text-end" style="width:76px">Price</th>
+          <th class="text-end" style="width:52px">Qty</th><th class="text-end" style="width:72px">Discount</th>
+          <th class="text-end" style="width:66px" title="Additional discount %">AddIn %</th>
+          <th class="text-end" style="width:58px" title="Discount %">Disc %</th>
+          <th class="text-end" style="width:86px">Amount</th><th style="width:100px">Salesman</th><th style="width:28px"></th>
+        </tr>
+        {# The entry row: keyed in left to right, like the shop's old billing grid.
+           Every box can be typed in. Barcode → Enter, or a name typed into
+           Product, finds the item; Price, Qty, Discount (₹), AddIn.Dis (₹), % and
+           Amount can all be changed and keep each other in step; the salesman's
+           ID → Enter puts the line on the bill and starts again. #}
+        <tr class="entry-row">
+          <td class="text-muted text-center"><i class="bi bi-plus-lg" aria-hidden="true"></i></td>
+          <td><input id="enBarcode" class="form-control form-control-sm" autocomplete="off" placeholder="Barcode"></td>
+          <td><div class="position-relative">
+            <input id="enProduct" class="form-control form-control-sm" autocomplete="off" placeholder="Product name">
+            <div id="enSuggest" class="en-suggest d-none"></div>
+          </div></td>
+          <td><input id="enPrice" aria-label="Price" class="form-control form-control-sm text-end" type="number" min="0" step="0.01"></td>
+          <td><input id="enQty" aria-label="Quantity" class="form-control form-control-sm text-end" type="number" min="1" step="1"></td>
+          <td><input id="enDisc" class="form-control form-control-sm text-end" type="number" min="0" step="0.01" title="Discount, ₹"></td>
+          <td><input id="enAddin" class="form-control form-control-sm text-end" type="number" min="0" max="100" step="1" title="Additional discount %"></td>
+          <td><input id="enPct" class="form-control form-control-sm text-end" type="number" min="0" max="100" step="1" title="Discount %"></td>
+          <td><input id="enAmt" class="form-control form-control-sm text-end" type="number" min="0" step="0.01" title="Amount with GST — type a figure to work the discount out"></td>
+          <td><input id="enStaff" class="form-control form-control-sm" autocomplete="off" placeholder="Staff ID"></td>
+          <td></td>
+        </tr></thead>
+        <tbody id="billBody"></tbody>
+      </table>
+    </div>
+    {# What the cart has earned, and what it earned and cannot have — visible
+       before the money is taken, not discovered in the bag afterwards. #}
+    <div id="promoBox" class="d-none mx-3 mb-1"></div>
+    <div class="bill-foot px-3 py-2">
+      <div class="bill-sums">
+        <span>Subtotal <b id="subtotal">₹0.00</b></span>
+        <span>GST <b id="tax">₹0.00</b></span>
+        <span id="sumDisc" class="d-none">Discount <b>−<span id="discShown">₹0.00</span></b></span>
+        <span id="sumCoupon" class="d-none">Coupon <b>−<span id="couponShown">₹0.00</span></b></span>
+        <span id="sumPts" class="d-none">Points <b>−<span id="ptsShown">₹0.00</span></b></span>
+      </div>
+      <div class="d-flex align-items-baseline gap-2">
+        <span class="text-muted">TOTAL</span>
+        <strong id="grandTotal" class="pos-total bill-grand">₹0.00</strong>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Quick-add customer: a name is all it needs. -->
+<div class="modal fade" id="newCustModal" tabindex="-1">
+  <div class="modal-dialog modal-sm"><div class="modal-content">
+    <div class="modal-header py-2"><h6 class="modal-title">New customer</h6>
+      <button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-2"><label class="form-label small mb-0">Name *</label>
+        <input id="ncName" class="form-control form-control-sm" required></div>
+      <div class="mb-2"><label class="form-label small mb-0">Mobile <span class="text-muted">(optional)</span></label>
+        <input id="ncPhone" class="form-control form-control-sm" placeholder="+91 …"></div>
+      <div class="mb-2"><label class="form-label small mb-0">Email <span class="text-muted">(optional)</span></label>
+        <input id="ncEmail" class="form-control form-control-sm"></div>
+      <div class="mb-0"><label class="form-label small mb-0">State code</label>
+        <input id="ncState" class="form-control form-control-sm" value="33"></div>
+    </div>
+    <div class="modal-footer py-2">
+      <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button id="ncSave" class="btn btn-brand btn-sm">Save &amp; use</button>
+    </div>
+  </div></div>
+</div>
+
+<!-- The salesman scheme: every promotion running at this till today. -->
+<div class="modal fade" id="offersModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-scrollable"><div class="modal-content">
+    <div class="modal-header py-2"><h6 class="modal-title"><i class="bi bi-gift"></i> Running offers — tell the customer</h6>
+      <button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body" id="offersBody"><div class="text-muted small">Loading…</div></div>
+  </div></div>
+</div>
+
+<!-- The discount card: D + Enter in the scanner. Tick the items, then type a
+     discount (% or ₹), or the final amount wanted for them. E.Code (whoever
+     approves it) and P.Code (a promotion / coupon code) are optional. APPROVE
+     applies what is filled in and closes the card. -->
+<div class="modal fade" id="discModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content">
+    <div class="modal-body p-2">
+      <div class="dc-lines">
+        <table class="table table-sm align-middle mb-0 dc-table">
+          <thead><tr>
+            <th style="width:32px"><input type="checkbox" class="form-check-input" id="dcAll" title="All items"></th>
+            <th>Barcode</th><th>Detail</th><th class="text-end">Price</th><th class="text-end">Qty</th>
+            <th class="text-end">Discount</th><th class="text-end">Addin %</th><th class="text-end">D.Value</th><th class="text-end">Amount</th>
+          </tr></thead>
+          <tbody id="dcBody"></tbody>
+        </table>
+      </div>
+      <div id="dcMsg" class="small mt-1"></div>
+    </div>
+    <div class="modal-footer py-2 justify-content-between flex-nowrap gap-2">
+      <div class="d-flex align-items-center gap-1 dc-foot">
+        <span class="small text-nowrap me-1">Discount %/₹</span>
+        <button type="button" id="dcMode" class="btn btn-outline-secondary btn-sm" title="Switch between % and ₹">%</button>
+        <input id="dcDisc" class="form-control form-control-sm" type="number" min="0" step="0.01" placeholder="discount"
+               title="Discount on the ticked items — Enter applies it">
+        <input id="dcFinal" class="form-control form-control-sm" type="number" min="0" step="0.01" placeholder="final"
+               title="The final amount wanted for the ticked items — Enter works out the discount">
+        <input id="dcECode" class="form-control form-control-sm" autocomplete="off" placeholder="E.Code"
+               title="Staff ID of whoever approves the discount">
+        <input id="dcPCode" class="form-control form-control-sm text-uppercase" autocomplete="off" placeholder="P.Code"
+               title="Promotion / coupon code — Enter applies it">
+      </div>
+      <div class="d-flex gap-1">
+        <button id="dcApprove" class="btn btn-brand btn-sm" title="Apply what is filled in and close">APPROVE</button>
+        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">CLOSE</button>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<div class="modal fade" id="placeModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Company / Location / Counter</h5>
+      <button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-2"><label class="form-label small mb-1">Company</label>
+        <select id="pmCompany" class="form-select"></select>
+        <div class="form-text">Whose GSTIN prints on the bill.</div></div>
+      <div class="mb-2"><label class="form-label small mb-1">Location</label>
+        <select id="pmLocation" class="form-select"></select>
+        <div class="form-text">Kept in step with the warehouse's own list of branches.</div></div>
+      <div class="mb-2"><label class="form-label small mb-1">Floor</label>
+        <select id="pmFloor" class="form-select"></select>
+        <div class="form-text">Decides the bill prefix — Ground Floor bills read
+          <code>TG…</code>, First Floor <code>TF…</code>. Choosing a floor narrows
+          the tills below to the ones standing on it.</div></div>
+      <div class="mb-2"><label class="form-label small mb-1">Counter</label>
+        <select id="pmCounter" class="form-select"></select>
+        <div class="form-text">A till already mapped to a floor sets the floor by
+          itself — the mapping is what the bill number comes from.</div></div>
+      <div class="small text-muted">Current: <span id="pmCurrent">-None-</span></div>
+      <div class="small mt-1">Next bill: <code id="pmBillNo">{{ next_bill.number }}</code></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+      <button id="pmSelect" class="btn btn-brand">Select</button>
+    </div>
+  </div></div>
+</div>
+
+<style>
+  .pos-screen { display:grid; grid-template-columns: 290px minmax(0,1fr); gap:12px; height: calc(100vh - 150px); }
+  @media (max-width: 1399px) { .pos-screen { grid-template-columns: 280px minmax(0,1fr); } }
+  .pos-side .btn-sm, .pos-side .btn-xs { white-space:nowrap; }
+  .pos-side #scanBox::placeholder, .pos-side #custLookup::placeholder { font-size:.82rem; }
+  .pos-side { display:flex; flex-direction:column; gap:10px; min-height:0; overflow:hidden; }
+  .pos-side .card { margin:0; padding:10px !important; box-shadow:none; }
+  .pos-side .input-group-text { background:var(--panel-2, #F7F9F7); color:var(--muted, #68756E); }
+  .till-warn { color:#D97706; font-size:.85rem; cursor:help; }
+  #pbWhere { font-size:.78rem; }
+  .btn-xs { padding: 1px 6px; font-size: .75rem; }
+  .scan-hint { font-size:.8rem; color: var(--text-muted, #68756E); min-height:1.2em; }
+  .scan-hint.want-staff { color:#B45309; font-weight:600; }
+  .scan-hint.bad { color:#BE123C; font-weight:600; }
+  .pos-bill { display:flex; flex-direction:column; min-height:0; margin:0; }
+  .pos-bill-head { border-bottom:1px solid var(--border, #DCE5DF); }
+  .bill-lines { flex:1 1 auto; min-height:0; overflow:auto; }
+  .bill-table { table-layout: fixed; }
+  .bill-table thead th { position:sticky; top:0; background:var(--surface, #fff); z-index:1; font-size:.72rem;
+    color:var(--muted, #68756E); font-weight:600; letter-spacing:.03em; border-bottom:1px solid var(--line, #DCE5DF);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .bill-table tbody td { border-color:#EDF1EE; }
+  .bill-table td { font-size:.9rem; }
+  .bill-table tr.awaiting td { background:#FFF7E6; }
+  /* the entry row sits under the headings and stays put while the lines scroll */
+  .bill-table thead tr.entry-row td { position:sticky; top:28px; z-index:1; background:#F4F8F6; padding:5px 2px;
+    border-bottom:1px solid var(--line, #DCE5DF); }
+  .bill-table .entry-row .form-control { font-size:.8rem; padding:3px 6px; min-width:0; background:#fff;
+    border-color:#D5DED8; }
+  .bill-table .entry-row .form-control:focus { border-color:var(--accent, #2F8F68); box-shadow:0 0 0 2px rgba(47,143,104,.15); }
+  .bill-table .entry-row .form-control[readonly] { background:#fff; }
+  .bill-table .pct-input, .bill-table .qty-input, .bill-table .addin-input { padding:2px 4px; }
+  .en-suggest { position:absolute; left:2px; right:2px; top:100%; z-index:5; background:#fff; border:1px solid var(--border, #DCE5DF);
+                border-radius:4px; box-shadow:0 6px 18px rgba(0,0,0,.12); max-height:240px; overflow:auto; min-width:320px; }
+  .en-suggest .en-opt { display:flex; justify-content:space-between; gap:8px; padding:4px 8px; cursor:pointer; font-size:.82rem; }
+  .en-suggest .en-opt.on, .en-suggest .en-opt:hover { background:#E3F2EA; }
+  /* the discount card */
+  .dc-lines { max-height: 52vh; min-height: 160px; overflow:auto; border:1px solid var(--border, #DCE5DF); border-radius:4px; }
+  .dc-table thead th { position:sticky; top:0; background:var(--surface, #fff); z-index:1; font-size:.8rem; }
+  .dc-foot .form-control { width: 120px; }
+  .dc-table .dc-addin { width: 76px; margin-left: auto; padding: 1px 4px; }
+  .bill-table .staff-pick { font-size:.75rem; padding:1px 4px; }
+  .bill-empty { color:var(--text-muted, #68756E); text-align:center; padding:3rem 1rem; }
+  .bill-foot { border-top:2px solid var(--border, #DCE5DF); display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+  .bill-sums { display:flex; gap:16px; flex-wrap:wrap; font-size:.85rem; color:var(--text-muted, #68756E); }
+  .bill-sums b { color:var(--text, #17221D); }
+  .bill-grand { font-size:1.9rem; color:var(--brand-dark); }
+  #promoBox { max-height:84px; overflow:auto; }
+  @media (max-width: 991px) {
+    .pos-screen { grid-template-columns: 1fr; height:auto; }
+    .bill-lines { max-height: 50vh; }
+  }
+</style>
+{% endblock %}
+{% block scripts %}
+<script src="https://unpkg.com/html5-qrcode@2.3.10/html5-qrcode.min.js"></script>
+<script>
+// ---- the screen fits the window ------------------------------------------------
+// Sized to what is left under the header, so the bill and the inputs are all in
+// view at once and the page itself never scrolls. Only a long bill's lines scroll,
+// inside the bill.
+const SCREEN = document.getElementById('posScreen');
+function fitScreen(){
+  if (window.innerWidth < 992){ SCREEN.style.height = ''; document.body.style.overflow = ''; return; }
+  const top = SCREEN.getBoundingClientRect().top + window.scrollY;
+  SCREEN.style.height = Math.max(420, window.innerHeight - top - 12) + 'px';
+  document.body.style.overflow = 'hidden';
+}
+window.addEventListener('resize', fitScreen);
+fitScreen();
+
+//: Active staff, for recognising a scanned ID card and for the pick-list fallback.
+const STAFF = [
+  {% for u in staff %}{id: {{ u.id }}, code: {{ u.staff_code | tojson }}, name: {{ u.full_name | tojson }}, username: {{ (u.username or '') | tojson }}},
+  {% endfor %}];
+const EXCHANGE = {{ exchange | tojson }};
+
+const $ = (id) => document.getElementById(id);
+function fmt(n){ return '₹' + Number(n || 0).toFixed(2); }
+function esc(s){ return String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ---- the bill ------------------------------------------------------------------
+// One entry per line on the bill. A line is a product AND the person who sold it:
+// the same garment sold by two people is two lines, so each gets the commission.
+let lines = [];
+let lineSeq = 0;
+//: The line the next staff-ID scan belongs to — the product scanned last.
+let awaitingKey = null;
+let customer = null;
+let appliedCoupon = null;
+let couponOff = 0;
+//: A store-credit note from a return, waiting to be spent at settlement.
+let creditNote = null;
+//: Who approved the discounts on this bill — {id, code, name}, the discount card's E.Code.
+let discountBy = null;
+//: The agreement code the bill is raised under (a P.Code a scheme asks for).
+let agreementCode = null;
+//: What the sales schemes give this bill when it is paid — shown, not applied.
+let schemesLater = [];
+
+// What the cart has earned, as the server last answered it. The till SHOWS
+// promotions; the server DECIDES them again at checkout from the paid lines.
+let promoAwards = [];
+let promoNotices = [];
+const promoChoices = {};
+let totals = {subtotal: 0, tax: 0, discount: 0, coupon: 0, redeem: 0, total: 0};
+
+function staffLabel(s){ return s ? `${s.code}` : ''; }
+
+const r2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
+
+const clampPct = (v) => Math.min(100, Math.max(0, Number(v) || 0));
+//: Every % typed or worked out at the counter is a whole number.
+const wholePct = (v) => Math.round(clampPct(v));
+//: Pieces are counted whole; metre goods are cut to the centimetre.
+const qtyStep = (unit) => ((unit || '').toLowerCase() === 'mtr' ? 0.01 : 1);
+const roundQty = (q, unit) => (qtyStep(unit) === 1 ? Math.round(q) : r2(q));
+
+// A line's figures. Two discounts, both the line's own: its Discount % and, on
+// top of what is left, its Addin % (the additional discount — typed per item in
+// the discount card, or set on every item from the left panel). Together they
+// lower the price the line is charged at — the server gets them as one %, and
+// applies the same rounding — so GST is on the discounted amount.
+function lineMath(l){
+  const pct = wholePct(l.pct), addin = wholePct(l.addin);
+  // what was given by hand, and on top of it whatever a sales scheme gives
+  // (worked out by the server; checkout works it out again)
+  const manualEff = Math.round((1 - (1 - pct / 100) * (1 - addin / 100)) * 1000000) / 10000;
+  const scheme = clampPct(l.scheme ? l.scheme.pct : 0);
+  const eff = Math.round((1 - (1 - manualEff / 100) * (1 - scheme / 100)) * 1000000) / 10000;
+  const unit = eff ? r2(l.price * (1 - eff / 100)) : l.price;
+  const taxable = l.qty * unit, full = l.qty * l.price;
+  // the line's own discount, then the additional one (which takes the rounding)
+  // the line's own discount, the additional one, then the scheme's (which takes the rounding)
+  const disc = (addin || scheme) ? r2(full * pct / 100) : r2(full - taxable);
+  const addAmt = addin ? (scheme ? r2(full * (1 - pct / 100) * addin / 100) : Math.max(0, r2(full - taxable - disc))) : 0;
+  const schemeAmt = scheme ? Math.max(0, r2(full - taxable - disc - addAmt)) : 0;
+  return {pct, addin, scheme, manualEff, eff, unit, taxable, full, disc, addAmt, schemeAmt,
+          tax: taxable * l.gst / 100};
+}
+
+
+
+function renderBill(){
+  const body = $('billBody');
+  // `subtotal` is the goods as charged (after every line's discounts); `gross`
+  // before them. The bill-wide discount the server takes is no longer used —
+  // every discount is a line's own, so GST is always on what was charged.
+  let subtotal = 0, tax = 0, count = 0, gross = 0, lineDisc = 0, addinDisc = 0;
+  lines.forEach((l) => {
+    const m = lineMath(l);
+    subtotal += m.taxable; tax += m.tax; gross += m.full; lineDisc += m.disc + m.schemeAmt; addinDisc += m.addAmt;
+  });
+  promoAwards.forEach((a) => a.rewards.forEach((r) => {
+    const amt = r.unit_price * r.qty; subtotal += amt; gross += amt; tax += amt * (r.gst || 0) / 100;
+  }));
+  const discount = 0;
+  if (!lines.length){
+    body.innerHTML = `<tr><td colspan="11" class="bill-empty">
+      <i class="bi bi-upc-scan" style="font-size:2rem;opacity:.35"></i>
+      <div class="mt-2">Scan a product tag, then the staff ID of whoever sold it — or key it into the row above.</div></td></tr>`;
+  } else {
+    body.innerHTML = lines.map((l, i) => {
+      const m = lineMath(l);
+      count += l.qty;
+      const staffCell = l.staff
+        ? `<span class="badge text-bg-light border font-monospace" title="${esc(l.staff.name)}">${esc(l.staff.code)}</span>
+           <button class="btn btn-link btn-sm p-0 ms-1 staff-redo" data-key="${l.key}" title="Change salesman"><i class="bi bi-pencil"></i></button>`
+        : `<select class="form-select form-select-sm staff-pick" data-key="${l.key}" title="Scan the staff ID, or pick">
+             <option value="">${l.key === awaitingKey ? 'Scan staff ID…' : 'Salesman?'}</option>
+             ${STAFF.map((s) => `<option value="${s.id}">${esc(s.code)} · ${esc(s.name)}</option>`).join('')}
+           </select>`;
+      return `<tr class="${l.staff ? '' : 'awaiting'}">
+        <td class="text-muted">${i + 1}</td>
+        <td class="font-monospace small">${esc(l.barc || l.sku || '')}</td>
+        <td class="fw-semibold">${esc(l.name)}${l.scheme ? `<div class="small fw-normal" style="color:var(--brand-dark)"
+              title="${esc((l.scheme.names || []).join(' + '))}"><i class="bi bi-gift"></i> ${esc((l.scheme.names || []).join(' + '))}
+              −${+m.scheme.toFixed(2)}%</div>` : ''}</td>
+        <td class="text-end">${fmt(l.price)}</td>
+        <td><input type="number" min="0" step="${qtyStep(l.unit)}" value="${l.qty}" class="form-control form-control-sm text-end qty-input" data-key="${l.key}"></td>
+        <td class="text-end" title="${m.schemeAmt ? 'includes ' + fmt(m.schemeAmt) + ' scheme discount' : ''}">${(m.disc + m.schemeAmt) ? fmt(m.disc + m.schemeAmt) : ''}</td>
+        <td><input type="number" min="0" max="100" step="1" value="${m.addin || ''}" placeholder="0"
+             class="form-control form-control-sm text-end addin-input" data-key="${l.key}"
+             title="Additional discount %${m.addAmt ? ' — ' + fmt(m.addAmt) : ''}"></td>
+        <td><input type="number" min="0" max="100" step="1" value="${m.pct || ''}" placeholder="0" class="form-control form-control-sm text-end pct-input" data-key="${l.key}" title="This line's discount %"></td>
+        <td class="text-end fw-semibold">${fmt(m.taxable + m.tax)}</td>
+        <td>${staffCell}</td>
+        <td><button class="btn btn-sm btn-outline-danger py-0 px-1 remove-btn" data-key="${l.key}" title="Remove"><i class="bi bi-x"></i></button></td>
+      </tr>`;
+    }).join('');
+    // The free lines, under the paid ones — not the cashier's to change.
+    promoAwards.forEach((a) => a.rewards.forEach((r) => {
+      const amt = r.unit_price * r.qty, t = amt * (r.gst || 0) / 100;
+      body.insertAdjacentHTML('beforeend', `<tr class="table-success">
+        <td></td><td></td><td>${esc(r.name)} <span class="badge text-bg-success">${r.free ? 'FREE' : 'OFFER'}</span>
+          <div class="small text-muted">${esc(a.name)}</div></td>
+        <td></td><td class="text-end">${r.qty}</td><td></td><td></td><td></td><td class="text-end">${fmt(amt + t)}</td><td></td><td></td></tr>`);
+    }));
+  }
+
+  const cOff = couponValue(subtotal - discount + tax, subtotal - discount);
+  const preLoyalty = Math.max(0, subtotal - discount - cOff + tax);
+  const available = customer ? Number(customer.loyalty_points || 0) : 0;
+  const redeem = 0;
+  const total = Math.round(Math.max(0, preLoyalty - redeem) * 100) / 100;
+  totals = {subtotal, tax, discount, coupon: cOff, redeem, total, gross, lineDisc: r2(lineDisc + addinDisc)};
+
+  // Shown before discounts, then the discounts, so the footer adds up:
+  // Subtotal − Discount + GST − coupon − points = Total.
+  $('subtotal').innerText = fmt(gross);
+  $('tax').innerText = fmt(tax);
+  $('sumDisc').classList.toggle('d-none', !(totals.lineDisc > 0)); $('discShown').innerText = fmt(totals.lineDisc);
+  $('sumCoupon').classList.toggle('d-none', !(cOff > 0)); $('couponShown').innerText = fmt(cOff);
+  $('sumPts').classList.toggle('d-none', !(redeem > 0)); $('ptsShown').innerText = fmt(redeem);
+  $('grandTotal').innerText = fmt(total);
+  $('sideTotal').innerText = fmt(total);
+  $('headCount').innerText = `${lines.length} line${lines.length === 1 ? '' : 's'} · ${count} pcs`;
+  $('headCust').innerText = customer ? customer.name : 'Walk-in';
+
+  document.querySelectorAll('.qty-input').forEach((el) => el.onchange = (e) => {
+    const l = lineOf(e.target.dataset.key);
+    if (!l) return;
+    const q = roundQty(parseFloat(e.target.value) || 0, l.unit);
+    if (q <= 0){ removeLine(l.key); return; }
+    if (q - l.qty > 0 && stockLeft(l.product_id) < q - l.qty){ alert('Insufficient stock'); e.target.value = l.qty; return; }
+    l.qty = q; changed();
+  });
+  // AddIn %, typed per line — on top of what is left after the line's own discount.
+  document.querySelectorAll('.addin-input').forEach((el) => el.onchange = (e) => {
+    const l = lineOf(e.target.dataset.key); if (!l) return;
+    l.addin = wholePct(parseFloat(e.target.value));
+    renderBill(); refreshPromotions();
+  });
+  document.querySelectorAll('.pct-input').forEach((el) => el.onchange = (e) => {
+    const l = lineOf(e.target.dataset.key); if (!l) return;
+    l.pct = wholePct(parseFloat(e.target.value));
+    renderBill(); refreshPromotions();
+  });
+  document.querySelectorAll('.remove-btn').forEach((b) => b.onclick = () => removeLine(b.dataset.key));
+  document.querySelectorAll('.staff-pick').forEach((s) => {
+    s.onchange = () => { const who = STAFF.find((x) => String(x.id) === s.value); if (who) assignStaff(s.dataset.key, who); };
+    s.onfocus = () => { awaitingKey = s.dataset.key; paintHint(); };
+  });
+  document.querySelectorAll('.staff-redo').forEach((b) => b.onclick = () => {
+    const l = lineOf(b.dataset.key); if (!l) return;
+    l.staff = null; awaitingKey = l.key; changed(); focusScan();
+  });
+  paintGo();
+}
+
+function lineOf(key){ return lines.find((l) => l.key === key); }
+function stockLeft(pid){
+  const any = lines.find((l) => l.product_id === pid);
+  const used = lines.filter((l) => l.product_id === pid).reduce((a, l) => a + l.qty, 0);
+  return any ? any.stock - used : Infinity;
+}
+function removeLine(key){
+  lines = lines.filter((l) => l.key !== key);
+  if (awaitingKey === key) awaitingKey = null;
+  changed();
+}
+function changed(){ renderBill(); paintHint(); refreshPromotions(); }
+
+function addProduct(p){
+  const pid = String(p.id);
+  const stock = parseFloat(p.stock);
+  if (!(stock > 0)){ say(`“${p.name}” is out of stock.`, 'bad'); return; }
+  if (!lines.length) refreshBillNumber();
+  if (stockLeft(pid) < 1){ say(`No more “${p.name}” in stock.`, 'bad'); return; }
+  // The same garment scanned again before anyone claimed the last one is one
+  // more of that line; otherwise it is a new line, waiting for its staff ID.
+  const waiting = awaitingKey && lineOf(awaitingKey);
+  if (waiting && waiting.product_id === pid && !waiting.staff){
+    waiting.qty += 1;
+  } else {
+    const key = 'L' + (++lineSeq);
+    lines.push({key, product_id: pid, name: p.name, sku: p.sku, barc: p.barcode || p.sku,
+                price: parseFloat(p.price), gst: parseFloat(p.gst), qty: 1, stock, staff: null, pct: 0, unit: p.unit,
+                addin: 0});
+    awaitingKey = key;
+  }
+  changed();
+}
+
+function assignStaff(key, who){
+  const l = lineOf(key);
+  if (!l) return;
+  // Same product, same person, already on the bill → one line, more pieces.
+  const twin = lines.find((x) => x !== l && x.product_id === l.product_id && x.staff && x.staff.id === who.id
+                                 && clampPct(x.pct) === clampPct(l.pct) && clampPct(x.addin) === clampPct(l.addin));
+  if (twin){ twin.qty += l.qty; lines = lines.filter((x) => x !== l); }
+  else l.staff = {id: who.id, code: who.code, name: who.name};
+  if (awaitingKey === key) awaitingKey = null;
+  // Another line still without a seller is the next one a staff scan goes to.
+  const next = lines.find((x) => !x.staff);
+  if (next && !awaitingKey) awaitingKey = next.key;
+  say(`${who.code} · ${who.name} → ${l.name}`);
+  changed();
+}
+
+// ---- the one scanner -------------------------------------------------------------
+// A staff ID is recognised from the staff list on this page — the code on the
+// card (STF000003) or a username — and only that. A bare number is a product, so
+// a numeric barcode is never mistaken for staff member #12.
+function matchStaff(code){
+  const c = code.trim().toUpperCase();
+  return STAFF.find((s) => (s.code || '').toUpperCase() === c)
+      || STAFF.find((s) => s.username && s.username.toUpperCase() === c)
+      || null;
+}
+
+let hintMsg = null, hintKind = '';
+function say(msg, kind){ hintMsg = msg; hintKind = kind || ''; paintHint(); }
+function paintHint(){
+  const h = $('scanHint');
+  const waiting = awaitingKey && lineOf(awaitingKey);
+  h.className = 'scan-hint mt-1';
+  if (hintKind === 'bad'){ h.classList.add('bad'); h.innerText = hintMsg; hintKind = ''; return; }
+  if (waiting && !waiting.staff){
+    h.classList.add('want-staff');
+    h.innerText = `Now scan the staff ID for: ${waiting.name}`;
+  } else {
+    h.innerText = hintMsg ? `${hintMsg} — scan the next product.` : 'Scan a product tag.';
+  }
+  hintMsg = null;
+}
+
+async function handleScan(code){
+  code = (code || '').trim();
+  if (!code) return;
+  resetScan();
+  // Shortcut: D then Enter opens the discount card.
+  if (/^d$/i.test(code)){ openDiscountCard(); return; }
+  const who = matchStaff(code);
+  if (who){
+    const target = (awaitingKey && lineOf(awaitingKey)) || lines.find((l) => !l.staff);
+    if (!target){ say(`${who.code} is a staff ID — scan a product first.`, 'bad'); return; }
+    assignStaff(target.key, who);
+    return;
+  }
+  if (/^STF\d+$/i.test(code)){ say(`No active staff member ${code}.`, 'bad'); return; }
+  try {
+    // ?code= rather than a path segment: a warehouse QR can carry '/' and '|'.
+    const r = await fetch(`${SHOP_ROOT}/pos/api/product?code=${encodeURIComponent(code)}${customer ? '&customer_id=' + customer.id : ''}`);
+    if (r.ok){ addProduct(await r.json()); return; }
+    say(`No product or staff ID for “${code}”.`, 'bad');
+  } catch (err){ say('Lookup failed: ' + err, 'bad'); }
+}
+
+const scanBox = $('scanBox');
+let scanTimer = null, lastAuto = null;
+scanBox.addEventListener('input', () => {
+  // Most scanners send no Enter: when a scan settles, take it.
+  clearTimeout(scanTimer);
+  scanTimer = setTimeout(() => {
+    const code = scanBox.value.trim();
+    if (!code || code === lastAuto) return;
+    const isWarehouseQr = /^EU?1\|/.test(code);
+    if (isWarehouseQr || (code.length >= 4 && !/\s/.test(code))){ lastAuto = code; handleScan(code); }
+  }, 150);
+});
+scanBox.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  e.preventDefault(); clearTimeout(scanTimer);
+  handleScan(scanBox.value);
+});
+function resetScan(){ scanBox.value = ''; lastAuto = null; scanBox.focus(); }
+
+// ---- the entry row: keyed in, left to right ----------------------------------------
+// Every box is typable. Barcode → Enter, or a name in Product, finds the item.
+// Price, Qty, Discount (₹ off before GST), AddIn.Dis (₹, the additional discount),
+// % and Amount (with GST) keep each other in step — type any one and the rest
+// follow. The salesman's ID → Enter puts the line on the bill and clears the row.
+let entryProduct = null;
+//: The row's Addin %, kept as a % so a changed price or qty carries it along.
+let entryAddin = 0;
+const enFields = ['enProduct', 'enPrice', 'enQty', 'enDisc', 'enAddin', 'enPct', 'enAmt', 'enStaff'];
+function clearEntry(){
+  entryProduct = null;
+  entryAddin = 0;
+  enFields.forEach((id) => { $(id).value = ''; });
+  $('enBarcode').value = '';
+  hideSuggest();
+}
+const enNum = (id) => parseFloat($(id).value) || 0;
+function entryLine(){
+  return {price: enNum('enPrice'), gst: parseFloat(entryProduct.gst) || 0,
+          qty: Math.max(0, enNum('enQty')), pct: $('enPct').value, addin: entryAddin};
+}
+// Repaint the worked-out boxes, all but the one being typed in.
+function paintEntry(skip){
+  if (!entryProduct){ return; }
+  const m = lineMath(entryLine());
+  const put = (id, v) => { if (id !== skip) $(id).value = v; };
+  put('enDisc', m.disc ? m.disc.toFixed(2) : '');
+  put('enAddin', m.addin || '');
+  put('enPct', m.pct || '');
+  put('enAmt', (m.taxable + m.tax).toFixed(2));
+}
+$('enPrice').addEventListener('input', () => paintEntry('enPrice'));
+$('enQty').addEventListener('input', () => paintEntry('enQty'));
+$('enPct').addEventListener('input', () => paintEntry('enPct'));
+$('enDisc').addEventListener('input', () => {
+  if (!entryProduct) return;
+  const full = enNum('enQty') * enNum('enPrice');
+  $('enPct').value = full ? wholePct(enNum('enDisc') / full * 100) : '';
+  paintEntry('enDisc');
+});
+$('enAddin').addEventListener('input', () => {
+  if (!entryProduct) return;
+  entryAddin = wholePct(enNum('enAddin'));
+  paintEntry('enAddin');
+});
+$('enAmt').addEventListener('input', () => {
+  if (!entryProduct) return;
+  // The amount wanted, with GST → the discount % that reaches it, on top of the
+  // AddIn already there.
+  const l = entryLine();
+  const fullTax = l.qty * l.price * (1 + l.gst / 100);
+  if (!fullTax) return;
+  const keep = Math.max(0, Math.min(1, enNum('enAmt') / fullTax));
+  const addKeep = 1 - clampPct(entryAddin) / 100;
+  $('enPct').value = addKeep ? wholePct((1 - Math.min(1, keep / addKeep)) * 100) : '';
+  paintEntry('enAmt');
+});
+
+function entryPick(p){
+  if (!(parseFloat(p.stock) > 0)){ say(`“${p.name}” is out of stock.`, 'bad'); return false; }
+  entryProduct = p;
+  entryAddin = 0;
+  $('enBarcode').value = p.barcode || p.sku || '';
+  $('enProduct').value = p.name;
+  $('enPrice').value = Number(p.price).toFixed(2);
+  $('enQty').value = 1;
+  $('enQty').step = qtyStep(p.unit);
+  $('enPct').value = '';
+  hideSuggest();
+  paintEntry();
+  $('enQty').select();
+  return true;
+}
+async function entryLookup(){
+  const code = $('enBarcode').value.trim();
+  if (!code) return;
+  try {
+    const r = await fetch(`${SHOP_ROOT}/pos/api/product?code=${encodeURIComponent(code)}${customer ? '&customer_id=' + customer.id : ''}`);
+    if (!r.ok){ say(`No product for “${code}”.`, 'bad'); $('enBarcode').select(); return; }
+    if (!entryPick(await r.json())) $('enBarcode').select();
+  } catch (err){ say('Lookup failed: ' + err, 'bad'); }
+}
+
+// Product by name: a short list under the box, newest typing wins.
+let suggest = [], suggestAt = 0, suggestTimer = null, suggestSeq = 0;
+function hideSuggest(){ $('enSuggest').classList.add('d-none'); suggest = []; }
+function paintSuggest(){
+  const box = $('enSuggest');
+  if (!suggest.length){ box.classList.add('d-none'); return; }
+  box.innerHTML = suggest.map((p, i) => `
+    <div class="en-opt ${i === suggestAt ? 'on' : ''}" data-i="${i}">
+      <span>${esc(p.name)} <span class="text-muted small font-monospace">${esc(p.barcode || p.sku)}</span></span>
+      <span class="small text-nowrap">${fmt(p.price)} · ${p.stock}</span>
+    </div>`).join('');
+  box.classList.remove('d-none');
+  box.querySelectorAll('.en-opt').forEach((o) => o.onmousedown = (e) => {
+    e.preventDefault(); entryPick(suggest[+o.dataset.i]);
+  });
+}
+$('enProduct').addEventListener('input', () => {
+  entryProduct = null;                       // a new name is a new search
+  clearTimeout(suggestTimer);
+  const q = $('enProduct').value.trim();
+  if (q.length < 2){ hideSuggest(); return; }
+  suggestTimer = setTimeout(async () => {
+    const mine = ++suggestSeq;
+    try {
+      const rows = await (await fetch(`${SHOP_ROOT}/pos/api/product-search?q=${encodeURIComponent(q)}`)).json();
+      if (mine !== suggestSeq) return;
+      suggest = rows; suggestAt = 0; paintSuggest();
+      if (!rows.length) say(`No product in stock matches “${q}”.`, 'bad');
+    } catch (e){ /* the barcode box still works */ }
+  }, 200);
+});
+$('enProduct').addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){
+    if (!suggest.length) return;
+    e.preventDefault();
+    suggestAt = (suggestAt + (e.key === 'ArrowDown' ? 1 : suggest.length - 1)) % suggest.length;
+    paintSuggest();
+  } else if (e.key === 'Enter'){
+    e.preventDefault();
+    if (suggest.length) entryPick(suggest[suggestAt]);
+    else if (entryProduct) $('enQty').select();
+  } else if (e.key === 'Escape') hideSuggest();
+});
+$('enProduct').addEventListener('blur', () => setTimeout(hideSuggest, 150));
+
+function entryCommit(){
+  if (!entryProduct){ say('Pick the product first — scan its barcode or type its name.', 'bad'); $('enBarcode').focus(); return; }
+  const who = matchStaff($('enStaff').value);
+  if (!who){ say('Enter the salesman’s staff ID for this line.', 'bad'); $('enStaff').select(); return; }
+  const qty = roundQty(enNum('enQty'), entryProduct.unit);
+  if (qty <= 0){ $('enQty').select(); return; }
+  const price = enNum('enPrice');
+  if (!(price > 0)){ say('Enter the price.', 'bad'); $('enPrice').select(); return; }
+  const p = entryProduct, pid = String(p.id);
+  const pct = wholePct($('enPct').value), addin = wholePct(entryAddin);
+  const stock = parseFloat(p.stock);
+  const used = lines.filter((l) => l.product_id === pid).reduce((a, l) => a + l.qty, 0);
+  if (used + qty > stock){ say(`Only ${stock - used} of “${p.name}” in stock.`, 'bad'); $('enQty').select(); return; }
+  if (!lines.length) refreshBillNumber();
+  const twin = lines.find((x) => x.product_id === pid && x.staff && x.staff.id === who.id && x.price === price
+                                 && clampPct(x.pct) === pct && clampPct(x.addin) === addin);
+  if (twin) twin.qty += qty;
+  else lines.push({key: 'L' + (++lineSeq), product_id: pid, name: p.name, sku: p.sku, barc: p.barcode || p.sku,
+                   price, gst: parseFloat(p.gst), qty, stock, pct, addin, unit: p.unit,
+                   staff: {id: who.id, code: who.code, name: who.name}});
+  say(`${p.name} × ${qty} → ${who.code}`);
+  clearEntry();
+  changed();
+  $('enBarcode').focus();
+}
+// Enter walks the row left to right; on the salesman it adds the line.
+const onEnter = (id, fn) => $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter'){ e.preventDefault(); fn(); } });
+onEnter('enBarcode', entryLookup);
+const enNext = {enPrice: 'enQty', enQty: 'enDisc', enDisc: 'enAddin', enAddin: 'enPct', enPct: 'enAmt', enAmt: 'enStaff'};
+Object.entries(enNext).forEach(([from, to]) => onEnter(from, () => $(to).select()));
+onEnter('enStaff', entryCommit);
+function focusScan(){ scanBox.focus(); }
+// Keep the scanner focused unless somebody is typing elsewhere.
+document.addEventListener('click', (e) => {
+  if (e.target.closest('input, textarea, select, button, a, .modal, .dropdown-menu')) return;
+  focusScan();
+});
+
+// Camera, for a phone or a webcam — the same single scanner path.
+let cam = null;
+$('camBtn').onclick = async () => {
+  $('camBox').style.display = 'block';
+  if (cam) return;
+  cam = new Html5Qrcode('camReader');
+  try {
+    let last = '', lastAt = 0;
+    await cam.start({facingMode: 'environment'}, {fps: 12, qrbox: {width: 220, height: 140}},
+      (decoded) => {
+        // A camera reads the same tag many times a second; take it once.
+        if (decoded === last && Date.now() - lastAt < 2500) return;
+        last = decoded; lastAt = Date.now();
+        handleScan(decoded);
+      }, () => {});
+  } catch (err){ say('Camera error: ' + err, 'bad'); }
+};
+$('camStop').onclick = async () => {
+  if (cam){ try { await cam.stop(); cam.clear(); } catch(e){} cam = null; }
+  $('camBox').style.display = 'none';
+};
+
+// ---- promotions ------------------------------------------------------------------
+let promoTimer = null, promoSeq = 0;
+function refreshPromotions(){
+  clearTimeout(promoTimer);
+  promoTimer = setTimeout(async () => {
+    if (!lines.length){ promoAwards = []; promoNotices = []; schemesLater = []; paintPromotions(); renderBill(); return; }
+    const mine = ++promoSeq;
+    try {
+      const r = await fetch(`${SHOP_ROOT}/pos/api/promotions`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({items: lines.map((l) => ({product_id: l.product_id, quantity: l.qty,
+                                                       unit_price: l.price, discount_pct: lineMath(l).manualEff})),
+                              choices: promoChoices, agreement_code: agreementCode}),
+      });
+      const j = await r.json();
+      if (mine !== promoSeq) return;   // an older answer must not overwrite a newer one
+      promoAwards = j.awards || []; promoNotices = j.notices || [];
+      const sch = j.schemes || {};
+      lines.forEach((l, i) => { l.scheme = (sch.lines || {})[String(i)] || null; });
+      schemesLater = sch.later || [];
+    } catch (e){
+      if (mine !== promoSeq) return;
+      promoAwards = []; promoNotices = [];
+      lines.forEach((l) => { l.scheme = null; }); schemesLater = [];
+    }
+    renderBill(); paintPromotions();
+  }, 250);
+}
+function paintPromotions(){
+  const box = $('promoBox');
+  if (!promoAwards.length && !promoNotices.length && !schemesLater.length && !agreementCode){
+    box.className = 'd-none mx-3 mb-1'; box.innerHTML = ''; return; }
+  const awards = promoAwards.map((a) => `
+    <div class="d-flex justify-content-between gap-2 small py-1">
+      <div><i class="bi bi-gift text-success"></i> <strong>${esc(a.name)}</strong>${a.times > 1 ? ' × ' + a.times : ''}
+        <span class="text-muted">— ${esc(a.description)}</span>
+        ${a.note ? `<span style="color:#B45309"> ${esc(a.note)}</span>` : ''}
+        ${a.options && a.options.length ? `
+          <select class="form-select form-select-sm d-inline-block w-auto ms-1 promo-pick" data-scheme="${a.scheme_id}">
+            ${a.rewards.map((r) => `<option value="${r.product_id}" selected>${esc(r.name)}</option>`).join('')}
+            ${a.options.map((o) => `<option value="${o.product_id}">${esc(o.name)} — ${fmt(o.price)}</option>`).join('')}
+          </select>` : ''}</div>
+      <span class="badge text-bg-success align-self-start">saves ${fmt(a.benefit)}</span>
+    </div>`).join('');
+  const notices = promoNotices.map((n) => `
+    <div class="small py-1" style="color:#9F1239"><i class="bi bi-exclamation-triangle"></i> ${esc(n.message)}</div>`).join('');
+  // What the sales schemes give when the bill is paid — at settlement, or as a coupon.
+  const later = schemesLater.map((a) => `
+    <div class="small py-1"><i class="bi bi-gift text-success"></i> <strong>${esc(a.name)}</strong>
+      <span class="text-muted">— ${esc(a.applicable_label)}:</span>
+      ${a.points ? `<b>${+a.points} reward points</b> when paid${customer ? '' : ' (attach the customer)'}`
+        : a.applicable === 'settlement' ? `<b>${fmt(a.amount)} off</b> when paid`
+        : `a <b>${fmt(a.coupon_value || a.amount)}</b> coupon${a.applicable === 'next_day_bill' ? ' from tomorrow' : ' for next time'}`}</div>`).join('');
+  const agree = agreementCode ? `<div class="small py-1"><i class="bi bi-patch-check text-success"></i>
+      Agreement code <b>${esc(agreementCode)}</b>
+      <button type="button" class="btn btn-link btn-sm p-0 ms-1" id="agreeClear">remove</button></div>` : '';
+  box.className = 'mx-3 mb-1 px-2 border rounded';
+  box.style.background = (promoAwards.length || schemesLater.length || agreementCode) ? '#F5FBF7' : '#FFF1F2';
+  box.innerHTML = awards + later + agree + notices;
+  if ($('agreeClear')) $('agreeClear').onclick = () => { agreementCode = null; refreshPromotions(); };
+  document.querySelectorAll('.promo-pick').forEach((s) => s.onchange = (e) => {
+    promoChoices[e.target.dataset.scheme] = e.target.value; refreshPromotions();
+  });
+}
+
+// ---- reductions --------------------------------------------------------------------
+
+// ---- the discount card: D + Enter in the scanner ---------------------------------
+// Tick the items, then: a discount in % or ₹ (the toggle), or the final amount
+// wanted for them — applied as each ticked line's own %. E.Code (optional) names
+// whoever approved it and is recorded on the bill. P.Code (optional) is a
+// promotion / coupon code, applied exactly as the Coupon box applies it.
+const discModal = new bootstrap.Modal($('discModal'));
+let dcMode = 'pct';
+const dcSel = new Set();
+
+function dcSay(text, bad){
+  const m = $('dcMsg');
+  m.textContent = text || '';
+  m.style.color = bad ? '#BE123C' : 'var(--brand-dark)';
+}
+function openDiscountCard(){
+  dcSel.clear();
+  lines.forEach((l) => dcSel.add(l.key));
+  $('dcDisc').value = ''; $('dcFinal').value = '';
+  $('dcECode').value = discountBy ? discountBy.code : '';
+  $('dcPCode').value = agreementCode || (appliedCoupon ? appliedCoupon.code : '');
+  dcSay(lines.length ? '' : 'The bill is empty — scan the items first.', !lines.length);
+  paintDiscountCard();
+  discModal.show();
+  setTimeout(() => $('dcDisc').focus(), 250);
+}
+function paintDiscountCard(){
+  $('dcBody').innerHTML = lines.length ? lines.map((l) => {
+    const m = lineMath(l);
+    return `<tr>
+      <td><input type="checkbox" class="form-check-input dc-pick" data-key="${l.key}" ${dcSel.has(l.key) ? 'checked' : ''}></td>
+      <td class="font-monospace small">${esc(l.barc || l.sku || '')}</td>
+      <td>${esc(l.name)}<div class="small text-muted">${l.staff ? esc(l.staff.code) : ''}</div></td>
+      <td class="text-end">${fmt(l.price)}</td>
+      <td class="text-end">${l.qty}</td>
+      <td class="text-end">${m.disc ? fmt(m.disc) : ''}${m.pct ? ` <span class="text-muted small">${m.pct}%</span>` : ''}</td>
+      <td class="text-end"><input type="number" min="0" max="100" step="1" value="${m.addin || ''}" placeholder="—"
+             class="form-control form-control-sm text-end dc-addin" data-key="${l.key}" title="Additional discount % on this item (optional)"></td>
+      <td class="text-end">${fmt(m.disc + m.addAmt)}</td>
+      <td class="text-end fw-semibold">${fmt(m.taxable + m.tax)}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="9" class="text-center text-muted py-4">No items on the bill.</td></tr>';
+  $('dcAll').checked = !!lines.length && lines.every((l) => dcSel.has(l.key));
+  $('dcMode').textContent = dcMode === 'pct' ? '%' : '₹';
+  // Addin %, typed per item — optional; empty means none.
+  document.querySelectorAll('.dc-addin').forEach((el) => {
+    el.onchange = () => {
+      const l = lineOf(el.dataset.key); if (!l) return;
+      l.addin = wholePct(parseFloat(el.value));
+      renderBill(); paintDiscountCard(); refreshPromotions();
+      const next = document.querySelector(`.dc-addin[data-key="${el.dataset.key}"]`)?.closest('tr')?.nextElementSibling?.querySelector('.dc-addin');
+      if (next) next.focus();
+    };
+    el.onkeydown = (e) => { if (e.key === 'Enter'){ e.preventDefault(); el.onchange(); } };
+  });
+  document.querySelectorAll('.dc-pick').forEach((c) => c.onchange = () => {
+    if (c.checked) dcSel.add(c.dataset.key); else dcSel.delete(c.dataset.key);
+    $('dcAll').checked = lines.every((l) => dcSel.has(l.key));
+  });
+}
+const dcLines = () => lines.filter((l) => dcSel.has(l.key));
+// What the ticked items come to before any discount, with GST — what a ₹ figure
+// or a final amount is measured against.
+const dcGross = (ls) => ls.reduce((a, l) => a + l.qty * l.price * (1 + l.gst / 100), 0);
+
+// E.Code, P.Code and final are all optional. An E.Code that is filled in must be
+// an active staff ID — it is recorded on the bill as the approver — and left
+// empty, nobody is named.
+function dcReadApprover(){
+  const v = $('dcECode').value.trim();
+  if (!v){ discountBy = null; return true; }
+  const who = matchStaff(v);
+  if (!who){
+    dcSay('E.Code is not an active staff ID — correct it, or leave it empty.', true);
+    $('dcECode').select();
+    return false;
+  }
+  discountBy = {id: who.id, code: who.code, name: who.name};
+  return true;
+}
+// The % asked for by the discount field (in % or ₹) or, failing that, by final.
+// null when neither is filled in; false when what is there cannot be used.
+function dcAskedPct(){
+  const d = $('dcDisc').value.trim(), f = $('dcFinal').value.trim();
+  if (d === '' && f === '') return null;
+  const g = dcGross(dcLines());
+  if (d !== ''){
+    const v = parseFloat(d);
+    if (isNaN(v) || v < 0){ dcSay('Enter the discount as a number.', true); return false; }
+    if (dcMode === 'pct') return v;
+    if (!g){ dcSay('Tick the items the discount is for.', true); return false; }
+    return v / g * 100;
+  }
+  const v = parseFloat(f);
+  if (isNaN(v) || v < 0){ dcSay('Enter the final amount as a number.', true); return false; }
+  if (!g){ dcSay('Tick the items the discount is for.', true); return false; }
+  if (v > g){ dcSay(`The ticked items come to ${fmt(g)} — the final amount cannot be more.`, true); return false; }
+  return (1 - v / g) * 100;
+}
+function dcSetPct(pct){
+  const sel = dcLines();
+  if (!sel.length){ dcSay('Tick the items the discount is for.', true); return false; }
+  // A whole number — a % worked out from a ₹ figure or a final amount is rounded
+  // to the nearest one, so the result lands close to the figure asked for.
+  pct = wholePct(pct);
+  sel.forEach((l) => { l.pct = pct; });
+  $('dcDisc').value = ''; $('dcFinal').value = '';
+  dcSay(pct ? `${pct}% off ${sel.length} item${sel.length === 1 ? '' : 's'}`
+              + (discountBy ? ` — approved by ${discountBy.code} · ${discountBy.name}.` : '.')
+            : `Discount removed from ${sel.length} item${sel.length === 1 ? '' : 's'}.`);
+  return true;
+}
+// Everything filled in, in one go: the approver, the discount (or final), the
+// code. Enter in any field does it and keeps the card open; Approve does it and
+// closes the card.
+async function dcApprove(close){
+  if (!dcReadApprover()) return;
+  const pct = dcAskedPct();
+  if (pct === false) return;
+  if (pct !== null && !dcSetPct(pct)) return;
+  const code = $('dcPCode').value.trim();
+  let agreed = false;
+  if (code && code.toUpperCase() !== agreementCode
+      && !(appliedCoupon && appliedCoupon.code === code.toUpperCase())){
+    // An agreement code a running scheme asks for comes first; otherwise a coupon.
+    let ag = null;
+    try { ag = await (await fetch(`${SHOP_ROOT}/pos/api/agreement?code=${encodeURIComponent(code)}`)).json(); } catch (e) {}
+    if (ag && ag.ok){
+      agreementCode = ag.code; agreed = true;
+      $('couponHelp').classList.add('d-none');
+    } else {
+      await applyCoupon(code);
+      if (!appliedCoupon){
+        renderBill(); paintDiscountCard();
+        dcSay($('couponHelp').innerText || 'That P.Code cannot be used.', true);
+        $('dcPCode').select();
+        return;
+      }
+    }
+  }
+  renderBill();
+  paintDiscountCard();
+  refreshPromotions();
+  if (close) discModal.hide();
+  else if (agreed) dcSay(`Agreement code ${agreementCode} — schemes that ask for it now apply.`);
+  else if (pct === null && code && appliedCoupon) dcSay(`Code ${appliedCoupon.code} applied — ${appliedCoupon.describe}.`);
+  else if (pct === null && discountBy) dcSay(`Approver: ${discountBy.code} · ${discountBy.name}.`);
+}
+const dcEnter = (id, fn) => $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter'){ e.preventDefault(); fn(); } });
+['dcDisc', 'dcFinal', 'dcECode', 'dcPCode'].forEach((id) => dcEnter(id, () => dcApprove(false)));
+$('dcApprove').onclick = () => dcApprove(true);
+$('dcMode').onclick = () => { dcMode = dcMode === 'pct' ? 'amt' : 'pct'; paintDiscountCard(); $('dcDisc').focus(); };
+$('dcAll').onchange = () => {
+  dcSel.clear();
+  if ($('dcAll').checked) lines.forEach((l) => dcSel.add(l.key));
+  paintDiscountCard();
+};
+$('discModal').addEventListener('hidden.bs.modal', focusScan);
+
+// The server says whether a code is good and hands back its rule; the bill
+// re-applies the rule as it changes. Checkout values it again.
+function couponValue(bill, room){
+  const help = $('couponHelp');
+  if (!appliedCoupon){ couponOff = 0; return 0; }
+  const c = appliedCoupon;
+  let off = 0, note = '';
+  if ((c.min_bill || 0) > bill + 0.01){
+    note = `${c.code} needs a bill of ₹${c.min_bill} or more — not applied yet.`;
+  } else {
+    off = c.kind === 'percent' ? bill * c.value / 100 : c.value;
+    if (c.kind === 'percent' && c.max_discount) off = Math.min(off, c.max_discount);
+    off = Math.round(Math.max(0, Math.min(off, bill, room)) * 100) / 100;
+  }
+  help.classList.remove('d-none');
+  help.style.color = off > 0 ? 'var(--brand-dark)' : '#B45309';
+  help.innerHTML = off > 0 ? `<b>${esc(c.code)}</b> — ${esc(c.describe)}: <b>${fmt(off)} off</b>` : esc(note);
+  couponOff = off;
+  return off;
+}
+function clearCoupon(msg){
+  appliedCoupon = null;
+  $('couponClear').classList.add('d-none');
+  const help = $('couponHelp');
+  help.classList.toggle('d-none', !msg); help.style.color = '#BE123C'; help.innerText = msg || '';
+  renderBill();
+}
+function showCoupon(j){
+  appliedCoupon = j;
+  $('couponClear').classList.remove('d-none');
+}
+async function applyCoupon(code){
+  code = (code || '').trim();
+  if (!code) return;
+  const room = Math.max(0, totals.subtotal - totals.discount);
+  const qs = new URLSearchParams({code, amount: (room + totals.tax).toFixed(2), room: room.toFixed(2)});
+  if (customer) qs.set('customer_id', customer.id);
+  try {
+    const j = await (await fetch(`${SHOP_ROOT}/pos/api/coupon?${qs}`)).json();
+    if (!j.ok){ clearCoupon(j.error || 'That coupon cannot be used.'); return; }
+    showCoupon(j); renderBill();
+  } catch (err){ clearCoupon('Could not check the coupon: ' + err); }
+}
+$('couponClear').onclick = () => clearCoupon('');
+
+// ---- customer (optional) -----------------------------------------------------------
+function paintCustomer(c){
+  customer = c || null;
+  $('custCard').classList.toggle('d-none', !customer);
+  $('custWalkin').classList.toggle('d-none', !!customer);
+  if (customer){
+    $('custName').innerText = customer.name;
+    $('custPhone').innerText = customer.phone || '';
+    $('custPoints').innerText = Math.round(customer.loyalty_points || 0) + ' pts';
+  }
+  if (appliedCoupon && appliedCoupon.customer_id && appliedCoupon.customer_id !== (customer && customer.id)){
+    clearCoupon(`${appliedCoupon.code} belongs to another customer — removed.`); return;
+  }
+  renderBill();
+  repriceForCustomer();
+}
+// A customer on a price list (CRM → Price List) pays that list's prices — for
+// what is already on the bill too, and back to the ordinary prices without them.
+let pricedFor = null;
+async function repriceForCustomer(){
+  const cid = customer ? customer.id : null;
+  if (cid === pricedFor || !lines.length){ pricedFor = cid; return; }
+  pricedFor = cid;
+  const ids = [...new Set(lines.map((l) => l.product_id))].join(',');
+  try {
+    const j = await (await fetch(`${SHOP_ROOT}/pos/api/list-prices?ids=${ids}${cid ? '&customer_id=' + cid : ''}`)).json();
+    let n = 0;
+    lines.forEach((l) => {
+      const p = j.prices[l.product_id];
+      if (p !== undefined && p !== l.price){ l.price = p; n++; }
+    });
+    if (n){ changed(); say(j.price_list ? `${n} line(s) priced on the ${j.price_list} list.` : `${n} line(s) back to the ordinary price.`, 'ok'); }
+  } catch (err){ /* the ordinary prices stand */ }
+}
+async function lookupCustomer(q){
+  q = (q || '').trim(); if (!q) return;
+  const j = await (await fetch(`${SHOP_ROOT}/floor/api/customer-lookup?q=${encodeURIComponent(q)}`)).json();
+  if (j.error){ alert(j.error); return; }
+  paintCustomer(j); $('custLookup').value = '';
+}
+$('custLookupBtn').onclick = () => lookupCustomer($('custLookup').value);
+$('custLookup').addEventListener('keydown', (e) => { if (e.key === 'Enter'){ e.preventDefault(); lookupCustomer(e.target.value); } });
+$('custClear').onclick = () => paintCustomer(null);
+$('ncSave').onclick = async () => {
+  const name = $('ncName').value.trim();
+  if (!name){ alert('Name required'); return; }
+  const j = await (await fetch(`${SHOP_ROOT}/floor/api/customer/new`, {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({name, phone: $('ncPhone').value.trim(), email: $('ncEmail').value.trim(),
+                          state_code: $('ncState').value.trim() || '33'}),
+  })).json();
+  if (j.error){ alert(j.error); return; }
+  paintCustomer(j);
+  bootstrap.Modal.getInstance($('newCustModal')).hide();
+  ['ncName', 'ncPhone', 'ncEmail'].forEach((id) => $(id).value = '');
+};
+
+// ---- salesman scheme: what is on offer today -----------------------------------------
+const offersModal = new bootstrap.Modal($('offersModal'));
+$('offersBtn').onclick = async () => {
+  $('offersBody').innerHTML = '<div class="text-muted small">Loading…</div>';
+  offersModal.show();
+  try {
+    const j = await (await fetch(`${SHOP_ROOT}/pos/api/offers`)).json();
+    $('offersBody').innerHTML = (j.offers || []).length ? j.offers.map((o) => `
+      <div class="border rounded p-2 mb-2">
+        <div class="d-flex justify-content-between"><strong>${esc(o.name)}</strong><code>${esc(o.code)}</code></div>
+        <div class="small">${esc(o.describe)}</div>
+        ${o.until ? `<div class="small text-muted">Until ${esc(o.until)}</div>` : ''}
+        ${o.terms ? `<div class="small text-muted">${esc(o.terms)}</div>` : ''}
+      </div>`).join('') : '<div class="text-muted">No offers are running at this till today.</div>';
+  } catch (err){ $('offersBody').innerHTML = `<div class="text-danger small">Could not load offers: ${esc(err)}</div>`; }
+};
+
+// ---- previous bill: reprint or download ----------------------------------------------
+$('prevBtn').addEventListener('show.bs.dropdown', async () => {
+  const menu = $('prevMenu');
+  menu.innerHTML = '<li class="dropdown-item-text small text-muted">Loading…</li>';
+  try {
+    const j = await (await fetch(`${SHOP_ROOT}/pos/api/recent-bills`)).json();
+    menu.innerHTML = (j.bills || []).length ? j.bills.map((b) => `
+      <li class="dropdown-item-text d-flex justify-content-between align-items-center gap-2 py-1">
+        <span class="small"><b class="font-monospace">${esc(b.number)}</b>${b.cancelled ? ' <span class="badge text-bg-danger">cancelled</span>' : ''}<br>
+          <span class="text-muted">${esc(b.when)} · ${esc(b.customer)} · ${fmt(b.total)}</span></span>
+        <span class="text-nowrap">
+          <a class="btn btn-outline-primary btn-xs" href="${SHOP_ROOT}/pos/invoice/${b.id}/print" title="Print both copies"><i class="bi bi-printer"></i></a>
+          <a class="btn btn-outline-secondary btn-xs" href="${SHOP_ROOT}/pos/invoice/${b.id}?download=1" target="_blank" rel="noopener" title="Download PDF"><i class="bi bi-download"></i></a>
+        </span>
+      </li>`).join('') : '<li class="dropdown-item-text small text-muted">No bills on this till yet.</li>';
+  } catch (err){ menu.innerHTML = `<li class="dropdown-item-text small text-danger">${esc(err)}</li>`; }
+});
+
+// ---- on to settlement ----------------------------------------------------------------
+function paintGo(){
+  let msg = '';
+  const unclaimed = lines.filter((l) => !l.staff).length;
+  if (!lines.length) msg = '';
+  else if (unclaimed) msg = `${unclaimed} item${unclaimed === 1 ? '' : 's'} still need a staff ID.`;
+  $('goWarn').classList.toggle('d-none', !msg);
+  $('goWarn').innerText = msg;
+  $('goSettle').disabled = !lines.length || !!unclaimed;
+}
+
+// Billing raises the bill: stock comes off, the number is taken, and the
+// delivery person's copy prints. The money is Settlement's job — the print view
+// goes on there by itself once the copy has printed, carrying any exchange credit.
+$('goSettle').onclick = async () => {
+  const btn = $('goSettle');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  const payload = {
+    settle_later: true,
+    customer_id: customer ? customer.id : null,
+    // the additional discount, as the rupees it comes to on these goods
+    discount: 0,
+    discount_by: discountBy ? discountBy.code : null,
+    agreement_code: agreementCode,
+    redeem_points: 0,
+    coupon_code: appliedCoupon && couponOff > 0 ? appliedCoupon.code : null,
+    promotion_choices: promoChoices,
+    // Paid lines only, each with who sold it; free items are the server's to work out.
+    items: lines.map((l) => ({product_id: l.product_id, quantity: l.qty, unit_price: l.price,
+                              discount_pct: lineMath(l).manualEff,
+                              staff_id: l.staff ? l.staff.id : null})),
+  };
+  try {
+    const j = await (await fetch("{{ url_for('pos.checkout') }}", {
+      method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload),
+    })).json();
+    if (j.error){ alert('Error: ' + j.error); btn.disabled = false; return; }
+    if (j.free_items && j.free_items.length){
+      alert('Put in the bag — free with this bill:\n\n'
+        + j.free_items.map((x) => `${x.qty} × ${x.name} (${x.sku})\n   under ${x.scheme}`).join('\n'));
+    }
+    const qs = new URLSearchParams({copy: 'delivery', then: 'settle'});
+    if (creditNote) qs.set('credit_note', creditNote.number);
+    window.location = `${SHOP_ROOT}/pos/invoice/${j.invoice_id}/print?${qs}`;
+  } catch (err){
+    alert('Billing failed: ' + err);
+    btn.disabled = false;
+  }
+};
+$('clearBill').onclick = () => {
+  if (lines.length && !confirm('Clear this bill?')) return;
+  window.location = `${SHOP_ROOT}/pos/`;
+};
+
+function paintExchange(){
+  const el = $('exchangeNote');
+  el.classList.toggle('d-none', !creditNote);
+  if (creditNote) el.innerHTML = `<i class="bi bi-arrow-left-right"></i> Exchange: <b>${esc(creditNote.number)}</b>
+    — ${fmt(creditNote.balance)} store credit is applied at settlement.`;
+}
+
+// Opening the screen is a new bill on this counter — a refresh included; nothing
+// from the last load is kept. The one exception is an exchange: a return hands
+// its customer and store credit straight to the new bill.
+(function start(){
+  if (EXCHANGE){
+    creditNote = {number: EXCHANGE.number, balance: EXCHANGE.balance};
+    paintExchange();
+    if (EXCHANGE.customer){ paintCustomer(EXCHANGE.customer); }
+    history.replaceState(null, '', `${SHOP_ROOT}/pos/`);
+  }
+  renderBill(); paintHint(); refreshPromotions(); focusScan();
+})();
+
+// ---- Company / Location / Counter -----------------------------------------------------
+// Nested lists: choosing upward empties what is below. The server checks again.
+(function () {
+  const PLACES = {{ places | tojson }};
+  let picked = {
+    company_id: {{ chosen_company.id if chosen_company else 'null' }},
+    location_id: {{ chosen_location.id if chosen_location else 'null' }},
+    floor_id: {{ chosen_floor.id if chosen_floor else 'null' }},
+    counter_id: {{ chosen_counter.id if chosen_counter else 'null' }},
+  };
+  const fill = (sel, rows, chosen, blank) => {
+    sel.innerHTML = '';
+    sel.add(new Option(blank, ''));
+    rows.forEach((r) => {
+      const o = new Option(r.label || r.name, r.id);
+      if (String(chosen) === String(r.id)) o.selected = true;
+      sel.add(o);
+    });
+  };
+  const draw = () => {
+    fill($('pmCompany'), PLACES.companies, picked.company_id, 'Company…');
+    const locs = PLACES.locations.filter((l) =>
+      !picked.company_id || !l.company_id || String(l.company_id) === String(picked.company_id));
+    fill($('pmLocation'), locs, picked.location_id, 'Location…');
+    const floors = (PLACES.floors || [])
+      .filter((f) => String(f.location_id) === String(picked.location_id))
+      .map((f) => ({id: f.id, label: `${f.name} — ${f.prefix}…`}));
+    fill($('pmFloor'), floors, picked.floor_id, floors.length ? 'Any floor…' : 'no floors at this store');
+    const tills = PLACES.counters.filter((c) =>
+      String(c.location_id) === String(picked.location_id)
+      && (!picked.floor_id || !c.floor_id || String(c.floor_id) === String(picked.floor_id)));
+    fill($('pmCounter'), tills, picked.counter_id, tills.length ? 'Counter…' : 'no counter here');
+    const name = (rows, id) => (rows.find((r) => String(r.id) === String(id)) || {}).name;
+    $('pmCurrent').textContent = [name(PLACES.companies, picked.company_id),
+                                 name(PLACES.locations, picked.location_id),
+                                 name(PLACES.floors || [], picked.floor_id),
+                                 name(PLACES.counters, picked.counter_id)]
+      .filter(Boolean).join(' / ') || '-None-';
+  };
+  $('pmCompany').addEventListener('change', (e) => {
+    picked = {company_id: e.target.value || null, location_id: null, floor_id: null, counter_id: null}; draw();
+  });
+  $('pmLocation').addEventListener('change', (e) => {
+    picked.location_id = e.target.value || null; picked.floor_id = null; picked.counter_id = null; draw();
+  });
+  $('pmFloor').addEventListener('change', (e) => {
+    picked.floor_id = e.target.value || null;
+    const till = PLACES.counters.find((c) => String(c.id) === String(picked.counter_id));
+    if (till && till.floor_id && String(till.floor_id) !== String(picked.floor_id)) picked.counter_id = null;
+    draw();
+  });
+  $('pmCounter').addEventListener('change', (e) => {
+    picked.counter_id = e.target.value || null;
+    const till = PLACES.counters.find((c) => String(c.id) === String(picked.counter_id));
+    if (till && till.floor_id) picked.floor_id = till.floor_id;
+    draw();
+  });
+  $('pmSelect').addEventListener('click', async () => {
+    const d = await (await fetch('{{ url_for("pos.place") }}', {
+      method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(picked),
+    })).json();
+    // redrawn from what the SERVER settled on, not from what was sent
+    picked = {company_id: d.company && d.company.id, location_id: d.location && d.location.id,
+              floor_id: d.floor && d.floor.id, counter_id: d.counter && d.counter.id};
+    $('pbWhere').title = d.company ? `${d.company.name} ${d.company.gstin || ''}` : '';
+    $('pbLocation').textContent = d.location ? d.location.name : 'No location';
+    $('pbFloor').textContent = d.floor ? d.floor.name : 'no floor';
+    $('pbCounter').textContent = d.counter ? d.counter.name : 'no counter';
+    paintBillNumber(d.next_bill);
+    draw();
+    bootstrap.Modal.getInstance($('placeModal')).hide();
+  });
+  draw();
+})();
+
+// ---- the bill number -------------------------------------------------------------------
+// Shown, never entered: the server takes it inside the transaction that writes the bill.
+function paintBillNumber(next){
+  if (!next) return;
+  $('pbBillNo').textContent = next.number;
+  $('headBillNo').textContent = next.number;
+  const pm = $('pmBillNo'); if (pm) pm.textContent = next.number;
+  const box = $('billNoBox');
+  box.className = 'badge ' + (next.mapped ? 'text-bg-dark' : 'text-bg-secondary');
+  box.title = next.mapped ? 'Next bill on ' + (next.floor || 'this floor')
+                          : 'This till is not mapped to a floor, so it bills on the shop’s plain series';
+  $('pbUnmapped').classList.toggle('d-none', !!next.mapped);
+}
+async function refreshBillNumber(){
+  try {
+    const r = await fetch(`${SHOP_ROOT}/pos/api/next-bill`);
+    if (r.ok) paintBillNumber(await r.json());
+  } catch (e){ /* the strip keeps its last reading; the bill decides anyway */ }
+}
+</script>
+{% endblock %}

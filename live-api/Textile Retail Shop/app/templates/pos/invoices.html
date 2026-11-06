@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h4><i class="bi bi-receipt"></i> Invoices</h4>
+  <div>
+    <a href="{{ url_for('pos.invoice_list') }}" class="btn btn-outline-secondary btn-sm">Clear filters</a>
+    <a href="{{ url_for('pos.counter') }}" class="btn btn-brand btn-sm"><i class="bi bi-plus"></i> New sale</a>
+  </div>
+</div>
+
+<form class="card p-3 mb-3" method="get">
+  <div class="row g-2">
+    <div class="col-md-4 col-lg-3">
+      <label class="form-label small mb-1">Search</label>
+      <input class="form-control form-control-sm" name="q" value="{{ q }}" placeholder="Invoice #, customer, phone">
+    </div>
+    <div class="col-6 col-md-2 col-lg-2">
+      <label class="form-label small mb-1">From date</label>
+      <input class="form-control form-control-sm" type="date" name="from" value="{{ date_from }}">
+    </div>
+    <div class="col-6 col-md-2 col-lg-2">
+      <label class="form-label small mb-1">To date</label>
+      <input class="form-control form-control-sm" type="date" name="to" value="{{ date_to }}">
+    </div>
+    <div class="col-6 col-md-3 col-lg-2">
+      <label class="form-label small mb-1">Cashier</label>
+      <select class="form-select form-select-sm" name="cashier">
+        <option value="">All</option>
+        {% for c in cashiers %}
+        <option value="{{ c.id }}" {% if cashier_id==c.id %}selected{% endif %}>{{ c.full_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-md-3 col-lg-2">
+      <label class="form-label small mb-1">Payment</label>
+      <select class="form-select form-select-sm" name="payment">
+        <option value="">All</option>
+        {% for m, label in [('cash','CASH'),('card','CARD'),('upi','UPI'),('credit_note','CREDIT NOTE'),('advance','ADVANCE'),('mixed','MIXED')] %}
+        <option value="{{ m }}" {% if payment==m %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {# Cancelled bills keep their numbers in the register, so they can be
+       listed — but only on request, and never inside the totals. #}
+    <div class="col-6 col-md-3 col-lg-2">
+      <label class="form-label small mb-1">Bills</label>
+      <select class="form-select form-select-sm" name="status">
+        {% for v, label in [('', 'Live bills'), ('cancelled', 'Cancelled only'), ('all', 'All, with cancelled')] %}
+        <option value="{{ v }}" {% if status == v %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {# The series filter. "Show me every Ground Floor bill this year, in order"
+       is the question a bill series exists to be able to answer, and this is
+       where somebody asks it. Filtered on the prefix the bill was BUILT with,
+       not on the text of the number — a floor whose prefix was changed later
+       still returns the bills it actually raised. #}
+    <div class="col-6 col-md-3 col-lg-2">
+      <label class="form-label small mb-1">Bill series</label>
+      <select class="form-select form-select-sm" name="series">
+        <option value="">All floors</option>
+        {% for p, label in series_options %}
+        <option value="{{ p }}" {% if series == p %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-md-2 col-lg-1">
+      <label class="form-label small mb-1">Min ₹</label>
+      <input class="form-control form-control-sm" type="number" step="0.01" name="min" value="{{ min_amt }}">
+    </div>
+    <div class="col-6 col-md-2 col-lg-1">
+      <label class="form-label small mb-1">Max ₹</label>
+      <input class="form-control form-control-sm" type="number" step="0.01" name="max" value="{{ max_amt }}">
+    </div>
+    <div class="col-md-2 col-lg-1 d-flex align-items-end">
+      <button class="btn btn-brand btn-sm w-100"><i class="bi bi-funnel"></i> Filter</button>
+    </div>
+  </div>
+</form>
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-md-4"><div class="stat-card card p-3 t-count"><div class="label">Matching invoices</div><div class="value">{{ summary.count }}</div></div></div>
+  <div class="col-6 col-md-4"><div class="stat-card card p-3 t-money"><div class="label">Total value</div><div class="value">{{ summary.total|inr }}</div></div></div>
+  <div class="col-12 col-md-4"><div class="stat-card card p-3 t-adjust"><div class="label">GST collected</div><div class="value">{{ summary.tax|inr }}</div></div></div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle">
+      <thead>
+        <tr>
+          <th>#</th><th>Floor</th><th>Date</th><th>Customer</th><th>Cashier</th>
+          <th>Payment</th><th class="text-end">Total</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i in invoices %}
+        <tr class="{{ 'text-muted' if i.is_cancelled }}">
+          <td><code>{{ i.invoice_number }}</code>
+            {% if i.is_cancelled %}<br><span class="status-badge danger sm" title="{{ i.cancel_reason or '' }}">cancelled</span>{% endif %}</td>
+          <td class="small">{% if i.floor %}{{ i.floor.name }}
+            {% else %}<span class="text-muted">—</span>{% endif %}</td>
+          <td>{{ i.invoice_date.strftime('%d %b %Y %H:%M') }}</td>
+          <td>
+            {% if i.customer %}{{ i.customer.name }}<br><small class="text-muted">{{ i.customer.phone or '' }}</small>
+            {% else %}Walk-in{% endif %}
+          </td>
+          <td>{{ (i.staff.full_name if i.staff else i.cashier.full_name) }}</td>
+          <td><span class="badge bg-secondary">{{ (i.payment_method or '')|replace('_', ' ') }}</span></td>
+          {% if i.is_cancelled %}
+          <td class="text-end text-decoration-line-through">{{ i.total|inr }}</td>
+          {% else %}
+          <td class="text-end fw-bold" style="color:var(--brand-dark)">{{ i.total|inr }}</td>
+          {% endif %}
+          <td>
+            <a href="{{ url_for('pos.view_invoice', iid=i.id) }}" class="btn btn-sm btn-outline-primary" title="View bill" aria-label="View bill"><i class="bi bi-eye"></i></a>
+            <a href="{{ url_for('pos.print_invoice', iid=i.id) }}" class="btn btn-sm btn-outline-secondary" title="Print bill" aria-label="Print bill"><i class="bi bi-printer"></i></a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted p-4">No invoices match your filters.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

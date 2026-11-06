@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h4><i class="bi bi-search"></i> Stock check</h4>
+    <div class="page-sub">Scan or filter to find an item and where it is</div>
+  </div>
+</div>
+
+{# The fast path, kept alone and first: with the garment in hand nothing else on
+   this page matters. A scanner types the code and presses Enter for you. #}
+<form class="card p-3 mb-3">
+  <label class="form-label mb-1"><strong>Scan or type a code</strong></label>
+  <div class="input-group" style="max-width:560px">
+    <input class="form-control" name="code" value="{{ code }}" autofocus autocomplete="off"
+           placeholder="SKU, piece code, or scan the tag — SMPL-00002 · SMPL-00002-007 · E1|…">
+    <button class="btn btn-brand">Check</button>
+  </div>
+  <div class="form-text">Any tag the warehouse printed works, whole.</div>
+</form>
+
+{% if code and not product %}
+<div class="alert alert-warning">Nothing matches <code>{{ code }}</code>.</div>
+{% endif %}
+
+{% if product %}
+{% set shop_stock = product.stock_qty or 0 %}
+{% set wh_stock = (warehouse_row['stock_qty'] if warehouse_row else None) %}
+<div class="card p-3 mb-3">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+    <div>
+      <h5 class="mb-1">{{ product.name }}</h5>
+      <div class="text-muted small"><code>{{ product.sku }}</code>
+        {% set attrs = [product.size, product.color, product.fabric,
+                        product.product_type, product.pattern, product.fit] | select | list %}
+        {% if attrs %} · {{ attrs | join(' · ') }}{% endif %}
+      </div>
+      <div class="mt-2">
+        <span class="fs-4 fw-bold">{{ product.selling_price|inr }}</span>
+        {% if product.mrp and product.mrp != product.selling_price %}
+        <span class="text-muted text-decoration-line-through ms-2">{{ product.mrp|inr }}</span>
+        {% endif %}
+        <span class="text-muted small ms-2">GST {{ product.gst_rate }}% · HSN {{ product.hsn_code }}</span>
+      </div>
+      <div class="mt-1 small"><i class="bi bi-layers"></i> Kept on
+        <a href="{{ url_for('floorplan.index', floor=product.floor_id or 'none') }}"><strong>{{ product.floor.name if product.floor else 'no floor yet' }}</strong></a></div>
+    </div>
+    {% if product.warehouse_qr %}
+    <div class="text-center"><div style="width:110px">{{ product.warehouse_qr | qr(scale=3) }}</div>
+      <div class="small text-muted">item QR</div></div>
+    {% endif %}
+  </div>
+
+  <hr>
+  <div class="row text-center">
+    <div class="col-6 col-md-3">
+      <div class="text-muted small">On the shop floor</div>
+      <div class="fs-3 fw-bold {% if shop_stock <= 0 %}text-danger{% else %}text-success{% endif %}">
+        {{ shop_stock }} <span class="fs-6 text-muted">{{ product.unit }}</span></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="text-muted small">In the warehouse</div>
+      <div class="fs-3 fw-bold">
+        {% if wh_stock is not none %}{{ wh_stock }}{% else %}<span class="text-muted fs-5">—</span>{% endif %}
+      </div>
+      {% if not warehouse_available %}
+      <div class="small text-muted">warehouse not reachable</div>
+      {% endif %}
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="text-muted small">Piece tags issued</div>
+      <div class="fs-3 fw-bold">{{ units|length or '—' }}</div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="text-muted small">Sold on</div>
+      <div class="fs-3 fw-bold">{{ sales|length or '—' }} <span class="fs-6 text-muted">bills</span></div>
+    </div>
+  </div>
+
+  <div class="mt-3">
+    <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('inventory.edit_product', pid=product.id) }}">Open in inventory</a>
+    <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('inventory.product_label', pid=product.id) }}" target="_blank">Print label</a>
+    {% if product.warehouse_id %}
+    <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('inventory.product_pieces', pid=product.id) }}" target="_blank">Piece tags</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-receipt"></i> Bills this went out on</div>
+      <div class="table-responsive" style="max-height:320px">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Bill</th><th>When</th><th>Customer</th>
+            <th class="text-end">Qty</th><th class="text-end">Price</th></tr></thead>
+          <tbody>
+            {% for item, inv in sales %}
+            <tr>
+              <td><a href="{{ url_for('pos.view_invoice', iid=inv.id) }}">{{ inv.invoice_number }}</a></td>
+              <td>{{ inv.invoice_date.strftime('%d %b %Y') }}</td>
+              <td>{{ inv.customer.name if inv.customer else 'Walk-in' }}</td>
+              <td class="text-end">{{ item.quantity }}</td>
+              <td class="text-end">{{ item.unit_price|inr }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted p-3">Never sold yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-tags"></i> Piece tags
+        <span class="text-muted small">issued by the warehouse</span></div>
+      <div class="p-2" style="max-height:320px;overflow:auto">
+        {% for u in units %}
+        <div class="d-flex justify-content-between border-bottom py-1 small">
+          <code>{{ u.code }}</code>
+          <span class="text-muted">{{ u.status.replace('_',' ') }}</span>
+        </div>
+        {% else %}
+        <div class="text-muted small p-2">No piece tags for this item.</div>
+        {% endfor %}
+      </div>
+      {% if units %}
+      <div class="card-footer">
+        A tag says the warehouse minted it, not that the piece is still on a shelf —
+        nothing marks a piece sold.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{# The other question: no code, a customer asking for something. #}
+{% if not code %}
+<form class="card p-3">
+  <h6><i class="bi bi-funnel"></i> Or find one by what it is</h6>
+  <div class="row g-2">
+    <div class="col-md-4">
+      <label class="form-label mb-0 small">Name or SKU</label>
+      <input class="form-control form-control-sm" name="q" value="{{ text }}" placeholder="Anything in the name">
+    </div>
+    {% for name, label in filters %}
+    <div class="col-md-2">
+      <label class="form-label mb-0 small">{{ label }}</label>
+      <select class="form-select form-select-sm" name="{{ name }}">
+        <option value="">Any</option>
+        {% for v in options[name] %}
+        <option value="{{ v }}" {% if selected[name] == v %}selected{% endif %}>{{ v }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endfor %}
+    <div class="col-md-2">
+      <label class="form-label mb-0 small">Price from</label>
+      <input class="form-control form-control-sm" type="number" step="0.01" name="price_min"
+             value="{{ price_min if price_min is not none else '' }}">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label mb-0 small">Price to</label>
+      <input class="form-control form-control-sm" type="number" step="0.01" name="price_max"
+             value="{{ price_max if price_max is not none else '' }}">
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+      <button class="btn btn-brand btn-sm w-100">Search</button>
+    </div>
+  </div>
+</form>
+
+{% if results %}
+<div class="card mt-3">
+  <div class="card-header d-flex align-items-center justify-content-between gap-2">
+    <span><i class="bi bi-list-ul"></i> Results</span>
+    <span class="panel-chip">{{ results|length }} item(s)</span></div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle">
+      <thead><tr><th>SKU</th><th>Item</th><th>Attributes</th>
+        <th>Floor</th><th class="text-end">Price</th><th class="text-end">Shop stock</th><th></th></tr></thead>
+      <tbody>
+        {% for p in results %}
+        <tr class="{% if p.stock_qty <= 0 %}table-warning{% endif %}">
+          <td><code>{{ p.sku }}</code></td>
+          <td>{{ p.name }}</td>
+          <td class="small text-muted">
+            {{ [p.size, p.color, p.fabric, p.pattern, p.fit] | select | join(' · ') }}
+          </td>
+          <td class="small">{{ p.floor.name if p.floor else '—' }}</td>
+          <td class="text-end">{{ p.selling_price|inr }}</td>
+          <td class="text-end {% if p.stock_qty <= 0 %}text-danger fw-bold{% endif %}">
+            {{ p.stock_qty }} {{ p.unit }}</td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-primary"
+               href="{{ url_for('checker.index', code=p.sku) }}">Check</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% elif request.args and not code %}
+<div class="alert alert-warning mt-3">Nothing in stock matches that.</div>
+{% endif %}
+{% endif %}
+{% endblock %}

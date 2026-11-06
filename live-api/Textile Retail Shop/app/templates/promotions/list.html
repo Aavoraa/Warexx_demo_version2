@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h4><i class="bi bi-gift"></i> Promotion schemes</h4>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('coupons.index') }}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-ticket-perforated"></i> Coupons</a>
+    <a href="{{ url_for('promotions.new_scheme') }}" class="btn btn-brand btn-sm">
+      <i class="bi bi-plus"></i> New scheme</a>
+  </div>
+</div>
+
+{# Status chips with live counts, the same control every other list screen
+   carries. Status is worked out from the dates rather than stored, so a scheme
+   whose end date passed last night reads `expired` here this morning without
+   anything having had to run overnight. #}
+<div class="d-flex gap-2 flex-wrap mb-3">
+  {# The chips are a segmented control: the one in use is filled dark green,
+     the rest are plain. The colour of a status lives on its badge in the table. #}
+  {% for key, label, css in [('', 'All', 'secondary'), ('active', 'Active', 'success'),
+                             ('scheduled', 'Scheduled', 'warning'),
+                             ('expired', 'Expired', 'secondary'),
+                             ('inactive', 'Switched off', 'secondary')] %}
+  <a class="btn btn-sm {% if status == key %}btn-brand{% else %}btn-outline-secondary{% endif %}"
+     href="{{ url_for('promotions.legacy_index', q=q, status=key) }}">
+    {{ label }}
+    <span class="badge text-bg-light">{{ counts.values()|sum if not key else counts.get(key, 0) }}</span>
+  </a>
+  {% endfor %}
+  <form class="ms-auto d-flex gap-2" style="max-width:340px">
+    <input type="hidden" name="status" value="{{ status }}">
+    <input class="form-control form-control-sm" name="q" value="{{ q }}"
+           placeholder="Search name or code">
+    <button class="btn btn-outline-primary btn-sm">Search</button>
+  </form>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle">
+      <thead><tr>
+        <th style="width:60px" title="Lower runs first">Pri</th>
+        <th>Scheme</th><th>Offer</th><th>Runs</th><th>Where</th>
+        <th class="text-end">Bills</th><th class="text-end">Given away</th>
+        <th>Status</th><th></th>
+      </tr></thead>
+      <tbody>
+        {% for s in schemes %}
+        {% set state = s.status(today) %}
+        <tr>
+          <td class="text-muted">{{ s.priority }}</td>
+          <td>
+            <a href="{{ url_for('promotions.detail', sid=s.id) }}">{{ s.name }}</a>
+            <br><code class="small">{{ s.code }}</code>
+            {% if s.stackable %}
+            <span class="badge text-bg-warning" title="Runs even on garments another scheme has already claimed">stacks</span>
+            {% endif %}
+          </td>
+          <td class="small">{{ describe(s) }}</td>
+          <td class="small text-nowrap">
+            {{ s.start_date|dmy or 'any time' }}
+            {% if s.end_date %}<br>to {{ s.end_date|dmy }}{% endif %}
+          </td>
+          <td class="small">
+            {% if s.places %}
+              {% for p in s.places %}{{ p.label }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+            {% else %}<span class="text-muted">everywhere</span>{% endif %}
+          </td>
+          <td class="text-end">{{ used.get(s.id, 0) }}</td>
+          <td class="text-end">{{ given.get(s.id, 0)|inr }}</td>
+          <td>
+            <span class="badge text-bg-{{ {'active':'success','scheduled':'warning',
+                                           'expired':'secondary','inactive':'secondary'}[state] }}">
+              {{ {'inactive':'switched off'}.get(state, state) }}</span>
+          </td>
+          <td class="text-nowrap">
+            <a href="{{ url_for('promotions.edit_scheme', sid=s.id) }}"
+               class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <form method="post" action="{{ url_for('promotions.toggle', sid=s.id) }}" class="d-inline">
+              <button class="btn btn-sm btn-outline-secondary"
+                      title="{{ 'Switch off' if s.active else 'Switch on' }}">
+                <i class="bi bi-{{ 'pause' if s.active else 'play' }}"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="text-center text-muted p-4">
+          No promotion schemes yet. The till applies whatever is set up here by
+          itself — nothing else has to be switched on.
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<p class="text-muted small mt-3">
+  Schemes are tried in priority order, lowest first. A scheme takes the garments
+  it uses out of the cart, so the next one sees only what is left — that is what
+  stops one purchase earning two rewards. A scheme marked <b>stacks</b> is the
+  deliberate exception.
+</p>
+{% endblock %}

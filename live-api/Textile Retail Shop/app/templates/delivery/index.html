@@ -1,0 +1,538 @@
+{% extends "base.html" %}
+{% block content %}
+
+{# Two boxes rather than the reference screen's one. A bill number and a garment
+   tag are different questions asked at different moments, and one box answering
+   both means every scan costs a guess about which it was. Focus moves to the
+   garment box on its own the instant a bill loads, so a scanner never has to be
+   put down to click. #}
+
+<div class="page-head">
+  <h4 class="mb-0"><i class="bi bi-bag-check"></i> Delivery
+    <span class="text-muted fw-normal">(<span id="hdrCount">0</span>)</span></h4>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('delivery.pending') }}">
+      <i class="bi bi-hourglass-split"></i> Still to collect</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('delivery.list_deliveries') }}">
+      <i class="bi bi-list-ul"></i> Deliveries</a>
+  </div>
+</div>
+
+{# ---- who is handing the goods over -------------------------------------- #}
+{# The same gate the billing counter uses, and for the same reason: a handover
+   with nobody against it is a handover nobody can be asked about. #}
+<div class="card p-3 mb-3" id="staffCard">
+  <div class="row g-2 align-items-end">
+    <div class="col-md-5">
+      <label class="form-label small mb-1"><strong>Staff handing over</strong></label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+        <input id="staffCode" class="form-control" autocomplete="off" autofocus
+               placeholder="Scan the ID card or type a staff code">
+        <button id="staffScanBtn" class="btn btn-outline-primary" type="button"
+                title="Scan with the camera"><i class="bi bi-camera"></i></button>
+      </div>
+      <div id="staffScanBox" style="display:none" class="mt-1">
+        <div id="staffReader" style="width:100%;max-width:300px"></div>
+        <button id="staffStopScan" class="btn btn-outline-secondary btn-sm mt-1">Stop</button>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="small text-muted">Identified</div>
+      <div id="staffName" class="fw-bold text-danger">Nobody yet</div>
+    </div>
+    <div class="col-md-3">
+      <div class="small text-muted">Desk</div>
+      <div class="d-flex gap-1">
+        <select id="placeLocation" aria-label="Location" class="form-select form-select-sm">
+          <option value="">Location…</option>
+        </select>
+        <select id="placeCounter" aria-label="Counter" class="form-select form-select-sm">
+          <option value="">Counter…</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+
+  {# ---- the bills in this handover --------------------------------------- #}
+  <div class="col-lg-5">
+    <div class="card p-3 h-100">
+      <div class="input-group mb-2">
+        <input id="billScan" class="form-control" autocomplete="off"
+               placeholder="Bill No / customer card / mobile">
+        <button id="billGo" class="btn btn-brand" type="button">Go!</button>
+        <button id="billScanBtn" class="btn btn-outline-primary" type="button"
+                title="Scan the bill QR"><i class="bi bi-camera"></i></button>
+      </div>
+      <div id="billScannerBox" style="display:none" class="mb-2">
+        <div id="billReader" style="width:100%;max-width:320px"></div>
+        <button id="billStopScan" class="btn btn-outline-secondary btn-sm mt-1">Stop</button>
+      </div>
+
+      <div class="row g-1 mb-2 small">
+        <div class="col-4 text-muted">Customer Name</div>
+        <div class="col-8"><input id="custName" aria-label="Customer name" class="form-control form-control-sm bg-body-secondary"
+                                  readonly value=""></div>
+        <div class="col-4 text-muted">Contact No</div>
+        <div class="col-8"><input id="custPhone" aria-label="Customer phone" class="form-control form-control-sm bg-body-secondary"
+                                  readonly value=""></div>
+      </div>
+
+      <div class="table-responsive border rounded" style="min-height:220px">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>BILL NO</th><th class="text-end">QTY</th>
+            <th class="text-end">AMOUNT</th><th></th></tr></thead>
+          <tbody id="billRows"></tbody>
+        </table>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <span class="fs-5 text-success">Total</span>
+        <span class="fs-5 text-success fw-bold" id="billTotal">0</span>
+      </div>
+
+      <div id="billHint" class="fs-5 mt-2" style="color:#B45309">
+        Please scan bill no / settlement no
+      </div>
+    </div>
+  </div>
+
+  {# ---- the goods, and what has been verified ---------------------------- #}
+  <div class="col-lg-7">
+    <div class="card p-3 h-100">
+      <div class="row small mb-2">
+        <div class="col-7">
+          <div class="row g-0"><div class="col-4 text-muted">DATE</div>
+            <div class="col-8">{{ today }}</div></div>
+          <div class="row g-0"><div class="col-4 text-muted">LOCATION</div>
+            <div class="col-8" id="placeLocationName">{{ chosen_location.name if chosen_location else '—' }}</div></div>
+          <div class="row g-0"><div class="col-4 text-muted">COUNTER</div>
+            <div class="col-8" id="placeCounterName">{{ chosen_counter.name if chosen_counter else '—' }}</div></div>
+        </div>
+        <div class="col-5 text-end">
+          <span class="fs-4 text-success">Delivery Qty : <span id="qtyDone">0</span></span>
+          <span class="fs-4 text-danger"> / <span id="qtyTotal">0</span></span>
+        </div>
+      </div>
+
+      <div class="input-group input-group-lg mb-2">
+        <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+        <input id="itemScan" class="form-control form-control-lg" autocomplete="off"
+               placeholder="Scan each garment tag as it goes in the bag" disabled>
+        <button id="itemScanBtn" class="btn btn-outline-primary" type="button"
+                title="Scan with the camera" disabled><i class="bi bi-camera"></i></button>
+      </div>
+      <div id="itemScannerBox" style="display:none" class="mb-2">
+        <div id="itemReader" style="width:100%;max-width:340px"></div>
+        <button id="itemStopScan" class="btn btn-outline-secondary btn-sm mt-1">Stop</button>
+      </div>
+
+      <div class="table-responsive border rounded" style="min-height:240px;max-height:46vh;overflow:auto">
+        <table class="table table-sm mb-0 align-middle">
+          <thead class="sticky-top bg-body">
+            <tr><th>Item</th><th>Barcode</th><th class="text-end">Rate</th>
+              <th class="text-end">Qty</th><th>Piece</th>
+              <th class="text-center">Verified</th><th class="text-end">Amount</th></tr>
+          </thead>
+          <tbody id="itemRows"></tbody>
+        </table>
+      </div>
+
+      <div id="statusLine" class="mt-2" style="color:#B45309">Status....</div>
+
+      <div class="d-flex gap-2 mt-2">
+        <button id="completeBtn" class="btn btn-brand" disabled>
+          <i class="bi bi-check2-circle"></i> Complete delivery</button>
+        <button id="clearBtn" class="btn btn-outline-secondary">Clear</button>
+        <input id="deliveryNotes" class="form-control form-control-sm"
+               placeholder="Note on this handover (optional)" style="max-width:280px">
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ---- manager override ---------------------------------------------------- #}
+<div class="modal fade" id="overrideModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Pass without a scan</h5>
+      <button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <p class="mb-2" id="ovItem"></p>
+      <p class="small text-muted">A tag that cannot be read is a real thing — a label
+        torn off in a bag, a sticker rubbed blank. Passing one is recorded on the
+        delivery note with your name against it.</p>
+      <label class="form-label small mb-1">Reason</label>
+      <input id="ovReason" class="form-control" placeholder="Tag missing / unreadable">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+      <button id="ovConfirm" class="btn btn-brand">Pass this piece</button>
+    </div>
+  </div></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/html5-qrcode@2.3.10/html5-qrcode.min.js"></script>
+<script>
+const PLACES = {{ places | tojson }};
+const IS_MANAGER = {{ 'true' if is_manager else 'false' }};
+
+// The handover being built, in the browser — exactly as the billing counter
+// holds its cart. One POST commits it. Nothing here is a record of anything
+// until that returns: a half-scanned bag is a person mid-job, not a document.
+const bills = new Map();     // invoice_id -> bill payload from the server
+const lines = new Map();     // invoice_item_id -> {…line, take, scans[]}
+let staff = null;
+
+const $ = id => document.getElementById(id);
+const money = n => '₹' + (Number(n)||0).toLocaleString('en-IN',
+  {minimumFractionDigits:2, maximumFractionDigits:2});
+const trim = n => Number(Number(n).toFixed(3));
+
+function say(msg, kind){
+  const el = $('statusLine');
+  el.textContent = msg || 'Status....';
+  el.style.color = kind === 'bad' ? '#BE123C'
+                 : kind === 'good' ? '#257353' : '#B45309';
+}
+
+// ---- the desk's location and counter ---------------------------------------
+// Written through the till's own /pos/place, so a desk configured here is the
+// same desk the billing counter sees. Two session keys for one thing would be
+// two answers to "where am I".
+function paintPlaces(){
+  const loc = $('placeLocation'), cnt = $('placeCounter');
+  const chosenLoc = {{ (chosen_location.id if chosen_location else 0) | tojson }};
+  const chosenCnt = {{ (chosen_counter.id if chosen_counter else 0) | tojson }};
+  loc.innerHTML = '<option value="">Location…</option>' + PLACES.locations
+    .map(l => `<option value="${l.id}" ${l.id===chosenLoc?'selected':''}>${l.name}</option>`).join('');
+  const inLoc = PLACES.counters.filter(c => !chosenLoc || c.location_id === chosenLoc);
+  cnt.innerHTML = '<option value="">Counter…</option>' + inLoc
+    .map(c => `<option value="${c.id}" ${c.id===chosenCnt?'selected':''}>${c.name}</option>`).join('');
+}
+async function savePlace(){
+  const body = new URLSearchParams({
+    location_id: $('placeLocation').value || '',
+    counter_id: $('placeCounter').value || '',
+    company_id: (PLACES.locations.find(l => String(l.id) === $('placeLocation').value)
+                 || {}).company_id || '',
+  });
+  const r = await fetch(`${SHOP_ROOT}/pos/place`, {method:'POST', body});
+  const d = await r.json();
+  $('placeLocationName').textContent = d.location ? d.location.name : '—';
+  $('placeCounterName').textContent  = d.counter  ? d.counter.name  : '—';
+}
+$('placeLocation').onchange = async () => {
+  const locId = Number($('placeLocation').value) || 0;
+  const inLoc = PLACES.counters.filter(c => !locId || c.location_id === locId);
+  $('placeCounter').innerHTML = '<option value="">Counter…</option>' +
+    inLoc.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  await savePlace();
+};
+$('placeCounter').onchange = savePlace;
+paintPlaces();
+
+// ---- staff -----------------------------------------------------------------
+async function setStaff(code){
+  if (!String(code||'').trim()) return;
+  const r = await fetch(`${SHOP_ROOT}/pos/api/staff?code=${encodeURIComponent(code)}`);
+  if (!r.ok){
+    $('staffName').textContent = 'Not recognised';
+    $('staffName').className = 'fw-bold text-danger';
+    staff = null; gate(); return;
+  }
+  const d = await r.json();
+  staff = d;
+  $('staffName').textContent = `${d.name} (${d.code})`;
+  $('staffName').className = 'fw-bold text-success';
+  $('staffCode').value = '';
+  gate();
+  $('billScan').focus();
+}
+$('staffCode').addEventListener('keydown', e => {
+  if (e.key === 'Enter'){ e.preventDefault(); setStaff(e.target.value); }
+});
+let staffTimer = null;
+$('staffCode').addEventListener('input', e => {
+  // Most handheld readers send no Enter. A short settle after the keystrokes
+  // stop is what makes a scan hands-free without eating a typed code.
+  const v = e.target.value.trim();
+  clearTimeout(staffTimer);
+  if (v.length >= 4) staffTimer = setTimeout(() => setStaff(v), 220);
+});
+
+// ---- bills -----------------------------------------------------------------
+async function addBill(code){
+  if (!String(code||'').trim()) return;
+  const r = await fetch(`${SHOP_ROOT}/delivery/api/bill?code=${encodeURIComponent(code)}`);
+  const d = await r.json();
+  $('billScan').value = '';
+  if (!r.ok){ say(d.error || 'No bill matches that.', 'bad'); return; }
+
+  let added = 0, done = 0;
+  for (const b of d.bills){
+    if (bills.has(b.invoice_id)) continue;
+    if (b.pending <= 0){ done++; continue; }
+    bills.set(b.invoice_id, b);
+    for (const l of b.lines){
+      // `used_pieces` arrives keyed by line on the bill; it belongs on the line
+      // that has to refuse a repeat, so it moves there as the line is taken in.
+      lines.set(l.invoice_item_id, Object.assign({}, l, {
+        take: 0, scans: [],
+        used_pieces: b.used_pieces[String(l.invoice_item_id)] || [],
+      }));
+    }
+    added++;
+  }
+  if (d.customer){
+    $('custName').value  = d.customer.name;
+    $('custPhone').value = d.customer.phone;
+  } else if (d.bills.length === 1){
+    $('custName').value  = d.bills[0].customer.name;
+    $('custPhone').value = d.bills[0].customer.phone;
+  }
+  if (!added){
+    say(done ? 'Everything on that bill has already been collected.'
+             : 'That bill is already on the screen.', done ? 'good' : null);
+    paint();
+    return;
+  }
+  say(`${added} bill(s) loaded. Scan the garments.`);
+  // paint() before focus: it is what enables the field, and focusing a disabled
+  // input does nothing at all.
+  paint();
+  $('itemScan').focus();
+}
+$('billGo').onclick = () => addBill($('billScan').value);
+$('billScan').addEventListener('keydown', e => {
+  if (e.key === 'Enter'){ e.preventDefault(); addBill(e.target.value); }
+});
+
+function dropBill(invoiceId){
+  const b = bills.get(invoiceId);
+  if (!b) return;
+  for (const l of b.lines) lines.delete(l.invoice_item_id);
+  bills.delete(invoiceId);
+  if (!bills.size){ $('custName').value = ''; $('custPhone').value = ''; }
+  say('Bill removed.');
+  paint();
+}
+
+// ---- scanning the goods ----------------------------------------------------
+async function verify(code){
+  code = String(code||'').trim();
+  if (!code) return;
+  $('itemScan').value = '';
+  if (!bills.size){ say('Scan the bill first.', 'bad'); return; }
+
+  const r = await fetch(`${SHOP_ROOT}/delivery/api/scan?code=${encodeURIComponent(code)}`);
+  const d = await r.json();
+  if (!r.ok){ say(d.error || 'That tag matches nothing.', 'bad'); return; }
+
+  // A piece tag names one garment and may be read once; a SKU tag is printed on
+  // every piece of the item and may be read as often as the line has pieces.
+  if (d.piece_code){
+    for (const l of lines.values()){
+      if (l.scans.includes(d.piece_code) ||
+          (l.used_pieces || []).includes(d.piece_code)){
+        say(`${d.piece_code} has already gone out — that is one garment.`, 'bad');
+        return;
+      }
+    }
+  }
+
+  // The first line still owing this product, in the order the bills were scanned.
+  const line = [...lines.values()].find(
+    l => l.product_id === d.product_id && l.take < l.pending);
+  if (!line){
+    const onBill = [...lines.values()].some(l => l.product_id === d.product_id);
+    say(onBill ? `${d.name} — every one of those on these bills is already verified.`
+               : `${d.name} is not on any bill on this screen.`, 'bad');
+    return;
+  }
+  line.take = trim(line.take + 1);
+  if (d.piece_code) line.scans.push(d.piece_code); else line.scans.push(code);
+  say(`✓ ${d.name}${d.piece_code ? ' · ' + d.piece_code : ''}`, 'good');
+  paint();
+}
+$('itemScan').addEventListener('keydown', e => {
+  if (e.key === 'Enter'){ e.preventDefault(); verify(e.target.value); }
+});
+let itemTimer = null;
+$('itemScan').addEventListener('input', e => {
+  const v = e.target.value.trim();
+  clearTimeout(itemTimer);
+  if (v.length >= 4) itemTimer = setTimeout(() => verify(v), 180);
+});
+
+// ---- manager override ------------------------------------------------------
+let ovTarget = null;
+function askOverride(itemId){
+  const l = lines.get(itemId);
+  if (!l) return;
+  if (!IS_MANAGER){
+    say('Only a manager can pass a piece without scanning it.', 'bad');
+    return;
+  }
+  ovTarget = itemId;
+  $('ovItem').textContent =
+    `${l.name} — ${trim(l.pending - l.take)} piece(s) still unscanned on ${l.bill_no}.`;
+  $('ovReason').value = l.override_reason || '';
+  new bootstrap.Modal($('overrideModal')).show();
+}
+$('ovConfirm').onclick = () => {
+  const l = lines.get(ovTarget);
+  const reason = $('ovReason').value.trim();
+  if (!l) return;
+  if (!reason){ $('ovReason').focus(); return; }
+  l.override_reason = reason;
+  l.take = trim(l.take + 1);      // one piece per press — never the whole line
+  bootstrap.Modal.getInstance($('overrideModal')).hide();
+  say(`Passed by hand: ${l.name} — ${reason}`, 'bad');
+  paint();
+};
+
+// ---- painting --------------------------------------------------------------
+function paint(){
+  // left: one row per bill
+  const rows = [...bills.values()].map(b => `
+    <tr>
+      <td><a href="${SHOP_ROOT}/pos/invoice/${b.invoice_id}" target="_blank">${b.bill_no}</a>
+        <div class="small text-muted">${b.date}</div></td>
+      <td class="text-end">${trim(b.pending)}</td>
+      <td class="text-end">${money(b.amount)}</td>
+      <td class="text-end"><button class="btn btn-sm btn-outline-danger py-0"
+            onclick="dropBill(${b.invoice_id})" title="Take this bill off">&times;</button></td>
+    </tr>`).join('');
+  $('billRows').innerHTML = rows ||
+    '<tr><td colspan="4" class="text-center text-muted py-4">No bill scanned yet.</td></tr>';
+
+  const amount = [...lines.values()].reduce((s,l) => s + l.take * l.rate, 0);
+  $('billTotal').textContent = money(amount);
+  $('hdrCount').textContent = bills.size;
+  $('billHint').style.display = bills.size ? 'none' : '';
+
+  // right: one row per invoice line
+  const body = [...lines.values()].map(l => {
+    const full = l.take >= l.pending && l.pending > 0;
+    const none = l.pending <= 0;
+    // `scans` only ever holds what was read on THIS handover — what earlier
+    // deliveries used lives in `used_pieces` and is never shown as gone out now.
+    const pieces = l.scans;
+    return `
+    <tr class="${none ? 'opacity-50' : full ? 'table-success' : ''}">
+      <td>${l.name}<div class="small text-muted">${l.bill_no} · ${l.sku}</div></td>
+      <td class="small"><code>${l.barcode || ''}</code></td>
+      <td class="text-end">${money(l.rate)}</td>
+      <td class="text-end">${trim(l.pending)}${none ? '<div class="small text-muted">collected</div>' : ''}</td>
+      <td class="small text-muted" style="max-width:150px">
+        ${pieces.length ? pieces.join('<br>') : '—'}</td>
+      <td class="text-center">
+        <span class="fw-bold ${full ? 'text-success' : 'text-danger'}">${trim(l.take)}</span>
+        ${(!none && !full) ? `<button class="btn btn-sm btn-link p-0 ms-1"
+             onclick="askOverride(${l.invoice_item_id})"
+             title="Pass a piece without a scan (manager)">✋</button>` : ''}
+        ${l.override_reason ? `<div class="small text-warning-emphasis"
+             title="${l.override_reason}">by hand</div>` : ''}
+      </td>
+      <td class="text-end">${money(l.take * l.rate)}</td>
+    </tr>`;
+  }).join('');
+  $('itemRows').innerHTML = body ||
+    '<tr><td colspan="7" class="text-center text-muted py-5">Scan a bill to load its goods.</td></tr>';
+
+  const done  = [...lines.values()].reduce((s,l) => s + l.take, 0);
+  const total = [...lines.values()].reduce((s,l) => s + l.pending, 0);
+  $('qtyDone').textContent  = trim(done);
+  $('qtyTotal').textContent = trim(total);
+  gate();
+}
+
+function gate(){
+  const done = [...lines.values()].reduce((s,l) => s + l.take, 0);
+  $('completeBtn').disabled = !(staff && done > 0);
+  const ready = !!staff;
+  $('itemScan').disabled = !ready || !bills.size;
+  $('itemScanBtn').disabled = !ready || !bills.size;
+  $('billScan').disabled = !ready;
+  $('billGo').disabled = !ready;
+  $('billScanBtn').disabled = !ready;
+}
+
+// ---- committing ------------------------------------------------------------
+$('completeBtn').onclick = async () => {
+  const payload = {
+    staff_code: staff ? staff.code : '',
+    notes: $('deliveryNotes').value,
+    lines: [...lines.values()].filter(l => l.take > 0).map(l => ({
+      invoice_item_id: l.invoice_item_id,
+      quantity: l.take,
+      scans: l.scans,
+      override_reason: l.override_reason || '',
+    })),
+  };
+  $('completeBtn').disabled = true;
+  const r = await fetch(`${SHOP_ROOT}/delivery/create`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(payload)});
+  const d = await r.json();
+  if (!r.ok){ say(d.error || 'Could not record the delivery.', 'bad'); gate(); return; }
+  const left = d.pending > 0
+    ? ` — ${trim(d.pending)} piece(s) still to collect on these bills.` : '';
+  say(`${d.number}: ${trim(d.qty)} piece(s) handed over.${left}`, 'good');
+  window.location = `${SHOP_ROOT}/delivery/${d.delivery_id}`;
+};
+
+$('clearBtn').onclick = () => {
+  bills.clear(); lines.clear();
+  $('custName').value = ''; $('custPhone').value = '';
+  $('deliveryNotes').value = '';
+  say('');
+  paint();
+  $('billScan').focus();
+};
+
+// ---- cameras ---------------------------------------------------------------
+// The same library the billing counter uses for its three readers. A handheld
+// scanner types into the boxes above; this is for a phone or a webcam.
+function camera(readerId, boxId, onCode){
+  let cam = null;
+  return {
+    start: async () => {
+      $(boxId).style.display = 'block';
+      if (cam) return;
+      cam = new Html5Qrcode(readerId);
+      try {
+        await cam.start({facingMode:'environment'},
+          {fps:12, qrbox:{width:260, height:160}},
+          async decoded => { await onCode(decoded); }, () => {});
+      } catch (err){ say('Camera error: ' + err, 'bad'); cam = null; }
+    },
+    stop: async () => {
+      if (cam){ try { await cam.stop(); cam.clear(); } catch(e){} cam = null; }
+      $(boxId).style.display = 'none';
+    },
+  };
+}
+const staffCam = camera('staffReader', 'staffScanBox', async c => {
+  await staffCam.stop(); setStaff(c); });
+const billCam  = camera('billReader',  'billScannerBox', async c => {
+  await billCam.stop(); addBill(c); });
+// The garment reader stays running: a bag is twenty pieces, and stopping the
+// camera after each one would mean twenty presses of the button.
+const itemCam  = camera('itemReader',  'itemScannerBox', verify);
+
+$('staffScanBtn').onclick = staffCam.start;
+$('staffStopScan').onclick = staffCam.stop;
+$('billScanBtn').onclick = billCam.start;
+$('billStopScan').onclick = billCam.stop;
+$('itemScanBtn').onclick = itemCam.start;
+$('itemStopScan').onclick = itemCam.stop;
+
+paint();
+</script>
+{% endblock %}

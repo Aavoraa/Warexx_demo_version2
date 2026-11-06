@@ -31,3 +31,8 @@ frontend/landing/assets/*.mp4
 lead-api/data/
 .vercel
 .env*
+
+# WAREXX Live: never commit a database (live-api/README.md)
+live-api/**/*.db
+live-api/**/*.db-*
+live-api/**/*.sqlite*

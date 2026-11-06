@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+{% set kind_label = {'rating': '★ Rating (1–5)', 'yesno': 'Yes / No', 'choice': 'Choice', 'text': 'Written answer'} %}
+<div class="page-head">
+  <h4><i class="bi bi-patch-question"></i> Feedback Questions</h4>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('crmfeedback.form_config') }}"><i class="bi bi-ui-checks"></i> Form config</a>
+    <a class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener" href="{{ url_for('crmfeedback.form_preview') }}"><i class="bi bi-phone"></i> Preview</a>
+  </div>
+</div>
+<div class="row g-3">
+  <div class="col-lg-4">
+    <form method="post" action="{{ url_for('crmfeedback.question_save') }}" class="card p-3">
+      <div class="fw-semibold mb-2">{{ 'Edit question' if edit else 'New question' }}</div>
+      <input type="hidden" name="id" value="{{ edit.id if edit else '' }}">
+      <label class="form-label small">Question *</label>
+      <input class="form-control form-control-sm mb-2" name="text" maxlength="256" required value="{{ edit.text if edit else '' }}" placeholder="e.g. How helpful was our staff?">
+      <label class="form-label small">Answered as</label>
+      <select class="form-select form-select-sm mb-2" name="kind" id="qKind">
+        {% for k in kinds %}<option value="{{ k }}" {{ 'selected' if edit and edit.kind == k }}>{{ kind_label[k] }}</option>{% endfor %}
+      </select>
+      <div id="qOpts" class="mb-2">
+        <label class="form-label small">Options, one per line</label>
+        <textarea class="form-control form-control-sm" name="options" rows="4" placeholder="Newspaper&#10;Instagram&#10;A friend">{{ edit.options if edit and edit.options else '' }}</textarea>
+      </div>
+      <div class="form-check mb-3"><input class="form-check-input" type="checkbox" name="required" id="qReq" {{ 'checked' if edit and edit.required }}>
+        <label class="form-check-label small" for="qReq">Customer must answer</label></div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-brand btn-sm">{{ 'Save' if edit else 'Add question' }}</button>
+        {% if edit %}<a href="{{ url_for('crmfeedback.questions') }}" class="btn btn-outline-secondary btn-sm">Cancel</a>{% endif %}
+      </div>
+    </form>
+  </div>
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+          <thead><tr><th style="width:70px">Order</th><th>Question</th><th>Answered as</th><th class="text-end">Answers</th><th></th></tr></thead>
+          <tbody>
+            {% for q in qs %}
+            <tr class="{{ 'text-muted' if not q.active }}">
+              <td class="text-nowrap">
+                {% if q.active %}
+                <form method="post" action="{{ url_for('crmfeedback.question_action', qid=q.id, action='up') }}" class="d-inline"><button class="btn btn-sm btn-link p-0" title="Move up" aria-label="Move up"><i class="bi bi-arrow-up"></i></button></form>
+                <form method="post" action="{{ url_for('crmfeedback.question_action', qid=q.id, action='down') }}" class="d-inline"><button class="btn btn-sm btn-link p-0" title="Move down" aria-label="Move down"><i class="bi bi-arrow-down"></i></button></form>
+                {% endif %}
+              </td>
+              <td>{{ q.text }}{% if q.required %} <span class="status-badge info sm">required</span>{% endif %}{% if not q.active %} <span class="status-badge neutral sm">retired</span>{% endif %}
+                {% if q.kind == 'choice' %}<div class="small text-muted">{{ q.option_list|join(' · ') }}</div>{% endif %}</td>
+              <td class="small">{{ kind_label[q.kind] }}</td>
+              <td class="text-end">{{ answered.get(q.id, 0) }}</td>
+              <td class="text-end text-nowrap">
+                <a href="{{ url_for('crmfeedback.questions', edit=q.id) }}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+                <form method="post" action="{{ url_for('crmfeedback.question_action', qid=q.id, action='toggle') }}" class="d-inline">
+                  <button class="btn btn-sm btn-outline-secondary" title="{{ 'Retire' if q.active else 'Bring back' }}"><i class="bi bi-{{ 'archive' if q.active else 'arrow-counterclockwise' }}"></i></button></form>
+                {% if not answered.get(q.id) %}
+                <form method="post" action="{{ url_for('crmfeedback.question_action', qid=q.id, action='delete') }}" class="d-inline" onsubmit="return confirm('Delete this question?')">
+                  <button class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button></form>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted p-4">No questions yet — the form asks only for an overall star rating. Add one on the left.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="small text-muted mt-2">A question with answers can be retired but not deleted, so its answers still say what they answered.</p>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const k = document.getElementById('qKind'), o = document.getElementById('qOpts');
+const sync = () => { o.hidden = k.value !== 'choice'; };
+k.addEventListener('change', sync); sync();
+</script>
+{% endblock %}

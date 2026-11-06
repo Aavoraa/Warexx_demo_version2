@@ -1,0 +1,569 @@
+{% extends "base.html" %}
+{% block content %}
+{# `saved` is the rejected form coming back, so nothing has to be retyped after a
+   validation error. Empty on a fresh page and on an edit, where the scheme row
+   itself is the fallback. #}
+{% set v = saved if saved else {} %}
+
+<div class="page-head">
+  <h4><i class="bi bi-gift"></i>
+    {{ 'Edit scheme — ' + scheme.code if scheme else 'New promotion scheme' }}</h4>
+  <a href="{{ url_for('promotions.legacy_index') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left"></i> All schemes</a>
+</div>
+
+<form method="post" id="schemeForm">
+  {# The rules are built in the browser and posted as three JSON fields. They are
+     lists of unknown length holding lists of unknown length, and the indexed
+     form-field encoding for that is a parser nobody can read. Validated server
+     side on the way in — see routes/promotions._read_form. #}
+  <input type="hidden" name="conditions_json" id="conditionsJson">
+  <input type="hidden" name="rewards_json" id="rewardsJson">
+  <input type="hidden" name="places_json" id="placesJson">
+
+  <div class="row g-3">
+    <!-- ---------------- the scheme itself ---------------- -->
+    <div class="col-lg-4">
+      <div class="card p-3 mb-3">
+        <h6 class="mb-3">Scheme</h6>
+        <div class="mb-2">
+          <label class="form-label small mb-1">Name *</label>
+          <input class="form-control" name="name" required
+                 value="{{ v.get('name') or (scheme.name if scheme else '') }}"
+                 placeholder="Buy 3 Chudithars, get a Leggings free">
+        </div>
+        <div class="mb-2">
+          <label class="form-label small mb-1">Code</label>
+          <input class="form-control" name="code" maxlength="32"
+                 value="{{ v.get('code') or (scheme.code if scheme else '') }}"
+                 placeholder="left blank, one is issued (PROMO-000001)">
+        </div>
+        <div class="mb-2">
+          <label class="form-label small mb-1">What the customer gets</label>
+          <select class="form-select" name="scheme_type" id="schemeType">
+            {% set chosen_type = v.get('scheme_type') or (scheme.scheme_type if scheme else 'buy_get_free') %}
+            <option value="buy_get_free" {% if chosen_type == 'buy_get_free' %}selected{% endif %}>
+              The reward item, free</option>
+            <option value="buy_get_percent" {% if chosen_type == 'buy_get_percent' %}selected{% endif %}>
+              The reward item at a % discount</option>
+            <option value="buy_get_price" {% if chosen_type == 'buy_get_price' %}selected{% endif %}>
+              The reward item at a fixed price</option>
+          </select>
+        </div>
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <label class="form-label small mb-1">Starts</label>
+            <input class="form-control" type="date" name="start_date"
+                   value="{{ v.get('start_date') or (scheme.start_date.isoformat() if scheme and scheme.start_date else '') }}">
+          </div>
+          <div class="col-6">
+            <label class="form-label small mb-1">Ends</label>
+            <input class="form-control" type="date" name="end_date"
+                   value="{{ v.get('end_date') or (scheme.end_date.isoformat() if scheme and scheme.end_date else '') }}">
+          </div>
+        </div>
+        <div class="form-text mb-2">Leave either blank for an offer with no fixed
+          start or end. It still only runs while Active is ticked.</div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="active" id="fActive"
+                 {% if (v and v.get('active')) or (not v and (scheme.active if scheme else True)) %}checked{% endif %}>
+          <label class="form-check-label" for="fActive">Active — the till applies it</label>
+        </div>
+      </div>
+
+      <div class="card p-3 mb-3">
+        <h6 class="mb-3">Limits</h6>
+        <div class="row g-2">
+          <div class="col-6">
+            <label class="form-label small mb-1">Priority</label>
+            <input class="form-control" name="priority" type="number"
+                   value="{{ v.get('priority') or (scheme.priority if scheme else 100) }}">
+            <div class="form-text">Lower runs first.</div>
+          </div>
+          <div class="col-6">
+            <label class="form-label small mb-1">Max per bill</label>
+            <input class="form-control" name="max_applications" type="number" min="1"
+                   value="{{ v.get('max_applications') or (scheme.max_applications if scheme and scheme.max_applications else '') }}"
+                   placeholder="no limit">
+            <div class="form-text">12 qualifying items with a max of 2 give 2 rewards, not 4.</div>
+          </div>
+        </div>
+        <div class="form-check mt-2">
+          <input class="form-check-input" type="checkbox" name="stackable" id="fStack"
+                 {% if (v and v.get('stackable')) or (not v and scheme and scheme.stackable) %}checked{% endif %}>
+          <label class="form-check-label" for="fStack">Allow stacking</label>
+          <div class="form-text">Off by default: a garment another scheme has
+            already used cannot earn this one too. Tick it only when a double
+            benefit is intended.</div>
+        </div>
+      </div>
+
+      <div class="card p-3 mb-3">
+        <h6 class="mb-3">Rules the till follows</h6>
+        <div class="mb-2">
+          <label class="form-label small mb-1">Which reward, when several are eligible</label>
+          {% set sel = v.get('reward_selection') or (scheme.reward_selection if scheme else 'cheapest') %}
+          <select class="form-select" name="reward_selection">
+            <option value="cheapest" {% if sel == 'cheapest' %}selected{% endif %}>The cheapest eligible item</option>
+            <option value="dearest" {% if sel == 'dearest' %}selected{% endif %}>The dearest eligible item</option>
+            <option value="specific" {% if sel == 'specific' %}selected{% endif %}>The first item listed</option>
+            <option value="choose" {% if sel == 'choose' %}selected{% endif %}>Let the cashier choose</option>
+          </select>
+        </div>
+        <div class="mb-2">
+          <label class="form-label small mb-1">When the reward is out of stock</label>
+          {% set oos = v.get('out_of_stock') or (scheme.out_of_stock if scheme else 'block') %}
+          <select class="form-select" name="out_of_stock">
+            <option value="block" {% if oos == 'block' %}selected{% endif %}>
+              Don't apply it — the till says why</option>
+            <option value="substitute" {% if oos == 'substitute' %}selected{% endif %}>
+              Give the next eligible item that is in stock</option>
+          </select>
+        </div>
+        <div class="mb-2">
+          <label class="form-label small mb-1">When a qualifying item is returned</label>
+          {% set ret = v.get('return_policy') or (scheme.return_policy if scheme else 'reclaim_value') %}
+          <select class="form-select" name="return_policy">
+            <option value="reclaim_value" {% if ret == 'reclaim_value' %}selected{% endif %}>
+              Take the free item's value off the refund</option>
+            <option value="require_return" {% if ret == 'require_return' %}selected{% endif %}>
+              Require the free item back too</option>
+            <option value="keep" {% if ret == 'keep' %}selected{% endif %}>
+              Let the customer keep it</option>
+          </select>
+        </div>
+        <div class="mb-0">
+          <label class="form-label small mb-1">Terms &amp; conditions</label>
+          <textarea class="form-control" name="terms" rows="3"
+                    placeholder="What staff should tell a customer who asks.">{{ v.get('terms') or (scheme.terms if scheme else '') }}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------------- what has to be bought, and what is given ---------------- -->
+    <div class="col-lg-8">
+      <div class="card p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="mb-0">The customer buys</h6>
+          <button type="button" class="btn btn-outline-primary btn-sm" id="addCond">
+            <i class="bi bi-plus"></i> Add another rule</button>
+        </div>
+        <div class="form-text mb-2">Two rules mean <b>both</b> — "2 chudithars
+          <i>and</i> 1 dupatta". Several products inside one rule mean <b>any</b>
+          of them.</div>
+        <div id="condList"></div>
+      </div>
+
+      <div class="card p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="mb-0">The customer gets</h6>
+          <button type="button" class="btn btn-outline-primary btn-sm" id="addReward">
+            <i class="bi bi-plus"></i> Add another reward</button>
+        </div>
+        <div id="rewardList"></div>
+      </div>
+
+      <div class="card p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="mb-0">Where it runs</h6>
+          <button type="button" class="btn btn-outline-primary btn-sm" id="addPlace">
+            <i class="bi bi-plus"></i> Add a place</button>
+        </div>
+        <div class="form-text mb-2">No rows at all means everywhere. A row that
+          names only a branch means that branch, any counter.</div>
+        <div id="placeList"></div>
+      </div>
+
+      {# Try the scheme before a customer does. An offer that reads correctly on
+         this page and gives nothing at the till — a category holding no stock, a
+         higher-priority scheme taking the garments first — is the failure this
+         catches, and the till is a bad place to find out. #}
+      <div class="card p-3 mb-3">
+        <h6 class="mb-2">Try it</h6>
+        <div class="form-text mb-2">Runs a pretend cart through the live engine,
+          against every active scheme. Bills nothing and moves no stock.</div>
+        <div id="tryList" class="mb-2"></div>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="addTry">
+          <i class="bi bi-plus"></i> Add an item</button>
+        <button type="button" class="btn btn-outline-primary btn-sm" id="runTry">
+          <i class="bi bi-play"></i> Check</button>
+        <div id="tryOut" class="mt-2 small"></div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button class="btn btn-brand"><i class="bi bi-check-circle"></i>
+          {{ 'Save changes' if scheme else 'Create scheme' }}</button>
+        <a href="{{ url_for('promotions.legacy_index') }}" class="btn btn-outline-secondary">Cancel</a>
+        {% if scheme %}
+        <a href="{{ url_for('promotions.detail', sid=scheme.id) }}"
+           class="btn btn-outline-secondary ms-auto">Performance &amp; audit</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</form>
+
+<!-- One picker for every list on the page. `pickTarget` remembers who opened it. -->
+<div class="modal fade" id="pickModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Choose a product or a category</h5>
+      <button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <ul class="nav nav-tabs mb-3">
+        <li class="nav-item"><a class="nav-link active" href="#" data-tab="cat">Category</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" data-tab="prod">One product</a></li>
+      </ul>
+
+      <div id="tabCat">
+        <div class="form-text mb-2">A category follows the product master: a
+          garment filed under it tomorrow is covered tomorrow, with nobody
+          editing this scheme.</div>
+        <select class="form-select" id="pickCategory" size="12">
+          {% for section, cats in category_groups %}
+          <optgroup label="{{ section }}">
+            {% for c in cats %}<option value="{{ c.id }}" data-name="{{ c.name }}">{{ c.name }}</option>{% endfor %}
+          </optgroup>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div id="tabProd" style="display:none">
+        <input class="form-control mb-2" id="pickSearch" autocomplete="off"
+               placeholder="Search name, SKU or barcode — or scan a tag">
+        <div id="pickResults" class="list-group" style="max-height:44vh;overflow:auto"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-brand" id="pickConfirm">Add</button>
+    </div>
+  </div></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// The scheme's rules live here and the three hidden fields are written from them
+// on submit. One structure, redrawn — not a DOM somebody parses back out.
+const RULES = Object.assign({conditions: [], rewards: [], places: []},
+                            {{ rules | safe }} || {});
+{% if saved %}
+// A refused save comes back with what was typed, so nothing has to be re-entered.
+try {
+  RULES.conditions = JSON.parse({{ (saved.get('conditions_json') or '[]') | tojson }});
+  RULES.rewards    = JSON.parse({{ (saved.get('rewards_json') or '[]') | tojson }});
+  RULES.places     = JSON.parse({{ (saved.get('places_json') or '[]') | tojson }});
+} catch (e) { /* leave whatever loaded */ }
+{% endif %}
+
+const PLACES = {
+  companies: [{% for c in companies %}{id: {{ c.id }}, name: {{ c.name | tojson }}}{% if not loop.last %},{% endif %}{% endfor %}],
+  locations: [{% for l in locations %}{id: {{ l.id }}, name: {{ l.name | tojson }}}{% if not loop.last %},{% endif %}{% endfor %}],
+  counters:  [{% for c, locname in counters %}{id: {{ c.id }}, name: {{ (locname ~ ' · ' ~ c.name) | tojson }}}{% if not loop.last %},{% endif %}{% endfor %}],
+};
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g,
+  (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// ---- the item lists inside a condition or a reward -------------------------
+function itemsHtml(items, kind, idx){
+  if (!items.length){
+    return '<div class="text-danger small">Nothing chosen yet — this rule can never match.</div>';
+  }
+  return '<div class="d-flex flex-wrap gap-1">' + items.map((it, j) => `
+    <span class="badge text-bg-light border">
+      ${esc(it.label || (it.product_id ? 'product #' + it.product_id : 'category #' + it.category_id))}
+      <a href="#" class="text-danger ms-1 drop-item" data-kind="${kind}" data-idx="${idx}"
+         data-j="${j}" title="Remove">&times;</a>
+    </span>`).join('') + '</div>';
+}
+
+function drawConditions(){
+  $('condList').innerHTML = RULES.conditions.map((c, i) => `
+    <div class="border rounded p-2 mb-2">
+      <div class="row g-2 align-items-end">
+        <div class="col-4 col-md-2">
+          <label class="form-label small mb-1">Quantity</label>
+          <input class="form-control form-control-sm cond-qty" type="number" min="0.01"
+                 step="0.01" data-idx="${i}" value="${c.min_qty || 1}">
+        </div>
+        <div class="col-8 col-md-5">
+          <label class="form-label small mb-1">Shown as (optional)</label>
+          <input class="form-control form-control-sm cond-label" data-idx="${i}"
+                 value="${esc(c.label || '')}" placeholder="written from the items below">
+        </div>
+        <div class="col-12 col-md-5 text-md-end">
+          <button type="button" class="btn btn-outline-primary btn-sm pick-btn"
+                  data-kind="conditions" data-idx="${i}">
+            <i class="bi bi-plus"></i> Add product / category</button>
+          ${RULES.conditions.length > 1 ? `<button type="button"
+             class="btn btn-outline-danger btn-sm drop-rule" data-kind="conditions"
+             data-idx="${i}"><i class="bi bi-trash"></i></button>` : ''}
+        </div>
+      </div>
+      <div class="mt-2">${itemsHtml(c.items || [], 'conditions', i)}</div>
+    </div>`).join('') ||
+    '<div class="text-muted small">No buy rule yet — add one.</div>';
+}
+
+function drawRewards(){
+  const type = $('schemeType').value;
+  const money = type === 'buy_get_price';
+  const pct = type === 'buy_get_percent';
+  $('rewardList').innerHTML = RULES.rewards.map((r, i) => `
+    <div class="border rounded p-2 mb-2">
+      <div class="row g-2 align-items-end">
+        <div class="col-4 col-md-2">
+          <label class="form-label small mb-1">Quantity</label>
+          <input class="form-control form-control-sm rew-qty" type="number" min="0.01"
+                 step="0.01" data-idx="${i}" value="${r.qty || 1}">
+        </div>
+        <div class="col-4 col-md-3" ${(money || pct) ? '' : 'style="display:none"'}>
+          <label class="form-label small mb-1">${pct ? 'Discount %' : 'Price ₹'}</label>
+          <input class="form-control form-control-sm rew-value" type="number" min="0"
+                 step="0.01" data-idx="${i}" value="${r.value || 0}">
+        </div>
+        <div class="col-12 col-md-7 text-md-end">
+          <button type="button" class="btn btn-outline-primary btn-sm pick-btn"
+                  data-kind="rewards" data-idx="${i}">
+            <i class="bi bi-plus"></i> Add product / category</button>
+          ${RULES.rewards.length > 1 ? `<button type="button"
+             class="btn btn-outline-danger btn-sm drop-rule" data-kind="rewards"
+             data-idx="${i}"><i class="bi bi-trash"></i></button>` : ''}
+        </div>
+      </div>
+      <div class="mt-2">${itemsHtml(r.items || [], 'rewards', i)}</div>
+    </div>`).join('') ||
+    '<div class="text-muted small">No reward yet — add one.</div>';
+}
+
+function selectHtml(rows, chosen, blank){
+  return `<option value="">${blank}</option>` + rows.map((r) =>
+    `<option value="${r.id}" ${String(chosen) === String(r.id) ? 'selected' : ''}>${esc(r.name)}</option>`).join('');
+}
+
+function drawPlaces(){
+  $('placeList').innerHTML = RULES.places.map((p, i) => `
+    <div class="row g-2 align-items-end mb-2">
+      <div class="col-6 col-md-3">
+        <label class="form-label small mb-1">Company</label>
+        <select class="form-select form-select-sm place-f" data-idx="${i}" data-f="company_id">
+          ${selectHtml(PLACES.companies, p.company_id, 'any')}</select>
+      </div>
+      <div class="col-6 col-md-3">
+        <label class="form-label small mb-1">Store</label>
+        <select class="form-select form-select-sm place-f" data-idx="${i}" data-f="location_id">
+          ${selectHtml(PLACES.locations, p.location_id, 'any')}</select>
+      </div>
+      <div class="col-6 col-md-3">
+        <label class="form-label small mb-1">Counter</label>
+        <select class="form-select form-select-sm place-f" data-idx="${i}" data-f="counter_id">
+          ${selectHtml(PLACES.counters, p.counter_id, 'any')}</select>
+      </div>
+      <div class="col-4 col-md-2">
+        <label class="form-label small mb-1" title="The warehouse the till was opened from">Warehouse #</label>
+        <input class="form-control form-control-sm place-f" data-idx="${i}"
+               data-f="warehouse_id" type="number" min="1" value="${p.warehouse_id || ''}" placeholder="any">
+      </div>
+      <div class="col-2 col-md-1">
+        <button type="button" class="btn btn-outline-danger btn-sm drop-rule"
+                data-kind="places" data-idx="${i}"><i class="bi bi-trash"></i></button>
+      </div>
+    </div>`).join('') ||
+    '<div class="text-muted small">Everywhere.</div>';
+}
+
+function drawAll(){ drawConditions(); drawRewards(); drawPlaces(); }
+
+// ---- edits -----------------------------------------------------------------
+document.addEventListener('input', (e) => {
+  const t = e.target;
+  if (t.classList.contains('cond-qty')) RULES.conditions[t.dataset.idx].min_qty = parseFloat(t.value) || 0;
+  if (t.classList.contains('cond-label')) RULES.conditions[t.dataset.idx].label = t.value;
+  if (t.classList.contains('rew-qty')) RULES.rewards[t.dataset.idx].qty = parseFloat(t.value) || 0;
+  if (t.classList.contains('rew-value')) RULES.rewards[t.dataset.idx].value = parseFloat(t.value) || 0;
+});
+document.addEventListener('change', (e) => {
+  const t = e.target;
+  if (t.classList.contains('place-f')){
+    RULES.places[t.dataset.idx][t.dataset.f] = t.value ? parseInt(t.value, 10) : null;
+  }
+});
+document.addEventListener('click', (e) => {
+  const drop = e.target.closest('.drop-item');
+  if (drop){
+    e.preventDefault();
+    RULES[drop.dataset.kind][drop.dataset.idx].items.splice(Number(drop.dataset.j), 1);
+    drawAll();
+    return;
+  }
+  const rule = e.target.closest('.drop-rule');
+  if (rule){
+    RULES[rule.dataset.kind].splice(Number(rule.dataset.idx), 1);
+    drawAll();
+  }
+});
+
+$('addCond').onclick = () => { RULES.conditions.push({min_qty: 1, label: '', items: []}); drawAll(); };
+$('addReward').onclick = () => { RULES.rewards.push({qty: 1, value: 0, items: []}); drawAll(); };
+$('addPlace').onclick = () => { RULES.places.push({}); drawAll(); };
+$('schemeType').onchange = drawRewards;
+
+// ---- the picker ------------------------------------------------------------
+const pickModal = new bootstrap.Modal($('pickModal'));
+let pickTarget = null, pickTab = 'cat', pickedProduct = null;
+
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('.pick-btn');
+  if (!b) return;
+  pickTarget = {kind: b.dataset.kind, idx: Number(b.dataset.idx)};
+  pickedProduct = null;
+  $('pickResults').innerHTML = '';
+  $('pickSearch').value = '';
+  pickModal.show();
+});
+
+document.querySelectorAll('#pickModal .nav-link').forEach((a) => {
+  a.onclick = (e) => {
+    e.preventDefault();
+    pickTab = a.dataset.tab;
+    document.querySelectorAll('#pickModal .nav-link').forEach((x) =>
+      x.classList.toggle('active', x === a));
+    $('tabCat').style.display = pickTab === 'cat' ? '' : 'none';
+    $('tabProd').style.display = pickTab === 'prod' ? '' : 'none';
+    if (pickTab === 'prod') $('pickSearch').focus();
+  };
+});
+
+let searchTimer = null;
+$('pickSearch').oninput = () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(async () => {
+    const q = $('pickSearch').value.trim();
+    const r = await fetch(`${SHOP_ROOT}/promotions/api/products?q=${encodeURIComponent(q)}`);
+    const rows = await r.json();
+    $('pickResults').innerHTML = rows.map((p) => `
+      <a href="#" class="list-group-item list-group-item-action prod-hit"
+         data-id="${p.id}" data-label="${esc(p.name + ' (' + p.sku + ')')}">
+        <div class="d-flex justify-content-between">
+          <div><strong>${esc(p.name)}</strong><br>
+            <small class="text-muted">${esc(p.sku)}${p.category ? ' · ' + esc(p.category) : ''}</small></div>
+          <div class="text-end small">₹${Number(p.price || 0).toFixed(2)}<br>
+            <span class="${p.stock > 0 ? 'text-muted' : 'text-danger'}">stock ${p.stock}</span></div>
+        </div></a>`).join('') ||
+      '<div class="list-group-item text-muted">Nothing matches.</div>';
+  }, 200);
+};
+
+document.addEventListener('click', (e) => {
+  const hit = e.target.closest('.prod-hit');
+  if (!hit) return;
+  e.preventDefault();
+  pickedProduct = {product_id: Number(hit.dataset.id), label: hit.dataset.label};
+  document.querySelectorAll('.prod-hit').forEach((x) => x.classList.remove('active'));
+  hit.classList.add('active');
+});
+
+$('pickConfirm').onclick = () => {
+  if (!pickTarget) return;
+  let item = null;
+  if (pickTab === 'prod'){
+    item = pickedProduct;
+  } else {
+    const opt = $('pickCategory').selectedOptions[0];
+    if (opt) item = {category_id: Number(opt.value), label: 'any ' + opt.dataset.name};
+  }
+  if (!item){ alert('Choose something first.'); return; }
+  const list = RULES[pickTarget.kind][pickTarget.idx];
+  list.items = list.items || [];
+  list.items.push(item);
+  drawAll();
+  pickModal.hide();
+};
+
+// ---- try it ----------------------------------------------------------------
+let TRY = [];
+function drawTry(){
+  $('tryList').innerHTML = TRY.map((t, i) => `
+    <div class="d-flex gap-2 align-items-center mb-1">
+      <span class="badge text-bg-light border flex-grow-1 text-start">${esc(t.label)}</span>
+      <input class="form-control form-control-sm try-qty" style="width:90px" type="number"
+             min="1" step="1" data-i="${i}" value="${t.quantity}">
+      <button type="button" class="btn btn-outline-danger btn-sm try-drop" data-i="${i}">
+        <i class="bi bi-x"></i></button>
+    </div>`).join('');
+}
+document.addEventListener('input', (e) => {
+  if (e.target.classList.contains('try-qty')) TRY[e.target.dataset.i].quantity = parseFloat(e.target.value) || 1;
+});
+document.addEventListener('click', (e) => {
+  const d = e.target.closest('.try-drop');
+  if (d){ TRY.splice(Number(d.dataset.i), 1); drawTry(); }
+});
+$('addTry').onclick = () => {
+  pickTarget = {kind: '__try__'};
+  pickedProduct = null;
+  $('pickResults').innerHTML = '';
+  $('pickSearch').value = '';
+  document.querySelector('#pickModal .nav-link[data-tab="prod"]').click();
+  pickModal.show();
+};
+// The try list takes products only — a pretend cart holds garments, not
+// categories — so it borrows the picker and intercepts the confirm.
+const realConfirm = $('pickConfirm').onclick;
+$('pickConfirm').onclick = () => {
+  if (pickTarget && pickTarget.kind === '__try__'){
+    if (!pickedProduct){ alert('Choose a product.'); return; }
+    TRY.push({product_id: pickedProduct.product_id, label: pickedProduct.label, quantity: 1});
+    drawTry();
+    pickModal.hide();
+    return;
+  }
+  realConfirm();
+};
+
+$('runTry').onclick = async () => {
+  if (!TRY.length){ $('tryOut').innerHTML = '<span class="text-muted">Add an item first.</span>'; return; }
+  $('tryOut').innerHTML = '<span class="text-muted">Checking…</span>';
+  const r = await fetch(`${SHOP_ROOT}/promotions/api/preview`, {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({items: TRY.map((t) => ({product_id: t.product_id, quantity: t.quantity}))}),
+  });
+  const j = await r.json();
+  const awards = (j.awards || []).map((a) => `
+    <div class="alert alert-success py-2 mb-1">
+      <strong>${esc(a.name)}</strong> × ${a.times} —
+      ${a.rewards.map((x) => esc(x.name) + ' × ' + x.qty + (x.free ? ' FREE' : ' at ₹' + x.unit_price)).join(', ')}
+      <span class="text-muted">(worth ₹${Number(a.benefit).toFixed(2)})</span>
+      ${a.note ? '<div class="small">' + esc(a.note) + '</div>' : ''}
+    </div>`).join('');
+  const notices = (j.notices || []).map((n) =>
+    `<div class="alert alert-warning py-2 mb-1">${esc(n.message)}</div>`).join('');
+  $('tryOut').innerHTML = (awards + notices) ||
+    '<div class="alert alert-secondary py-2 mb-0">This cart earns nothing. ' +
+    'Unsaved edits on this page are not included — the check runs against what ' +
+    'is stored.</div>';
+};
+
+// ---- submit ----------------------------------------------------------------
+$('schemeForm').addEventListener('submit', (e) => {
+  const bad = RULES.conditions.some((c) => !(c.items || []).length)
+           || RULES.rewards.some((r) => !(r.items || []).length)
+           || !RULES.conditions.length || !RULES.rewards.length;
+  if (bad){
+    e.preventDefault();
+    alert('Every buy rule and every reward needs at least one product or category.');
+    return;
+  }
+  $('conditionsJson').value = JSON.stringify(RULES.conditions);
+  $('rewardsJson').value = JSON.stringify(RULES.rewards);
+  $('placesJson').value = JSON.stringify(RULES.places);
+});
+
+if (!RULES.conditions.length) RULES.conditions.push({min_qty: 1, label: '', items: []});
+if (!RULES.rewards.length) RULES.rewards.push({qty: 1, value: 0, items: []});
+drawAll();
+drawTry();
+</script>
+{% endblock %}

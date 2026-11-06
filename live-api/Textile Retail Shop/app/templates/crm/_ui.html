@@ -1,0 +1,77 @@
+{# The pieces every CRM screen is built from, so they read as one module.
+   {% from "crm/_ui.html" import tabs, stat, status, customer_lookup with context %} #}
+
+{# Tabs across the top of a screen with several parts (the reference software's
+   Scheme / Transaction History / Search). Each is its own URL, so a tab can be
+   bookmarked and the browser's Back goes where it should. #}
+{% macro tabs(items) %}
+<ul class="nav nav-tabs mb-3 d-print-none">
+  {% for endpoint, label, icon in items %}
+  <li class="nav-item">
+    <a class="nav-link {{ 'active' if request.endpoint == endpoint }}" href="{{ url_for(endpoint) }}"
+       {% if request.endpoint == endpoint %}aria-current="page"{% endif %}>
+      {% if icon %}<i class="bi {{ icon }}"></i> {% endif %}{{ label }}</a>
+  </li>
+  {% endfor %}
+</ul>
+{% endmacro %}
+
+{# A figure tile, in the same colour families the dashboard uses:
+   count · money · stock · move · back · adjust #}
+{% macro stat(label, value, tone='count', hint=None) %}
+<div class="stat-card card p-3 t-{{ tone }} h-100" {% if hint %}title="{{ hint }}"{% endif %}>
+  <div class="label">{{ label }}</div>
+  <div class="value">{{ value }}</div>
+</div>
+{% endmacro %}
+
+{% macro status(s) %}{% set _tone = {
+  'new': 'pending', 'confirmed': 'info', 'in_progress': 'info', 'ready': 'success',
+  'delivered': 'success', 'cancelled': 'danger',
+  'waiting': 'pending', 'attending': 'info', 'billed': 'success', 'left': 'neutral',
+  'contacted': 'info', 'interested': 'pending', 'won': 'success', 'lost': 'danger',
+  'valid': 'success', 'active': 'success', 'expired': 'neutral', 'used': 'neutral',
+  'withdrawn': 'danger', 'spent': 'neutral', 'part-spent': 'info',
+} %}<span class="status-badge {{ _tone.get(s, 'neutral') }} sm">{{ (s or '')|replace('_', ' ') }}</span>{% endmacro %}
+
+{# A mobile-number box that finds the customer as it is typed and fills the
+   name beside it. `prefix` names the inputs: <prefix>_phone, <prefix>_name and
+   a hidden <prefix>_id. #}
+{% macro customer_lookup(prefix='customer', phone='', name='', cid='', required=True) %}
+<div class="row g-2">
+  <div class="col-md-5"><label class="form-label small">Mobile{{ ' *' if required }}</label>
+    <input class="form-control form-control-sm cl-phone" name="{{ prefix }}_phone" value="{{ phone }}"
+           inputmode="tel" autocomplete="off" {{ 'required' if required }} data-prefix="{{ prefix }}"></div>
+  <div class="col-md-7"><label class="form-label small">Customer name{{ ' *' if required }}</label>
+    <input class="form-control form-control-sm" name="{{ prefix }}_name" id="{{ prefix }}_name" value="{{ name }}" {{ 'required' if required }}></div>
+  <input type="hidden" name="{{ prefix }}_id" id="{{ prefix }}_id" value="{{ cid }}">
+  <div class="col-12 small" id="{{ prefix }}_hint" style="min-height:1.2em"></div>
+</div>
+{% endmacro %}
+
+{% macro customer_lookup_script() %}
+<script>
+// Finds a customer by mobile as it is typed — the same lookup Floor Sales uses.
+document.querySelectorAll('.cl-phone').forEach((el) => {
+  const p = el.dataset.prefix, hint = document.getElementById(p + '_hint');
+  let t = null;
+  el.addEventListener('input', () => {
+    clearTimeout(t);
+    document.getElementById(p + '_id').value = '';
+    const q = el.value.trim();
+    if (q.length < 6){ hint.innerText = ''; return; }
+    t = setTimeout(async () => {
+      try {
+        const j = await (await fetch(`${SHOP_ROOT}/orders/api/customer?q=${encodeURIComponent(q)}`)).json();
+        if (j.id){
+          document.getElementById(p + '_id').value = j.id;
+          document.getElementById(p + '_name').value = j.name;
+          hint.innerHTML = `<span class="text-success"><i class="bi bi-check-circle"></i> ${j.name} · ${j.code}${j.city ? ' · ' + j.city : ''} · ${j.points} pts</span>`;
+          el.dispatchEvent(new CustomEvent('customer', {detail: j}));
+        } else hint.innerHTML = '<span class="text-muted">New customer — they will be added with this name.</span>';
+      } catch (e){ hint.innerText = ''; }
+    }, 250);
+  });
+});
+</script>
+{% endmacro %}

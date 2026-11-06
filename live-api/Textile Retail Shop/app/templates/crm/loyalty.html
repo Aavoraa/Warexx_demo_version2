@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% from "crm/_ui.html" import stat %}
+{% block content %}
+{% set a = request.args %}
+<div class="page-head">
+  <h4><i class="bi bi-award"></i> Loyalty Management</h4>
+  <a href="{{ url_for('loyalty.export', **a) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-download"></i> CSV</a>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-md-3">{{ stat('Points held', '{:,.0f}'.format(outstanding), 'adjust', 'Every customer\'s balance added up') }}</div>
+  <div class="col-6 col-md-3">{{ stat('Customers holding points', '{:,}'.format(holders), 'count') }}</div>
+  <div class="col-6 col-md-3">{{ stat('Earn rate', '%g'|format(config.LOYALTY_EARN_RATE * 100) ~ '%', 'move', 'Of every bill of ₹' ~ '%g'|format(config.LOYALTY_MIN_BILL) ~ ' or more') }}</div>
+  <div class="col-6 col-md-3">{{ stat('One point is worth', '₹' ~ '%g'|format(config.LOYALTY_POINT_VALUE), 'money') }}</div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-3">
+    <form class="card p-3">
+      <label class="form-label small">Card no</label>
+      <input class="form-control form-control-sm mb-2" name="card" value="{{ a.get('card', '') }}">
+      <label class="form-label small">Mobile no</label>
+      <input class="form-control form-control-sm mb-2" name="mobile" inputmode="tel" value="{{ a.get('mobile', '') }}" autofocus>
+      <label class="form-label small">Email ID</label>
+      <input class="form-control form-control-sm mb-2" name="email" value="{{ a.get('email', '') }}">
+      <label class="form-label small">Customer name</label>
+      <input class="form-control form-control-sm mb-2" name="name" value="{{ a.get('name', '') }}">
+      <label class="form-label small">Bill date</label>
+      <div class="input-group input-group-sm mb-2">
+        <input class="form-control" type="date" name="from" value="{{ a.get('from', '') }}" aria-label="From">
+        <input class="form-control" type="date" name="to" value="{{ a.get('to', '') }}" aria-label="To">
+      </div>
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" name="summary" value="1" id="fSummary" {{ 'checked' if summary }}>
+        <label class="form-check-label small" for="fSummary">Show summary <span class="text-muted">(one row per customer; untick for every transaction)</span></label>
+      </div>
+      <button class="btn btn-brand btn-sm"><i class="bi bi-search"></i> Search</button>
+    </form>
+  </div>
+
+  <div class="col-lg-9">
+    {% if summary or not filtered %}
+    <div class="card">
+      <div class="card-header">{{ 'Customers' if filtered else 'Top balances' }}{% if a.get('from') or a.get('to') %} <span class="small text-muted">· earned and redeemed within the dates</span>{% endif %}</div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+          <thead><tr><th>Card</th><th>Customer</th><th>Mobile</th><th class="text-end">Earned</th><th class="text-end">Redeemed</th><th class="text-end">Adjusted</th><th class="text-end">Balance</th><th class="text-end">Worth</th>{% if current_user.is_manager %}<th></th>{% endif %}</tr></thead>
+          <tbody>
+            {% for c in customers %}
+            {% set p = points.get(c.id, (0, 0, 0)) %}
+            <tr>
+              <td class="small font-monospace">{{ c.card_no }}</td>
+              <td><a href="{{ url_for('customers.view_customer', cid=c.id) }}">{{ c.name }}</a>
+                {% if c.loyalty_disabled %}<span class="status-badge neutral sm">loyalty off</span>{% endif %}</td>
+              <td>{{ c.phone or '—' }}</td>
+              <td class="text-end text-success">{{ '%g'|format(p[0]) }}</td>
+              <td class="text-end">{{ '%g'|format(p[1]) }}</td>
+              <td class="text-end">{{ '%+g'|format(p[2]) if p[2] else '—' }}</td>
+              <td class="text-end fw-semibold">{{ '%.0f'|format(c.loyalty_points or 0) }}</td>
+              <td class="text-end">{{ ((c.loyalty_points or 0) * config.LOYALTY_POINT_VALUE)|inr }}</td>
+              {% if current_user.is_manager %}
+              <td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary adj" data-id="{{ c.id }}" data-name="{{ c.name }}" title="Correct the points"><i class="bi bi-plus-slash-minus"></i></button></td>
+              {% endif %}
+            </tr>
+            {% else %}
+            <tr><td colspan="9" class="text-center text-muted p-4">{{ 'No customer matches.' if filtered else 'Nobody holds points yet.' }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% else %}
+    <div class="card">
+      <div class="card-header">Transactions</div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+          <thead><tr><th>Date</th><th>Customer</th><th>Bill</th><th>Reason</th><th class="text-end">Points</th></tr></thead>
+          <tbody>
+            {% for t in ledger %}
+            {% set c = by_id.get(t.customer_id) %}
+            <tr>
+              <td class="text-nowrap">{{ t.created_at|dmy }}</td>
+              <td>{{ c.name if c else '—' }}</td>
+              <td>{% if t.invoice_id and bills.get(t.invoice_id) %}<a href="{{ url_for('pos.view_invoice', iid=t.invoice_id) }}">{{ bills[t.invoice_id].invoice_number }}</a>{% else %}—{% endif %}</td>
+              <td class="small">{{ t.reason }}</td>
+              <td class="text-end {{ 'text-success' if t.points > 0 else 'text-danger' }}">{{ '%+g'|format(t.points) }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted p-4">No points earned or spent in this window.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% if current_user.is_manager %}
+<div class="modal fade" id="adjModal" tabindex="-1" aria-labelledby="adjTitle" aria-hidden="true">
+  <div class="modal-dialog modal-sm"><form method="post" action="{{ url_for('loyalty.adjust') }}" class="modal-content">
+    <div class="modal-header"><h6 class="modal-title" id="adjTitle">Correct points</h6><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-body">
+      <input type="hidden" name="customer_id" id="adjId">
+      <div class="small mb-2" id="adjName"></div>
+      <label class="form-label small">Points (+ to add, − to take off)</label>
+      <input class="form-control form-control-sm mb-2" type="number" step="any" name="points" required>
+      <label class="form-label small">Reason</label>
+      <input class="form-control form-control-sm" name="reason" maxlength="48" required placeholder="e.g. points missed on bill INV-…">
+    </div>
+    <div class="modal-footer"><button class="btn btn-brand btn-sm">Save</button></div>
+  </form></div>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelectorAll('.adj').forEach((b) => b.onclick = () => {
+  document.getElementById('adjId').value = b.dataset.id;
+  document.getElementById('adjName').innerText = b.dataset.name;
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('adjModal')).show();
+});
+</script>
+{% endblock %}

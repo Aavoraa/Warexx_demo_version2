@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% from "crm/_ui.html" import status %}
+{% block content %}
+{% include "crm/vouchers/_head.html" %}
+<div class="row g-3">
+  <div class="col-lg-3">
+    <form class="card p-3">
+      <label class="form-label small">Voucher number</label>
+      <div class="input-group input-group-sm">
+        <input class="form-control" name="q" value="{{ q }}" autofocus placeholder="GV…, GVS-… or a mobile">
+        <button class="btn btn-brand" title="Search" aria-label="Search"><i class="bi bi-search"></i></button>
+      </div>
+      <p class="small text-muted mt-2 mb-0">A voucher's code, the sale number on the receipt, or the buyer's or recipient's mobile.</p>
+    </form>
+  </div>
+  <div class="col-lg-9">
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+          <thead><tr><th>Mobile</th><th>Code</th><th>Issued on</th><th>Valid upto</th><th class="text-end">Value</th><th class="text-end">Claimed</th><th class="text-end">Unclaim</th><th>Claim detail</th><th>Mobile no</th><th>Name</th><th class="text-end">Action</th></tr></thead>
+          <tbody>
+            {% for v, used, left, claims, st in rows %}
+            <tr>
+              <td>{{ v.batch.customer.phone if v.batch.customer and v.batch.customer.phone else '—' }}</td>
+              <td class="font-monospace small"><a href="{{ url_for('giftvouchers.batch', bid=v.batch_id) }}">{{ v.code }}</a><br>{{ status(st) }}</td>
+              <td class="text-nowrap">{{ v.batch.issued_on|dmy }}</td>
+              <td class="text-nowrap">{{ v.batch.valid_to|dmy if v.batch.valid_to else '—' }}</td>
+              <td class="text-end">{{ v.value|inr }}</td>
+              <td class="text-end">{{ used|inr }}</td>
+              <td class="text-end fw-semibold">{{ left|inr }}</td>
+              <td class="small">
+                {% for p, inv in claims %}
+                  <div><a href="{{ url_for('pos.view_invoice', iid=inv.id) }}">{{ inv.invoice_number }}</a> · {{ inv.invoice_date|dmy }} · {{ p.amount|inr }}{% if inv.is_cancelled %} <span class="status-badge danger sm">cancelled</span>{% endif %}</div>
+                {% else %}—{% endfor %}
+              </td>
+              <td>{{ v.given_to_phone or '—' }}</td>
+              <td>{{ v.given_to or (v.batch.customer.name if v.batch.customer else '—') }}</td>
+              <td class="text-end text-nowrap">
+                <a href="{{ url_for('giftvouchers.batch', bid=v.batch_id) }}" class="btn btn-sm btn-outline-secondary" title="Reprint"><i class="bi bi-printer"></i></a>
+                {% if current_user.is_manager and v.active and left > 0 %}
+                <form method="post" action="{{ url_for('giftvouchers.withdraw', vid=v.id) }}" class="d-inline" onsubmit="return confirm('Cancel {{ v.code }}? What is left on it can no longer be spent.')">
+                  <button class="btn btn-sm btn-outline-danger" title="Cancel voucher"><i class="bi bi-x-circle"></i></button></form>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="11" class="text-center text-muted p-4">{{ 'No voucher matches “' ~ q ~ '”.' if q else 'Enter a voucher number to see its history.' }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

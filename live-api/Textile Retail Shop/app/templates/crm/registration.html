@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h4><i class="bi bi-qr-code"></i> Self Registration</h4>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener" href="{{ link }}"><i class="bi bi-phone"></i> Open the form</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('registration.poster', location_id=loc.id if loc else None) }}"><i class="bi bi-printer"></i> Print QR poster</a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="card p-3 mb-3 text-center">
+      <div class="fw-semibold mb-1">Sign-up QR</div>
+      <form class="mb-2"><select class="form-select form-select-sm" name="location_id" onchange="this.form.submit()" aria-label="Branch">
+        {% for l in locations %}<option value="{{ l.id }}" {{ 'selected' if loc and loc.id == l.id }}>{{ l.name }}</option>{% endfor %}
+        {% if not locations %}<option>This store</option>{% endif %}
+      </select></form>
+      <div class="mx-auto" style="max-width:200px">{{ link | qr }}</div>
+      <div class="small text-muted mt-2 text-break">{{ link }}</div>
+      <p class="small text-muted mt-2 mb-0">Customers scan it at the door or the counter and sign themselves up. Each branch has its own QR, so a sign-up is filed under the branch it came from.</p>
+    </div>
+    {% if recent %}
+    <div class="card">
+      <div class="card-header">Latest sign-ups</div>
+      <ul class="list-group list-group-flush">
+        {% for c in recent %}<li class="list-group-item small d-flex justify-content-between">
+          <a href="{{ url_for('customers.view_customer', cid=c.id) }}">{{ c.name }}</a><span class="text-muted">{{ c.created_at|dmy }}</span></li>{% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-8">
+    <form method="post" action="{{ url_for('registration.review') }}" class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span>Waiting for approval <span class="badge text-bg-warning">{{ pending|length }}</span></span>
+        {% if pending %}<div class="d-flex gap-2">
+          <button class="btn btn-sm btn-brand" name="action" value="approve"><i class="bi bi-check2"></i> Approve ticked</button>
+          <button class="btn btn-sm btn-outline-danger" name="action" value="reject" onclick="return confirm('Reject the ticked sign-ups? They are kept as inactive customers.')">Reject</button>
+        </div>{% endif %}
+      </div>
+      <div class="table-responsive" style="max-height:320px">
+        <table class="table table-sm table-hover mb-0 align-middle">
+          <thead><tr><th style="width:32px"><input type="checkbox" class="form-check-input" id="tickAll" aria-label="Tick all"></th><th>Name</th><th>Mobile</th><th>City · area</th><th>Branch</th><th>Signed up</th><th></th></tr></thead>
+          <tbody>
+            {% for c in pending %}
+            <tr><td><input type="checkbox" class="form-check-input tick" name="ids" value="{{ c.id }}" aria-label="Tick {{ c.name }}"></td>
+              <td>{{ c.name }}{% if c.source == 'self' %} <span class="status-badge info sm">QR</span>{% endif %}</td><td>{{ c.phone }}</td>
+              <td class="small">{{ [c.city, c.area]|select|join(' · ') or '—' }}</td>
+              <td class="small">{{ c.registered_location.name if c.registered_location else '—' }}</td>
+              <td class="small text-nowrap">{{ c.created_at|dmy }}</td>
+              <td class="text-end"><a href="{{ url_for('customers.edit_customer', cid=c.id) }}" class="btn btn-sm btn-outline-secondary" title="Open and complete"><i class="bi bi-pencil"></i></a></td></tr>
+            {% else %}
+            <tr><td colspan="7" class="text-center text-muted p-3 small">Nobody is waiting.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </form>
+
+    <form method="post" class="card p-3">
+      <div class="fw-semibold mb-2">Registration form configuration</div>
+      <div class="row g-2">
+        <div class="col-md-6"><label class="form-label small">Title</label>
+          <input class="form-control form-control-sm" name="title" maxlength="80" value="{{ cfg.title }}"></div>
+        <div class="col-md-6"><label class="form-label small">Put new sign-ups in the category</label>
+          <input class="form-control form-control-sm" name="customer_category" list="dlCat" value="{{ cfg.customer_category }}" placeholder="None">
+          <datalist id="dlCat">{% for x in categories %}<option value="{{ x }}">{% endfor %}</datalist></div>
+        <div class="col-12"><label class="form-label small">Introduction</label>
+          <textarea class="form-control form-control-sm" name="intro" rows="2" maxlength="300">{{ cfg.intro }}</textarea></div>
+        <div class="col-12"><label class="form-label small">After signing up</label>
+          <textarea class="form-control form-control-sm" name="thanks" rows="2" maxlength="300">{{ cfg.thanks }}</textarea></div>
+      </div>
+      <div class="table-responsive mt-3">
+        <table class="table table-sm mb-0 align-middle">
+          <thead><tr><th>Field</th><th class="text-center">Off</th><th class="text-center">Optional</th><th class="text-center">Required</th></tr></thead>
+          <tbody>
+            <tr class="text-muted"><td class="small">Name and mobile</td><td></td><td></td><td class="text-center"><i class="bi bi-check2"></i></td></tr>
+            {% for key, label in fields %}
+            <tr><td class="small">{{ label }}</td>
+              {% for v in ['off', 'optional', 'required'] %}
+              <td class="text-center"><input class="form-check-input" type="radio" name="f_{{ key }}" value="{{ v }}" {{ 'checked' if cfg.fields.get(key, 'off') == v }} aria-label="{{ label }}: {{ v }}"></td>
+              {% endfor %}</tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="form-check mt-3"><input class="form-check-input" type="checkbox" name="auto_approve" id="fAuto" {{ 'checked' if cfg.auto_approve }}>
+        <label class="form-check-label small" for="fAuto">Approve sign-ups by themselves <span class="text-muted">(otherwise they wait here for a manager)</span></label></div>
+      <div class="mt-3"><button class="btn btn-brand btn-sm"><i class="bi bi-save"></i> Save form</button></div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const ta = document.getElementById('tickAll');
+if (ta) ta.addEventListener('change', (e) => document.querySelectorAll('.tick').forEach((t) => { t.checked = e.target.checked; }));
+</script>
+{% endblock %}

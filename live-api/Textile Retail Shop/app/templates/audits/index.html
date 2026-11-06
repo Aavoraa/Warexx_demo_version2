@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block content %}
+{# Badge colours follow the design's status groups: in progress and awaiting
+   review are pending (amber), approved is done (green), cancelled is rose. #}
+{% set BADGE = {'not_started':'secondary','in_progress':'warning','completed':'info',
+                'reviewed':'warning','approved':'success','cancelled':'danger'} %}
+
+<div class="page-head">
+  <h4 class="mb-0"><i class="bi bi-clipboard-check"></i> Physical stock audit</h4>
+</div>
+
+<p class="text-muted small">
+  Count a floor against the books: <strong>select floor → scan each tag → enter
+  what is there → complete → review → approve → adjust</strong>. Counting changes
+  no stock. Only an approved count may correct the ledger, and when it does it
+  writes a movement per product rather than overwriting a figure.
+</p>
+
+{% if unplaced %}
+<div class="alert alert-info py-2 small">
+  <i class="bi bi-info-circle"></i>
+  <strong>{{ unplaced }} product(s) are not on a floor yet.</strong> Nothing knows
+  where they are held until somebody says — and the count is what says it: scan a
+  garment while counting a floor and it is recorded as held there from then on. So
+  a first count starts with an empty list and fills as you walk. You can also set
+  a product's floor on its page in <b>Inventory</b>.
+</div>
+{% endif %}
+
+<div class="card mb-4">
+  <div class="card-header"><h6 class="mb-0"><i class="bi bi-layers"></i> Floors</h6></div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle">
+      <thead><tr>
+        <th>Store</th><th>Floor</th><th class="text-end">Products held</th>
+        <th>Audit status</th><th>Last count</th><th style="width:230px"></th>
+      </tr></thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td class="small">{{ r.floor.location.name if r.floor.location else '—' }}</td>
+          <td><strong>{{ r.floor.name }}</strong>
+            {% if r.floor.prefix %}<span class="badge text-bg-light border">{{ r.floor.prefix }}</span>{% endif %}</td>
+          <td class="text-end">{{ r.products }}</td>
+          <td><span class="badge text-bg-{{ BADGE.get(r.status, 'secondary') }}">
+            {{ r.status.replace('_', ' ') }}</span></td>
+          <td class="small">
+            {% if r.audit %}
+              <a href="{{ url_for('audits.detail', aid=r.audit.id) }}">{{ r.audit.number }}</a>
+              · {{ r.audit.started_at|dmy }}
+              {% if r.audit.adjusted_at %}<span class="badge text-bg-success">adjusted</span>{% endif %}
+            {% else %}<span class="text-muted">never counted</span>{% endif %}
+          </td>
+          <td class="text-end">
+            {% if r.status == 'in_progress' %}
+            <a href="{{ url_for('audits.detail', aid=r.audit.id) }}"
+               class="btn btn-brand btn-sm"><i class="bi bi-play"></i> Continue counting</a>
+            {% else %}
+            <form method="post" action="{{ url_for('audits.start') }}" class="d-inline">
+              <input type="hidden" name="floor_id" value="{{ r.floor.id }}">
+              <button class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-clipboard-plus"></i> Start count</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-center text-muted p-4">
+          No floors yet. They come from the warehouse's <b>Locations</b> screen —
+          add a floor under a store and it appears here.
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><h6 class="mb-0"><i class="bi bi-clock-history"></i> Audit history</h6>
+    <div class="panel-sub">Every count ever taken, newest first. Open one to see
+      what was found — a completed count is kept exactly as it was, whatever the
+      stock figures have done since.</div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm mb-0 align-middle">
+      <thead><tr>
+        <th>Audit</th><th>Floor</th><th>Started</th><th>By</th>
+        <th class="text-end">Products</th><th class="text-end">System</th>
+        <th class="text-end">Physical</th><th class="text-end">Short</th>
+        <th class="text-end">Excess</th><th>Status</th><th>Adjusted</th>
+      </tr></thead>
+      <tbody>
+        {% for a in history %}
+        {% set s = a.summary %}
+        <tr>
+          <td><a href="{{ url_for('audits.detail', aid=a.id) }}"><code>{{ a.number }}</code></a></td>
+          <td class="small">{{ a.floor.name if a.floor else '—' }}
+            <span class="text-muted">{{ a.location.name if a.location else '' }}</span></td>
+          <td class="small text-nowrap">{{ a.started_at|dmy }}
+            {{ a.started_at.strftime('%H:%M') }}</td>
+          <td class="small">{{ a.started_by.full_name if a.started_by else '—' }}</td>
+          <td class="text-end">{{ s.counted }}/{{ s.products }}</td>
+          <td class="text-end">{{ s.system_qty }}</td>
+          <td class="text-end">{{ s.physical_qty }}</td>
+          <td class="text-end {% if s.shortage %}text-danger{% endif %}">{{ s.shortage or '—' }}</td>
+          <td class="text-end {% if s.excess %}text-success{% endif %}">{{ s.excess or '—' }}</td>
+          <td><span class="badge text-bg-{{ BADGE.get(a.status, 'secondary') }}">
+            {{ a.status.replace('_', ' ') }}</span></td>
+          <td class="small">{% if a.adjusted_at %}{{ a.adjusted_at|dmy }}
+            {% else %}<span class="text-muted">—</span>{% endif %}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="11" class="text-center text-muted p-4">No counts yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

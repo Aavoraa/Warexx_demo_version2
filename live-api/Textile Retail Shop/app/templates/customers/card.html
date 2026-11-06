@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Card — {{ customer.name }}{% endblock %}
+{% block content %}
+<div class="page-head d-print-none">
+  <h4><i class="bi bi-person-vcard"></i> Membership card</h4>
+  <div>
+    <button onclick="window.print()" class="btn btn-brand btn-sm"><i class="bi bi-printer"></i> Print card</button>
+    <a href="{{ url_for('customers.view_customer', cid=customer.id) }}" class="btn btn-outline-secondary btn-sm">Back</a>
+  </div>
+</div>
+
+<div class="cust-card">
+  <div class="cust-card-top">
+    <div class="cust-shop">{{ SHOP_NAME }}</div>
+    <div class="cust-tag">MEMBER</div>
+  </div>
+  <div class="cust-name">{{ customer.name }}</div>
+  <div class="cust-meta">
+    {% if customer.phone %}<span><i class="bi bi-telephone"></i> {{ customer.phone }}</span>{% endif %}
+    <span class="cust-points">{{ '%.0f' % customer.loyalty_points }} pts</span>
+  </div>
+  <div class="cust-bars">{{ customer.card_code | barcode }}</div>
+  <div class="cust-foot">Scan at billing counter · Card No. {{ customer.card_code }}</div>
+</div>
+
+<style>
+  .cust-card {
+    width: 340px; border: 1px solid #ccc; border-radius: 12px; padding: 16px;
+    background: #fff; color: #000; text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  }
+  .cust-card-top { display:flex; justify-content:space-between; align-items:center; }
+  .cust-shop { font-weight: 700; color: var(--brand-dark, #0B3D2E); }
+  .cust-tag { font-size: 10px; font-weight: 700; letter-spacing: 1px;
+              background: var(--brand-100, #E7F4EC); color: var(--brand, #0B3D2E);
+              border: 1px solid rgba(47,143,104,.3);
+              padding: 2px 8px; border-radius: 6px; }
+  .cust-name { font-size: 20px; font-weight: 700; margin: 10px 0 2px; }
+  .cust-meta { display:flex; justify-content:center; gap:12px; font-size: 13px; color:#444; margin-bottom: 10px; }
+  /* The accent as TEXT is its darker step, #257353 (5.7:1 on the white card,
+     here and in print); the lighter #2F8F68 is for marks, not words. */
+  .cust-points { font-weight: 700; color:#257353; }
+  .cust-bars svg { max-width: 100%; height: auto; }
+  .cust-foot { font-size: 11px; color:#666; margin-top: 6px; font-family: monospace; }
+  @media print {
+    .brand-nav, .alert, .d-print-none { display:none !important; }
+    body { background:#fff; }
+    .cust-card { box-shadow:none; border:1px solid #999; }
+  }
+</style>
+{% endblock %}

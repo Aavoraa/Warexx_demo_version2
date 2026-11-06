@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h4 class="mb-0"><i class="bi bi-list-ul"></i> Deliveries</h4>
+  <div class="d-flex flex-wrap gap-2">
+    <form class="d-flex gap-1">
+      <input class="form-control form-control-sm" name="q" value="{{ q }}" aria-label="Search deliveries"
+             placeholder="Delivery no, customer, phone" style="width:220px;max-width:100%;min-width:0">
+      <button class="btn btn-outline-secondary btn-sm">Search</button>
+    </form>
+    <a class="btn btn-brand btn-sm" href="{{ url_for('delivery.index') }}">New delivery</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle">
+      <thead><tr>
+        <th>Delivery</th><th>When</th><th>Customer</th><th>Bills</th>
+        <th class="text-end">Pieces</th><th class="text-center">Verified</th>
+        <th class="text-end">Value</th><th>Handed over by</th>
+      </tr></thead>
+      <tbody>
+        {% for n in notes %}
+        <tr>
+          <td><a href="{{ url_for('delivery.view', did=n.id) }}">{{ n.number }}</a></td>
+          <td class="small">{{ n.created_at.strftime('%d %b %Y, %H:%M') }}</td>
+          <td>{{ n.customer.name if n.customer else 'Walk-in' }}</td>
+          <td class="small">
+            {% for b in n.bills %}{{ b.invoice.invoice_number }}{% if not loop.last %}, {% endif %}{% endfor %}
+          </td>
+          <td class="text-end">{{ n.total_qty }}</td>
+          <td class="text-center">
+            {% if n.overridden_qty > 0 %}
+            <span class="badge text-bg-warning">{{ n.overridden_qty }} by hand</span>
+            {% else %}
+            <span class="badge text-bg-success">all scanned</span>
+            {% endif %}
+          </td>
+          <td class="text-end">{{ n.total_amount|inr }}</td>
+          <td class="small">{{ n.staff.full_name if n.staff else '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted py-5">
+          Nothing has been handed over yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

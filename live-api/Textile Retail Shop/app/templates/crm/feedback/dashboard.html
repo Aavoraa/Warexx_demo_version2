@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% from "crm/_ui.html" import stat %}
+{% block content %}
+<div class="page-head">
+  <h4><i class="bi bi-speedometer2"></i> Feedback Dashboard</h4>
+  <form class="d-flex gap-2 align-items-center flex-wrap">
+    <input class="form-control form-control-sm" type="date" name="from" value="{{ d_from.isoformat() }}" style="width:auto" aria-label="From">
+    <input class="form-control form-control-sm" type="date" name="to" value="{{ d_to.isoformat() }}" style="width:auto" aria-label="To">
+    <button class="btn btn-brand btn-sm">Show</button>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('crmfeedback.report', **request.args) }}"><i class="bi bi-clipboard-data"></i> Report</a>
+  </form>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-lg-3">{{ stat('Responses', '{:,}'.format(n), 'count') }}</div>
+  <div class="col-6 col-lg-3">{{ stat('Average rating', ('%.2f'|format(avg) ~ ' ★') if avg else '—', 'adjust') }}</div>
+  <div class="col-6 col-lg-3">{{ stat('Happy (4–5 ★)', ('%.0f'|format(happy / n * 100) ~ '%') if n else '—', 'stock', happy ~ ' responses') }}</div>
+  <div class="col-6 col-lg-3">{{ stat('Unhappy (' ~ alert_at ~ ' ★ or less)', ('%.0f'|format(unhappy / n * 100) ~ '%') if n else '—', 'back', unhappy ~ ' responses') }}</div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-8"><div class="card p-3 h-100">
+    <div class="fw-semibold mb-2">Day by day</div>
+    <div style="height:240px"><canvas id="chTrend" role="img" aria-label="Responses and average rating by day"></canvas></div>
+  </div></div>
+  <div class="col-lg-4"><div class="card p-3 h-100">
+    <div class="fw-semibold mb-2">Ratings</div>
+    {% for r in [5, 4, 3, 2, 1] %}
+    {% set c = dist.get(r, 0) %}
+    <div class="d-flex align-items-center gap-2 mb-2 small">
+      <span style="width:34px" class="text-nowrap">{{ r }} <span class="text-warning">★</span></span>
+      <div class="progress flex-grow-1" style="height:10px" role="progressbar" aria-label="{{ r }} stars" aria-valuenow="{{ c }}" aria-valuemin="0" aria-valuemax="{{ n }}">
+        <div class="progress-bar" style="width:{{ (c / n * 100) if n else 0 }}%;background:{{ 'var(--accent)' if r >= 4 else ('#D97706' if r == 3 else '#BE123C') }}"></div></div>
+      <span style="width:34px" class="text-end">{{ c }}</span>
+    </div>
+    {% endfor %}
+    <div class="small text-muted mt-2">
+      {% for k, label in sources.items() %}{{ label }} {{ by_source.get(k, 0) }}{{ ' · ' if not loop.last }}{% endfor %}
+    </div>
+  </div></div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7"><div class="card h-100">
+    <div class="card-header d-flex justify-content-between align-items-center"><span>Question by question</span>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('crmfeedback.questions') }}">Edit questions</a></div>
+    <div class="card-body">
+      {% for row in per_q %}
+      <div class="mb-3">
+        <div class="d-flex justify-content-between small"><span class="fw-semibold">{{ row.q.text }}{% if not row.q.active %} <span class="status-badge neutral sm">retired</span>{% endif %}</span>
+          <span class="text-muted">{{ row.count }} answer{{ 's' if row.count != 1 }}</span></div>
+        {% if row.q.kind == 'rating' %}
+          {% set pct = (row.score / 5 * 100) if row.score is not none else 0 %}
+          <div class="d-flex align-items-center gap-2"><div class="progress flex-grow-1" style="height:8px"><div class="progress-bar" style="width:{{ pct }}%;background:var(--accent)"></div></div>
+            <span class="small fw-semibold" style="width:56px">{{ ('%.2f'|format(row.score) ~ ' ★') if row.score is not none else '—' }}</span></div>
+        {% elif row.q.kind == 'yesno' %}
+          {% set pct = (row.score * 100) if row.score is not none else 0 %}
+          <div class="d-flex align-items-center gap-2"><div class="progress flex-grow-1" style="height:8px"><div class="progress-bar" style="width:{{ pct }}%;background:var(--accent)"></div></div>
+            <span class="small fw-semibold" style="width:56px">{{ ('%.0f'|format(pct) ~ '% yes') if row.score is not none else '—' }}</span></div>
+        {% elif row.q.kind == 'choice' %}
+          <div class="d-flex flex-wrap gap-1 mt-1">{% for o in row.q.option_list %}<span class="badge text-bg-info">{{ o }} · {{ row.choices.get(o, 0) }}</span>{% endfor %}</div>
+        {% else %}
+          {% for t in row.latest %}<div class="small text-muted">“{{ t }}”</div>{% else %}<div class="small text-muted">No answers yet.</div>{% endfor %}
+        {% endif %}
+      </div>
+      {% else %}
+      <div class="text-muted small">Only the overall star rating is asked. <a href="{{ url_for('crmfeedback.questions') }}">Add questions</a> to learn more — about staff, range, billing time, trial rooms.</div>
+      {% endfor %}
+    </div>
+  </div></div>
+  <div class="col-lg-5"><div class="card h-100">
+    <div class="card-header">Needs a call back <span class="small text-muted">· {{ alert_at }} ★ or less</span></div>
+    <div class="list-group list-group-flush">
+      {% for f in low %}
+      <div class="list-group-item small">
+        <div class="d-flex justify-content-between"><span><span class="text-warning">{{ '★' * f.rating }}</span><span class="text-muted">{{ '★' * (5 - f.rating) }}</span>
+          {% if f.customer %}<a href="{{ url_for('customers.view_customer', cid=f.customer_id) }}">{{ f.customer.name }}</a> · {{ f.customer.phone or '' }}{% else %}<span class="text-muted">walk-in</span>{% endif %}</span>
+          <span class="text-muted">{{ f.created_at|dmy }}</span></div>
+        {% if f.comments %}<div class="mt-1">“{{ f.comments }}”</div>{% endif %}
+        {% if f.invoice %}<div class="text-muted">Bill <a href="{{ url_for('pos.view_invoice', iid=f.invoice_id) }}">{{ f.invoice.invoice_number }}</a></div>{% endif %}
+      </div>
+      {% else %}
+      <div class="list-group-item small text-muted p-3">No unhappy customers in this window.</div>
+      {% endfor %}
+    </div>
+  </div></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const T = {{ trend | tojson }};
+const css = getComputedStyle(document.documentElement);
+const C1 = css.getPropertyValue('--viz-3').trim() || '#6FBF98', C2 = css.getPropertyValue('--viz-2').trim() || '#0B3D2E';
+new Chart(document.getElementById('chTrend'), {data: {labels: T.map((t) => t[0]), datasets: [
+  {type: 'bar', label: 'Responses', data: T.map((t) => t[1]), backgroundColor: C1, borderRadius: 3, yAxisID: 'y'},
+  {type: 'line', label: 'Average ★', data: T.map((t) => t[2]), borderColor: C2, backgroundColor: C2, spanGaps: true, tension: .3, pointRadius: 2, yAxisID: 'y1'},
+]}, options: {responsive: true, maintainAspectRatio: false, plugins: {legend: {position: 'bottom', labels: {boxWidth: 10}}},
+  scales: {x: {grid: {display: false}}, y: {beginAtZero: true, ticks: {precision: 0}}, y1: {position: 'right', min: 0, max: 5, grid: {display: false}}}}});
+</script>
+{% endblock %}

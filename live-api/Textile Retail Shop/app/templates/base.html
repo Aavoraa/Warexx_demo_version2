@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  {# First thing on the page, before any CSS: inside the Essa web app this shop is
+     drawn in an <iframe>, under Essa's own header, context bar and sidebar. The
+     class lets app.css turn this page's header into a slim white sub-bar there,
+     instead of a second dark header, with no flash of the wrong one. If the check
+     itself throws (a cross-origin parent in an old browser), we are framed. #}
+  <script>
+    try { if (window.self !== window.top) document.documentElement.classList.add('in-frame'); }
+    catch (e) { document.documentElement.classList.add('in-frame'); }
+  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+  <title>{% block title %}{{ SHOP_NAME }}{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  <meta name="theme-color" content="#0B3D2E">
+</head>
+<body>
+{% if current_user.is_authenticated %}
+{% set _who = (current_user.full_name or '').split() or (current_user.username or '').split() or ['?'] %}
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top brand-nav">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">
+      <span class="brand-logo" aria-hidden="true">W</span>
+      <span class="brand-text">
+        <span class="brand-name">{{ SHOP_NAME }} <span class="brand-tag d-none d-sm-inline">· POS</span></span>
+        <span class="brand-sub d-none d-md-block">Billing, stock and customers for this store</span>
+      </span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
+            aria-controls="nav" aria-expanded="false" aria-label="Open navigation menu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      {# One control instead of a row of eleven. It says which screen is open
+         even while shut, because a collapsed navigation that doesn't say where
+         you are is how someone loses the screen and opens the menu to find out.
+         Built from app/modules.py — the same list the dashboard's cards use.
+         Standalone it is a header control; inside the Essa frame, a breadcrumb
+         chip on the white sub-bar. #}
+      <span class="frame-title" aria-hidden="true"><i class="bi bi-shop"></i> Store</span>
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link nav-ctl dropdown-toggle d-flex align-items-center gap-2" href="#"
+             data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+            <span>{{ CURRENT_MODULE.label if CURRENT_MODULE else 'Dashboard' }}</span>
+          </a>
+          <ul class="dropdown-menu shadow" style="min-width:320px">
+            {# A Store user's two screens are the whole menu — the dashboard is
+               not one of them, and only forwards to the counter. #}
+            {% if not STORE_USER %}
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        {% if not CURRENT_MODULE %}active{% endif %}"
+                 href="{{ url_for('main.dashboard') }}">
+                <i class="bi bi-speedometer2 mt-1"></i>
+                <span><strong>Dashboard</strong><br>
+                  <small class="text-muted">Today's sales, low stock and the last few bills</small></span>
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            {% endif %}
+            {% for m in SHOP_MODULES %}
+            <li>
+              <a class="dropdown-item d-flex gap-2 align-items-start py-2
+                        {% if CURRENT_MODULE and CURRENT_MODULE.key == m.key %}active{% endif %}"
+                 href="{{ url_for(m.endpoint) }}">
+                <i class="bi {{ m.icon }} mt-1"></i>
+                <span><strong>{{ m.label }}</strong><br>
+                  <small class="text-muted">{{ m.blurb }}</small></span>
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </li>
+      </ul>
+      {# Inside Essa the account is Essa's, and Essa's own header already says who
+         is signed in — a second name chip in the frame only repeated it, and it
+         had no Logout to offer (app/sso). A Store opened on its own keeps it. #}
+      {% if not ESSA_SIGNED_IN %}
+      <ul class="navbar-nav align-items-lg-center">
+        <li class="nav-item dropdown">
+          <a class="nav-link user-chip dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false"
+             title="{{ current_user.full_name }}">
+            <span class="user-avatar" aria-hidden="true">{{ (_who[0][:1] ~ (_who[1][:1] if _who|length > 1 else ''))|upper }}</span>
+            <span class="user-meta">
+              <span class="user-role">{{ current_user.role }}</span>
+              <span class="user-name">{{ current_user.full_name }}</span>
+            </span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><h6 class="dropdown-header">{{ current_user.full_name }} · {{ current_user.role }}</h6></li>
+            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+          </ul>
+        </li>
+      </ul>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+{% endif %}
+
+<main class="container-fluid py-3">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ cat }} alert-dismissible fade show">
+        {{ msg }} <button class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+
+<script>
+  // Where the shop is mounted: '' when it runs on its own, '/pos' when it is
+  // served inside the Essa backend. Every same-app fetch is written against this
+  // — a hardcoded '/floor/…' is right standalone and 404s under the mount, where
+  // it lands on the backend's own routes instead of the shop's.
+  const SHOP_ROOT = {{ request.script_root | tojson }};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  // Every chart on every screen in the design's colours: gridlines in the border
+  // green-grey, 11px muted axis text, a dark-green tooltip. Set once, here, before
+  // any page draws a chart.
+  if (window.Chart) {
+    Chart.defaults.font.family = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    Chart.defaults.font.size = 11;
+    Chart.defaults.color = '#68756E';
+    Chart.defaults.borderColor = '#DCE5DF';
+    Object.assign(Chart.defaults.plugins.tooltip, {
+      backgroundColor: '#0B3D2E', titleColor: '#FFFFFF', bodyColor: '#E7F4EC',
+      cornerRadius: 8, padding: 8, displayColors: false,
+      titleFont: {size: 11, weight: '600'}, bodyFont: {size: 11},
+    });
+  }
+</script>
+{% block scripts %}{% endblock %}
+<script>
+  // Most forms put a <label> straight above its box without a for="…", so it
+  // reads right but a screen reader cannot tie the two together and clicking
+  // the label does nothing. Link each such label to the control that follows it.
+  document.querySelectorAll('label:not([for])').forEach(function (l) {
+    if (l.querySelector('input, select, textarea')) return;
+    var c = l.nextElementSibling;
+    if (c && !c.matches('input, select, textarea')) c = c.querySelector('input, select, textarea');
+    if (!c || c.type === 'hidden') return;
+    if (!c.id) c.id = 'fld-' + Math.random().toString(36).slice(2, 9);
+    l.htmlFor = c.id;
+  });
+</script>
+<script src="{{ url_for('static', filename='js/fit.js') }}"></script>
+</body>
+</html>

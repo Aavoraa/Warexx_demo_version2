@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+{% from "_pager.html" import pager with context %}
+{% block title %}Floor Products · {{ SHOP_NAME }}{% endblock %}
+{% block content %}
+{# where a move or a put-back returns to — with the mount's /pos in front of it #}
+{% set back = request.script_root + request.full_path %}
+{% set here_name = here.name if here else 'Not on a floor' %}
+<div class="page-head">
+  <div>
+    <h4><i class="bi bi-layers"></i> Floor Products</h4>
+    <div class="page-sub">What is kept on each floor, with its stock — and moving products from one floor to another</div>
+  </div>
+  {% if branches|length > 1 %}
+  <form class="d-print-none" method="get">
+    <select class="form-select" name="location" onchange="this.form.submit()" aria-label="Branch">
+      {% for b in branches %}
+      <option value="{{ b.id }}" {% if b.id == location_id %}selected{% endif %}>{{ b.name }}</option>
+      {% endfor %}
+    </select>
+  </form>
+  {% endif %}
+</div>
+
+{# ---- the floors, side by side: click one to see what is on it ---- #}
+<div class="fp-floors mb-3">
+  {% for fl in floors %}
+  {% set f = figures.get(fl.id, (0, 0, 0)) %}
+  <a class="fp-floor {% if floor_key == fl.id|string %}on{% endif %}"
+     href="{{ url_for('floorplan.index', location=location_id, floor=fl.id) }}">
+    <div class="fp-floorname"><i class="bi bi-layers"></i> {{ fl.name }}
+      {% if fl.prefix %}<span class="fp-prefix">{{ fl.prefix }}</span>{% endif %}</div>
+    <div class="fp-floornums">
+      <span><b>{{ "{:,}".format(f[0]) }}</b> products</span>
+      <span><b>{{ "{:,.0f}".format(f[1]) }}</b> pieces</span>
+      <span><b>{{ f[2]|inr }}</b> at cost</span>
+    </div>
+  </a>
+  {% endfor %}
+  {% set nf = figures.get(None, (0, 0, 0)) %}
+  <a class="fp-floor none {% if floor_key == 'none' %}on{% endif %}"
+     href="{{ url_for('floorplan.index', location=location_id, floor='none') }}">
+    <div class="fp-floorname"><i class="bi bi-question-circle"></i> Not on a floor</div>
+    <div class="fp-floornums">
+      <span><b>{{ "{:,}".format(nf[0]) }}</b> products</span>
+      <span><b>{{ "{:,.0f}".format(nf[1]) }}</b> pieces</span>
+    </div>
+  </a>
+</div>
+{% if not floors %}
+<div class="alert alert-info small"><i class="bi bi-info-circle"></i> No floors yet. They come from the
+  warehouse's <b>Locations</b> screen (or <b>Floors &amp; tills</b> here) — add a floor and it appears.</div>
+{% endif %}
+
+<div class="row g-3">
+  {# ---- what the floor holds, category by category ---- #}
+  <div class="col-xl-4">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-diagram-3"></i> On {{ here_name }}</h6>
+        <span class="panel-chip">{{ cats|length }} categor{{ 'y' if cats|length == 1 else 'ies' }}</span>
+      </div>
+      <div class="fp-cats">
+        {% for section, cat, n, pcs in cats %}
+        <div class="fp-cat">
+          <div class="fp-catname">
+            {% if section %}<span class="fp-section s-{{ section|lower }}">{{ section }}</span>{% endif %}
+            <a href="{{ url_for('floorplan.index', location=location_id, floor=floor_key, category=cat) }}">{{ cat or 'No category' }}</a>
+            <div class="small text-muted">{{ "{:,}".format(n) }} products · {{ "{:,.0f}".format(pcs) }} pieces</div>
+          </div>
+          {% if can_move and cat %}
+          <button type="button" class="btn btn-sm btn-outline-secondary fp-moveall"
+                  data-category="{{ cat }}" data-count="{{ n }}" title="Move every {{ cat }} product on this floor">
+            <i class="bi bi-arrow-left-right"></i> Move all</button>
+          {% endif %}
+        </div>
+        {% else %}
+        <div class="text-muted small p-3">Nothing is kept here yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  {# ---- the products themselves ---- #}
+  <div class="col-xl-8">
+    <form class="card p-3 mb-2 d-print-none" method="get">
+      <input type="hidden" name="location" value="{{ location_id or '' }}">
+      <input type="hidden" name="floor" value="{{ floor_key }}">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-4"><label class="form-label small mb-1">Name, SKU or barcode</label>
+          <input class="form-control form-control-sm" name="q" value="{{ filters.q }}" placeholder="e.g. boys shirt"></div>
+        <div class="col-md-2"><label class="form-label small mb-1">Section</label>
+          <select class="form-select form-select-sm" name="section">
+            <option value="">Any</option>
+            {% for s in sections %}<option {% if filters.section == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+          </select></div>
+        <div class="col-md-3"><label class="form-label small mb-1">Category</label>
+          <select class="form-select form-select-sm" name="category">
+            <option value="">Any</option>
+            {% for _s, c, _n, _p in cats if c %}<option {% if filters.category == c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+          </select></div>
+        <div class="col-md-2"><label class="form-label small mb-1">Stock</label>
+          <select class="form-select form-select-sm" name="stock">
+            <option value="">All</option>
+            <option value="in" {% if filters.stock == 'in' %}selected{% endif %}>In stock</option>
+            <option value="out" {% if filters.stock == 'out' %}selected{% endif %}>Out of stock</option>
+          </select></div>
+        <div class="col-md-1"><button class="btn btn-brand btn-sm w-100">Show</button></div>
+      </div>
+    </form>
+
+    <form method="post" action="{{ url_for('floorplan.move') }}" id="moveForm">
+      <input type="hidden" name="back" value="{{ back }}">
+      <input type="hidden" name="floor" value="{{ floor_key }}">
+      {% for k, v in filters.items() %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+      <input type="hidden" name="scope" id="scope" value="selected">
+      <input type="hidden" name="only_category" id="onlyCategory" value="">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h6 class="mb-0"><i class="bi bi-box-seam"></i> Products on {{ here_name }}</h6>
+          <span class="panel-chip">{{ "{:,}".format(page.total) }} matching</span>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0 align-middle fp-table">
+            <thead><tr>
+              {% if can_move %}<th style="width:32px"><input class="form-check-input" type="checkbox" id="pickAll" aria-label="Tick every product on this page"></th>{% endif %}
+              <th>SKU</th><th>Product</th><th>Category</th>
+              <th class="text-end">Price</th><th class="text-end">In stock</th>
+              <th class="text-end" title="Units sold in the last {{ sold_days }} days">Sold {{ sold_days }}d</th>
+            </tr></thead>
+            <tbody>
+              {% for p in page.items %}
+              {% set qty = p.stock_qty or 0 %}
+              <tr>
+                {% if can_move %}<td><input class="form-check-input fp-pick" type="checkbox" name="ids" value="{{ p.id }}" aria-label="Tick {{ p.name }}"></td>{% endif %}
+                <td><a href="{{ url_for('checker.index', code=p.sku) }}"><code>{{ p.sku }}</code></a></td>
+                <td>{{ p.name }}
+                  <div class="small text-muted">{{ [p.size, p.color, p.fabric, p.product_type] | select | join(' · ') }}</div></td>
+                <td class="small">{% if p.category %}{% if p.category.section %}<span class="fp-section s-{{ p.category.section|lower }}">{{ p.category.section }}</span> {% endif %}{{ p.category.name }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                <td class="text-end">{{ p.selling_price|inr }}</td>
+                <td class="text-end {% if qty <= 0 %}text-danger fw-semibold{% elif qty <= (p.reorder_level or 0) %}text-warning fw-semibold{% endif %}">
+                  {{ '{:g}'.format(qty) }} <span class="text-muted small">{{ p.unit }}</span></td>
+                <td class="text-end">{{ '{:g}'.format(sold.get(p.id, 0)) if sold.get(p.id) else '—' }}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="7" class="text-center text-muted p-4">No products here match.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% if can_move and page.total %}
+        <div class="fp-movebar">
+          <span class="fp-picked" id="picked">Tick products to move them</span>
+          <select class="form-select form-select-sm" name="to_floor" id="toFloor" aria-label="Move to floor" required>
+            <option value="">Move to…</option>
+            {% for fl in all_floors if fl.id|string != floor_key %}
+            <option value="{{ fl.id }}">{{ fl.name }}{% if branches|length > 1 %} · {{ fl.location.name }}{% endif %}</option>
+            {% endfor %}
+            {% if floor_key != 'none' %}<option value="none">No floor (unassign)</option>{% endif %}
+          </select>
+          <input class="form-control form-control-sm" name="note" placeholder="Note (optional)" maxlength="256">
+          <button class="btn btn-brand btn-sm" id="moveTicked" disabled><i class="bi bi-arrow-left-right"></i> Move ticked</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" id="moveMatching"
+                  title="Every product the filters above match, on every page">
+            Move all {{ "{:,}".format(page.total) }} matching</button>
+        </div>
+        {% endif %}
+      </div>
+    </form>
+    {{ pager(page) }}
+  </div>
+</div>
+
+{# ---- who moved what ---- #}
+<div class="card mt-3">
+  <div class="card-header"><h6 class="mb-0"><i class="bi bi-clock-history"></i> Recent moves</h6>
+    <div class="panel-sub">Every rearrangement, newest first. Putting one back returns each product to the floor it came from —
+      except any that have been moved again since.</div></div>
+  <div class="table-responsive">
+    <table class="table table-sm mb-0 align-middle">
+      <thead><tr><th>When</th><th>By</th><th class="text-end">Products</th><th>From</th><th>To</th><th>Note</th><th></th></tr></thead>
+      <tbody>
+        {% for m in history %}
+        <tr class="{% if m.undone %}text-muted{% endif %}">
+          <td class="small text-nowrap">{{ m.when|dmy }} {{ m.when.strftime('%H:%M') }}</td>
+          <td class="small">{{ m.by }}</td>
+          <td class="text-end">{{ m.count }}</td>
+          <td class="small">{{ m.from }}</td>
+          <td class="small"><i class="bi bi-arrow-right"></i> {{ m.to }}</td>
+          <td class="small">{{ m.note or '' }}</td>
+          <td class="text-end">
+            {% if m.undone %}<span class="status-badge neutral sm">put back</span>
+            {% elif can_move %}
+            <form method="post" action="{{ url_for('floorplan.undo', batch=m.batch) }}" class="d-inline"
+                  onsubmit="return confirm('Put these {{ m.count }} product(s) back where they were?')">
+              <input type="hidden" name="back" value="{{ back }}">
+              <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-counterclockwise"></i> Put back</button>
+            </form>{% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted p-3">No products have been moved yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function(){
+  const form = document.getElementById('moveForm');
+  if (!form) return;
+  const picks = () => [...form.querySelectorAll('.fp-pick')];
+  const all = document.getElementById('pickAll');
+  const label = document.getElementById('picked');
+  const btn = document.getElementById('moveTicked');
+  const to = document.getElementById('toFloor');
+  const scope = document.getElementById('scope');
+  const only = document.getElementById('onlyCategory');
+  const toName = () => to && to.value ? to.options[to.selectedIndex].text : '';
+  const sync = () => {
+    const n = picks().filter((c) => c.checked).length;
+    if (label) label.textContent = n ? `${n} ticked` : 'Tick products to move them';
+    if (btn) btn.disabled = !n;
+    if (all) all.checked = n && n === picks().length;
+  };
+  picks().forEach((c) => c.addEventListener('change', sync));
+  if (all) all.addEventListener('change', () => { picks().forEach((c) => { c.checked = all.checked; }); sync(); });
+  form.addEventListener('submit', (e) => {
+    if (!to || !to.value) { e.preventDefault(); to && to.focus(); return; }
+    if (scope.value === 'selected') {
+      const n = picks().filter((c) => c.checked).length;
+      if (!confirm(`Move ${n} product(s) to ${toName()}?`)) e.preventDefault();
+    }
+  });
+  const moveAll = (category, count) => {
+    if (!to || !to.value) { alert('Choose the floor to move them to first (the “Move to…” box under the list).'); to && to.focus(); return; }
+    const what = category ? `every ${category} product on this floor (${count})` : `all ${count} products the filters match`;
+    if (!confirm(`Move ${what} to ${toName()}?`)) return;
+    scope.value = 'all'; only.value = category || '';
+    picks().forEach((c) => { c.checked = false; });
+    form.submit();
+  };
+  const matching = document.getElementById('moveMatching');
+  if (matching) matching.addEventListener('click', () => moveAll('', {{ page.total }}));
+  document.querySelectorAll('.fp-moveall').forEach((b) => b.addEventListener('click', () => {
+    // a whole category goes regardless of the list's own filters
+    form.querySelectorAll('input[name=q],input[name=section],input[name=category],input[name=stock]').forEach((i) => { i.value = ''; });
+    moveAll(b.dataset.category, b.dataset.count);
+  }));
+  sync();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h4 class="mb-0"><i class="bi bi-tags"></i> Product Categories</h4>
+    <div class="page-sub">from the warehouse master</div>
+  </div>
+  <span class="code-chip">{{ total }} codes</span>
+</div>
+
+<div class="row">
+  <div class="col-md-4">
+    <form method="post" class="card p-3 mb-3">
+      <h6>New category</h6>
+      <p class="small text-muted mb-2">
+        The list below comes from the warehouse's category master and refreshes on
+        every start. Add one here only for something the master doesn't carry yet.
+      </p>
+      <input class="form-control mb-2" name="name" placeholder="Name" required>
+      <select class="form-select mb-2" name="section" aria-label="Section">
+        <option value="">Section — none</option>
+        {% for s in sections %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+      </select>
+      <input class="form-control mb-2" name="description" placeholder="Description">
+      <button class="btn btn-brand">Add</button>
+    </form>
+  </div>
+
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header py-2">
+        <input id="catFilter" class="form-control form-control-sm"
+               placeholder="Search category…" autocomplete="off">
+      </div>
+      <div class="table-responsive" style="max-height:70vh">
+        <table class="table table-sm mb-0">
+          <thead class="sticky-top bg-white">
+            <tr><th>Code</th><th>Section</th><th>Description</th><th class="text-end">Products</th></tr>
+          </thead>
+          <tbody id="catRows">
+            {% for section, cats in groups %}
+              {% for c in cats %}
+              <tr data-name="{{ c.name | lower }}">
+                <td>{{ c.name }}</td>
+                <td><span class="badge text-bg-light">{{ section }}</span></td>
+                <td class="text-muted">{{ c.description or '—' }}</td>
+                <td class="text-end">{{ counts.get(c.id, 0) }}</td>
+              </tr>
+              {% endfor %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer" id="catCount">{{ total }} shown</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Plain substring filter over the rows already on the page — the master is a few
+// hundred codes, small enough that filtering in the browser beats a round trip.
+(function(){
+  const box = document.getElementById('catFilter');
+  const rows = Array.from(document.querySelectorAll('#catRows tr'));
+  const label = document.getElementById('catCount');
+  box.addEventListener('input', function(){
+    const want = box.value.trim().toLowerCase();
+    let shown = 0;
+    for (const tr of rows){
+      const hit = !want || tr.dataset.name.includes(want);
+      tr.style.display = hit ? '' : 'none';
+      if (hit) shown++;
+    }
+    label.textContent = shown + ' shown';
+  });
+})();
+</script>
+{% endblock %}

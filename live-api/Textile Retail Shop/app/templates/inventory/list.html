@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+{% from "_pager.html" import pager with context %}
+<div class="d-print-none">{{ pager(page) }}</div>
+<div class="page-head">
+  <h4><i class="bi bi-box-seam"></i> Inventory</h4>
+  <div>
+    <a href="{{ url_for('inventory.categories') }}" class="btn btn-outline-secondary btn-sm">Categories</a>
+    <a href="{{ url_for('inventory.movements') }}" class="btn btn-outline-secondary btn-sm">Stock log</a>
+    <a href="{{ url_for('inventory.labels_sheet', category=cat_id) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-qr-code"></i> Labels</a>
+    {% if current_user.is_manager %}
+    <form method="post" action="{{ url_for('inventory.sync_warehouse') }}" class="d-inline">
+      <button class="btn btn-outline-secondary btn-sm" title="Pull every item the warehouse holds into this catalogue"><i class="bi bi-arrow-repeat"></i> Sync warehouse</button>
+    </form>
+    <a href="{{ url_for('inventory.new_product') }}" class="btn btn-brand btn-sm"><i class="bi bi-plus"></i> New</a>
+    {% endif %}
+  </div>
+</div>
+
+<form class="row g-2 mb-3">
+  <div class="col-md-5"><input class="form-control" name="q" placeholder="Search name, SKU, fabric, color" value="{{ q }}"></div>
+  <div class="col-md-3">
+    <select class="form-select" name="category" aria-label="Category">
+      <option value="">All categories</option>
+      {% for section, cats in category_groups %}
+      <optgroup label="{{ section }}">
+        {% for c in cats %}
+        <option value="{{ c.id }}" {% if c.id == cat_id %}selected{% endif %}>{{ c.name }}</option>
+        {% endfor %}
+      </optgroup>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2"><button class="btn btn-outline-primary w-100">Filter</button></div>
+</form>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle">
+      <thead><tr>
+        <th>SKU</th><th>Name</th><th>QR</th><th>Category</th><th>Fabric</th><th>Color</th>
+        <th class="text-end">Price</th><th class="text-end">GST%</th><th class="text-end">Stock</th><th></th>
+      </tr></thead>
+      <tbody>
+        {% for p in products %}
+        <tr class="{% if p.is_low_stock %}low-stock{% endif %}">
+          <td><code>{{ p.sku }}</code></td>
+          <td>{{ p.name }}<br><small class="text-muted">
+            {% if p.size %}{{ p.size }} · {% endif %}HSN {{ p.hsn_code }}</small></td>
+          {# The warehouse's QR, shown small. It is the only code on the item:
+             the shop mints none of its own. #}
+          <td>{% if p.warehouse_qr %}<span class="qr-cell" title="{{ p.warehouse_qr }}">{{ p.warehouse_qr | qr(scale=2) }}</span>{% else %}<span class="text-muted small">—</span>{% endif %}</td>
+          <td>{{ p.category.name if p.category else '-' }}</td>
+          <td>{{ p.fabric or '-' }}</td>
+          <td>{{ p.color or '-' }}</td>
+          <td class="text-end">{{ p.selling_price|inr }}</td>
+          <td class="text-end">{{ p.gst_rate }}%</td>
+          <td class="text-end">{{ p.stock_qty }} {{ p.unit }}</td>
+          <td class="text-nowrap">
+            <a href="{{ url_for('inventory.product_label', pid=p.id) }}" class="btn btn-sm btn-outline-secondary" title="Print QR label"><i class="bi bi-qr-code"></i></a>
+            {% if p.warehouse_id %}<a href="{{ url_for('inventory.product_pieces', pid=p.id) }}" class="btn btn-sm btn-outline-secondary" title="Print a tag for every piece"><i class="bi bi-tags"></i></a>{% endif %}
+            {% if current_user.is_manager %}
+            <a href="{{ url_for('inventory.edit_product', pid=p.id) }}" class="btn btn-sm btn-outline-primary" title="Edit product" aria-label="Edit product"><i class="bi bi-pencil"></i></a>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="10" class="text-center text-muted p-4">No products.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<style>
+  /* 72px ≈ 19mm, which puts a 53-module item code at ~0.36mm per module — just
+     over the ~0.33mm a phone camera needs. Smaller looked tidier and produced a
+     QR nothing could read; see utils.qr_module_size_mm. */
+  .qr-cell { display:inline-block; line-height:0; }
+  .qr-cell svg { width:72px; height:72px; }
+</style>
+<div class="d-print-none">{{ pager(page) }}</div>
+{% endblock %}

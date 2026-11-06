@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% from "crm/_ui.html" import status as badge %}
+{% from "_pager.html" import pager with context %}
+{% block content %}
+<div class="page-head">
+  <h4><i class="bi bi-bag"></i> Customer Orders</h4>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('orders.export', **request.args) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-download"></i> CSV</a>
+    <a href="{{ url_for('orders.new') }}" class="btn btn-brand btn-sm"><i class="bi bi-file-earmark-plus"></i> New order</a>
+  </div>
+</div>
+
+<form class="card p-3 mb-3">
+  <div class="row g-2 align-items-end">
+    <div class="col-md-3"><label class="form-label small">Status</label>
+      <select class="form-select form-select-sm" name="status" onchange="this.form.submit()">
+        <option value="open" {{ 'selected' if status == 'open' }}>Open (not delivered)</option>
+        <option value="due" {{ 'selected' if status == 'due' }}>Due today or overdue{{ ' (' ~ due ~ ')' if due }}</option>
+        {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if status == s }}>{{ s|replace('_', ' ')|title }}{{ ' (' ~ counts[s] ~ ')' if counts.get(s) }}</option>{% endfor %}
+        <option value="all" {{ 'selected' if status == 'all' }}>All</option>
+      </select></div>
+    <div class="col-6 col-md-2"><label class="form-label small">Ordered from</label>
+      <input class="form-control form-control-sm" type="date" name="from" value="{{ d_from.isoformat() if d_from else '' }}"></div>
+    <div class="col-6 col-md-2"><label class="form-label small">to</label>
+      <input class="form-control form-control-sm" type="date" name="to" value="{{ d_to.isoformat() if d_to else '' }}"></div>
+    <div class="col-md-3"><label class="form-label small">Order no, customer or mobile</label>
+      <input class="form-control form-control-sm" name="q" value="{{ q }}"></div>
+    <div class="col-md-2"><button class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-search"></i> Search</button></div>
+  </div>
+</form>
+
+<form method="post" action="{{ url_for('orders.bulk_status') }}">
+<div class="card">
+  <div class="card-header d-flex align-items-center gap-2 flex-wrap">
+    <span>{{ page.total }} order{{ 's' if page.total != 1 }}</span>
+    <span class="ms-auto small text-muted">Ticked orders:</span>
+    <select class="form-select form-select-sm" name="status" style="width:auto" aria-label="New status">
+      {% for s in statuses %}<option value="{{ s }}">{{ s|replace('_', ' ')|title }}</option>{% endfor %}
+    </select>
+    <button class="btn btn-sm btn-outline-secondary">Set status</button>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover table-sm mb-0 align-middle">
+      <thead><tr>
+        <th style="width:32px"><input type="checkbox" class="form-check-input" id="tickAll" aria-label="Tick all"></th>
+        <th>Order no</th><th>Order date</th><th>Delivery date</th><th>Customer name</th><th>Contact no</th>
+        <th>City</th><th>Category</th><th>Order recd. by</th><th class="text-end">Total qty</th>
+        <th class="text-end">Total amount</th><th class="text-end">Paid amount</th><th>Status</th><th class="text-end">Action</th>
+      </tr></thead>
+      <tbody>
+        {% for o in orders %}
+        {% set late = o.delivery_date and o.delivery_date < today and o.status not in ('delivered', 'cancelled') %}
+        <tr class="{{ 'table-warning' if late }}">
+          <td><input type="checkbox" class="form-check-input tick" name="ids" value="{{ o.id }}" aria-label="Tick {{ o.number }}"></td>
+          <td class="font-monospace small"><a href="{{ url_for('orders.view', oid=o.id) }}">{{ o.number }}</a></td>
+          <td class="text-nowrap">{{ o.order_date|dmy }}</td>
+          <td class="text-nowrap">{{ o.delivery_date|dmy if o.delivery_date else '—' }}{% if late %} <i class="bi bi-exclamation-circle text-warning" title="Past its delivery date"></i>{% endif %}</td>
+          <td>{{ o.customer.name }}</td>
+          <td>{{ o.contact_no or o.customer.phone or '—' }}</td>
+          <td class="small">{{ o.city or '—' }}</td>
+          <td class="small">{{ o.category or '—' }}</td>
+          <td class="small">{{ o.received_by.full_name if o.received_by else '—' }}</td>
+          <td class="text-end">{{ '%g'|format(o.total_qty) }}</td>
+          <td class="text-end">{{ o.total_amount|inr }}</td>
+          <td class="text-end">{{ o.paid_amount|inr }}</td>
+          <td>{{ badge(o.status) }}</td>
+          <td class="text-end text-nowrap">
+            <a href="{{ url_for('orders.print_slip', oid=o.id) }}" class="btn btn-sm btn-outline-secondary" title="Print order slip"><i class="bi bi-printer"></i></a>
+            <a href="{{ url_for('orders.view', oid=o.id) }}" class="btn btn-sm btn-outline-primary" title="Open"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="14" class="text-center text-muted p-4">No orders here. <a href="{{ url_for('orders.new') }}">Take a new order</a>.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+</form>
+{{ pager(page) }}
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('tickAll').addEventListener('change', (e) => {
+  document.querySelectorAll('.tick').forEach((t) => { t.checked = e.target.checked; });
+});
+</script>
+{% endblock %}
