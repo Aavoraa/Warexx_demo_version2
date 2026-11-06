@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h4><i class="bi bi-person-workspace"></i> Tailors</h4>
+  <a href="{{ url_for('alterations.index') }}" class="btn btn-outline-secondary btn-sm">Back to alterations</a>
+</div>
+
+<div class="row">
+  <div class="col-md-4">
+    <form method="post" class="card p-3 mb-3">
+      <h6>Add a tailor</h6>
+      <p class="small text-muted mb-2">
+        Usually an outside workshop, which is why they are kept apart from staff:
+        no login, no shift, no commission.
+      </p>
+      <input class="form-control mb-2" name="name" placeholder="Name" required>
+      <input class="form-control mb-2" name="phone" placeholder="Phone">
+      <input class="form-control mb-2" name="notes" placeholder="Notes — speciality, usual turnaround…">
+      <button class="btn btn-brand">Add</button>
+    </form>
+  </div>
+
+  <div class="col-md-8">
+    <div class="card">
+      <table class="table mb-0 align-middle">
+        <thead><tr><th>Name</th><th>Phone</th><th>Notes</th>
+          <th class="text-end">Holding now</th><th></th></tr></thead>
+        <tbody>
+          {% for t in tailors %}
+          <tr {% if not t.active %}class="text-muted"{% endif %}>
+            <td>{{ t.name }}{% if not t.active %} <span class="badge text-bg-light">archived</span>{% endif %}</td>
+            <td>{{ t.phone or '—' }}</td>
+            <td class="small">{{ t.notes or '—' }}</td>
+            <td class="text-end">
+              {% if holding.get(t.id) %}
+              <span class="badge text-bg-secondary">{{ holding[t.id] }} job(s)</span>
+              {% else %}—{% endif %}
+            </td>
+            <td class="text-end">
+              <form method="post" action="{{ url_for('alterations.toggle_tailor', tid=t.id) }}" class="d-inline">
+                <button class="btn btn-sm btn-outline-secondary">{{ 'Archive' if t.active else 'Restore' }}</button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="text-center text-muted p-4">No tailors yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

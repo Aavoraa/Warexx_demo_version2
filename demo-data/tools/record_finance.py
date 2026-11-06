@@ -50,6 +50,15 @@ os.environ.update({
     # the fictional company the books are kept for (never ESSA's own)
     "ESSA_COMPANY_NAME": "Sample Company Private Limited", "ESSA_COMPANY_GSTIN": "33AAAAA0000A1Z5",
 })
+# seed_live.py: seed the database it names and record nothing
+LIVE = os.environ.get("WAREXX_SEED_LIVE") == "1"
+LOGIN_PASSWORD = os.environ["ESSA_SUPERADMIN_PASSWORD"] if LIVE else "super@123"
+if LIVE:
+    os.environ["ESSA_DATABASE_URL"] = os.environ["WAREXX_SEED_WH_URL"]
+    os.environ["DATABASE_URL"] = os.environ["WAREXX_SEED_SHOP_URL"]
+    if os.environ["DATABASE_URL"].startswith("postgresql"):
+        os.environ["SHOP_DB_SCHEMA"] = "shop"
+    os.environ["ESSA_POS_DB"] = os.environ["WAREXX_SEED_SHOP_URL"].replace("sqlite:///", "") if os.environ["WAREXX_SEED_SHOP_URL"].startswith("sqlite") else ""
 random.seed(20261005)
 TODAY = (dt.datetime.utcnow() + dt.timedelta(minutes=330)).date()
 FY = dt.date(TODAY.year if TODAY.month >= 4 else TODAY.year - 1, 4, 1)
@@ -61,12 +70,12 @@ from backend.app.database import engine, DB_URL                     # noqa: E402
 from backend.app.main import app                                    # noqa: E402
 from fastapi.testclient import TestClient                           # noqa: E402
 
-if not DB_URL.startswith("sqlite") or tmp.replace(os.sep, "/") not in DB_URL:
+if not LIVE and (not DB_URL.startswith("sqlite") or tmp.replace(os.sep, "/") not in DB_URL):
     sys.exit("refusing to run: the database is not the throwaway one (%s)" % DB_URL)
 models.Base.metadata.create_all(bind=engine)
 client = TestClient(app)
 tok = client.post("/api/auth/login", headers={"X-Essa-Client": "native"},
-                  json={"username": "superadmin", "password": "super@123"}).json()["token"]
+                  json={"username": "superadmin", "password": LOGIN_PASSWORD}).json()["token"]
 H = {"Authorization": "Bearer " + tok}
 problems = []
 
@@ -95,6 +104,8 @@ LOC = "Sample Warehouse A"
 
 
 def ledger(name, group, **kw):
+    if name in L:        # on the live database, HR's payroll has already made some of these
+        return L[name]
     body = {"name": name, "group": group, "business_id": BIZ}
     body.update(kw)
     r = send("POST", "ledgers", body)
@@ -228,8 +239,9 @@ while d <= TODAY:
         v("Payment", d, [(LOAN, 50000, 0, None), (EXP["Interest on Loan"], 11200, 0, None), (BANK, 0, 61200, None)],
           mode="NEFT", narration="Term loan EMI")
     if d.day == last:
-        v("Payment", d, [(EXP["Salaries & Wages"], 485000, 0, None), (BANK, 0, 485000, None)], mode="NEFT",
-          narration="Salaries for the month")
+        if not LIVE:     # on the live database HR's payroll posts and pays the salaries itself
+            v("Payment", d, [(EXP["Salaries & Wages"], 485000, 0, None), (BANK, 0, 485000, None)], mode="NEFT",
+              narration="Salaries for the month")
         v("Contra", d, [(BANK, 300000, 0, None), (CASH, 0, 300000, None)], mode="Cash", narration="Cash deposited")
         v("Contra", d, [(PETTY, 12000, 0, None), (CASH, 0, 12000, None)], mode="Cash", narration="Petty cash top-up")
     if d.day == 18 and random.random() < 0.6:
@@ -279,6 +291,10 @@ print("books kept: %d vouchers" % len(get("vouchers", date_from=FY.isoformat(), 
 
 # ===========================================================================
 # record every question the screens ask
+if LIVE:
+    if problems:
+        sys.exit("\n".join(problems))
+    sys.exit(0)
 entries = {}
 
 

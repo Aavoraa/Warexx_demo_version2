@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h4><i class="bi bi-person-plus"></i> New lead</h4>
+  <a href="{{ url_for('leads.index') }}" class="btn btn-outline-secondary btn-sm">Cancel</a>
+</div>
+<form method="post" class="card p-3" style="max-width:820px">
+  {% include "crm/leads/_fields.html" %}
+  <div class="mt-2"><label class="form-label small">First note</label>
+    <textarea class="form-control form-control-sm" name="note" rows="2" maxlength="512" placeholder="What they asked about, when they called…"></textarea></div>
+  <div class="mt-3"><button class="btn btn-brand"><i class="bi bi-save"></i> Add lead</button></div>
+</form>
+{% endblock %}

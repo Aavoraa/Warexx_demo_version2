@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Piece labels — {{ product.name }}{% endblock %}
+{% block content %}
+<div class="page-head d-print-none">
+  <div>
+    <h4 class="mb-0"><i class="bi bi-upc-scan"></i> Piece labels — {{ product.name }}</h4>
+    <div class="page-sub">
+      <code>{{ product.sku }}</code> · {{ units|length }} garment{{ '' if units|length == 1 else 's' }}
+      held by the warehouse
+    </div>
+  </div>
+  <div>
+    <button onclick="window.print()" class="btn btn-brand btn-sm"><i class="bi bi-printer"></i> Print</button>
+    <a href="{{ url_for('inventory.edit_product', pid=product.id) }}" class="btn btn-outline-secondary btn-sm">Back</a>
+  </div>
+</div>
+
+{% if not units %}
+  {% if product.warehouse_id %}
+  <p class="text-muted">The warehouse lists no individual pieces for this item yet.</p>
+  {% else %}
+  <p class="text-muted">This product isn't a warehouse item, so it has no piece codes.</p>
+  {% endif %}
+{% endif %}
+
+<div class="label-sheet">
+  {% for u in units %}
+  <div class="label">
+    <div class="label-shop">{{ SHOP_NAME }}</div>
+    <div class="label-name">{{ product.name }}</div>
+    <div class="label-meta">
+      {% set attrs = [product.size, product.color, product.fabric] | select | list %}
+      {{ attrs | join(' · ') }}
+      <span class="label-price">{{ product.selling_price|inr }}</span>
+    </div>
+    {# The warehouse's own piece QR — reprinting must not mint a new code. #}
+    <div class="label-qr">{{ u.qr | qr(scale=3) }}</div>
+    <div class="label-sku">{{ u.code }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<style>
+  .label-sheet { display: flex; flex-wrap: wrap; gap: 10px; }
+  .label {
+    border: 1px solid #ccc; border-radius: 6px; padding: 8px 10px;
+    width: 150px; text-align: center; background: #fff; color: #000;
+    page-break-inside: avoid; break-inside: avoid;
+  }
+  .label-shop { font-size: 11px; font-weight: 700; letter-spacing: .5px; }
+  .label-name { font-size: 12px; font-weight: 600; margin-top: 2px;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .label-meta { font-size: 10px; color: #444; margin-bottom: 4px; }
+  .label-price { font-weight: 700; display: block; }
+  .label-qr { line-height: 0; }
+  .label-qr svg { width: 96px; height: 96px; shape-rendering: crispEdges; }
+  .label-sku { font-size: 10px; color: #333; font-family: monospace; margin-top: 3px; }
+  @media print {
+    .brand-nav, .alert, .d-print-none { display: none !important; }
+    body { background: #fff; }
+    .label-sheet { gap: 6px; }
+    .label { border: 1px solid #999; }
+  }
+</style>
+{% endblock %}

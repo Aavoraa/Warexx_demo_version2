@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-print-none mb-3 d-flex gap-2">
+  <button class="btn btn-brand btn-sm" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+  <a href="{{ url_for('orders.view', oid=o.id) }}" class="btn btn-outline-secondary btn-sm">Back</a>
+</div>
+<div class="card p-4 mx-auto" style="max-width:720px">
+  <div class="d-flex justify-content-between align-items-start mb-3">
+    <div><div class="fs-5 fw-bold">{{ SHOP_NAME }}</div><div class="text-muted small">Customer order slip</div></div>
+    <div class="text-end"><div class="fw-semibold font-monospace">{{ o.number }}</div>
+      <div class="small">Ordered {{ o.order_date|dmy }}</div>
+      {% if o.delivery_date %}<div class="small fw-semibold">Deliver by {{ o.delivery_date|dmy }}</div>{% endif %}</div>
+  </div>
+  <div class="mb-3 small">
+    <div class="fw-semibold">{{ o.customer.name }}</div>
+    <div>{{ o.contact_no or o.customer.phone or '' }}{{ ' · ' ~ o.city if o.city }}</div>
+  </div>
+  <table class="table table-sm">
+    <thead><tr><th>Item</th><th>Design / size / colour</th><th class="text-end">Qty</th><th class="text-end">Rate</th><th class="text-end">Amount</th></tr></thead>
+    <tbody>
+      {% for l in o.lines %}
+      <tr><td>{{ l.description }}</td><td class="small">{{ [l.design_no, l.size, l.color]|select|join(' · ') }}</td>
+        <td class="text-end">{{ '%g'|format(l.qty) }}</td><td class="text-end">{{ l.rate|inr }}</td><td class="text-end">{{ l.amount|inr }}</td></tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr><th colspan="4" class="text-end">Order value</th><th class="text-end">{{ o.total_amount|inr }}</th></tr>
+      <tr><td colspan="4" class="text-end">Paid in advance</td><td class="text-end">{{ o.paid_amount|inr }}</td></tr>
+      <tr><th colspan="4" class="text-end">Balance on delivery</th><th class="text-end">{{ o.balance|inr }}</th></tr>
+    </tfoot>
+  </table>
+  {% if o.notes %}<div class="small" style="white-space:pre-line"><b>Notes:</b> {{ o.notes }}</div>{% endif %}
+  <div class="d-flex justify-content-between mt-4 small">
+    <div>{{ o.number | barcode }}</div>
+    <div class="text-end text-muted">Taken by {{ o.received_by.full_name if o.received_by else '—' }}<br>Please bring this slip when you collect.</div>
+  </div>
+</div>
+{% endblock %}

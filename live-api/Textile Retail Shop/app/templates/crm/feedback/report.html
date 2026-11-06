@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+{% set a = request.args %}
+<div class="page-head">
+  <h4><i class="bi bi-clipboard-data"></i> Feedback Report</h4>
+  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('crmfeedback.report_csv', **a) }}"><i class="bi bi-download"></i> CSV</a>
+</div>
+<form class="card p-3 mb-3">
+  <div class="row g-2 align-items-end">
+    <div class="col-6 col-md-2"><label class="form-label small">From</label>
+      <input class="form-control form-control-sm" type="date" name="from" value="{{ d_from.isoformat() }}"></div>
+    <div class="col-6 col-md-2"><label class="form-label small">To</label>
+      <input class="form-control form-control-sm" type="date" name="to" value="{{ d_to.isoformat() }}"></div>
+    <div class="col-6 col-md-2"><label class="form-label small">Rating</label>
+      <select class="form-select form-select-sm" name="rating_max">
+        <option value="">Any</option>
+        {% for r in [1, 2, 3, 4] %}<option value="{{ r }}" {{ 'selected' if a.get('rating_max') == r|string }}>{{ r }} ★ or less</option>{% endfor %}
+      </select></div>
+    <div class="col-6 col-md-2"><label class="form-label small">From</label>
+      <select class="form-select form-select-sm" name="source">
+        <option value="">Bill QR and counter</option>
+        {% for k, label in sources %}<option value="{{ k }}" {{ 'selected' if a.get('source') == k }}>{{ label }}</option>{% endfor %}
+      </select></div>
+    <div class="col-md-2"><div class="form-check"><input class="form-check-input" type="checkbox" name="comments" value="1" id="fComments" {{ 'checked' if a.get('comments') == '1' }}>
+      <label class="form-check-label small" for="fComments">Only with a comment</label></div></div>
+    <div class="col-md-2"><button class="btn btn-brand btn-sm w-100"><i class="bi bi-search"></i> Show</button></div>
+  </div>
+</form>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover table-sm mb-0 align-middle">
+      <thead><tr><th>Date</th><th>Customer</th><th>Mobile</th><th>Bill</th><th>Rating</th>
+        {% for c in cols %}<th class="small" style="min-width:110px">{{ c.text }}</th>{% endfor %}
+        <th>Comments</th><th>From</th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td class="text-nowrap small">{{ r.created_at|dmy }}</td>
+          <td>{% if r.customer %}<a href="{{ url_for('customers.view_customer', cid=r.customer_id) }}">{{ r.customer.name }}</a>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+          <td class="small">{{ r.customer.phone if r.customer and r.customer.phone else '—' }}</td>
+          <td class="small">{% if r.invoice %}<a href="{{ url_for('pos.view_invoice', iid=r.invoice_id) }}">{{ r.invoice.invoice_number }}</a>{% else %}—{% endif %}</td>
+          <td class="text-nowrap"><span class="text-warning">{{ '★' * r.rating }}</span><span class="text-muted">{{ '★' * (5 - r.rating) }}</span></td>
+          {% for c in cols %}{% set v = ans[r.id].get(c.id) %}
+          <td class="small">{% if v is none %}<span class="text-muted">—</span>{% elif c.kind == 'rating' %}{{ v }} ★{% else %}{{ v|title if c.kind == 'yesno' else v }}{% endif %}</td>
+          {% endfor %}
+          <td class="small">{{ r.comments or '' }}</td>
+          <td class="small text-muted">{{ 'Bill QR' if r.source == 'link' else 'Counter' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="{{ 7 + cols|length }}" class="text-center text-muted p-4">No feedback in this window.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if rows|length >= 1000 %}<div class="card-footer small text-muted">The first 1,000 — the CSV has them all.</div>{% endif %}
+</div>
+{% endblock %}

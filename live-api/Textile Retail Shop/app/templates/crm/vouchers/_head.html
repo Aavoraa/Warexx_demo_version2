@@ -1,0 +1,7 @@
+{% from "crm/_ui.html" import tabs %}
+<div class="page-head d-print-none">
+  <h4><i class="bi bi-gift"></i> Gift Voucher</h4>
+</div>
+{{ tabs([('giftvouchers.index', 'Issue', 'bi-plus-circle'),
+         ('giftvouchers.history', 'Transaction History', 'bi-clock-history'),
+         ('giftvouchers.search', 'Search', 'bi-search')]) }}

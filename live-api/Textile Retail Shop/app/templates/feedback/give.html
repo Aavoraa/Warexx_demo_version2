@@ -1,0 +1,107 @@
+<!doctype html>
+{# The customer's page, on their own phone — so no staff header, no menu, and
+   nothing that needs a login. Opened from the QR code on their bill. What it
+   says and asks is set under CRM → Feedback Form Config / Feedback Questions.
+   `preview` is the manager's look at it from there: same page, no bill, and the
+   form does not post. #}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{{ form.title }} — {{ SHOP_NAME }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta name="theme-color" content="#0B3D2E">
+  <style>
+    body { background: #F7F9F7; color: #17221D; font-family: Inter, system-ui, sans-serif; }
+    .fb-card { max-width: 460px; margin: 32px auto; padding: 0 16px; }
+    .fb-head { background: #0B3D2E; color: #fff; border-radius: 14px 14px 0 0; padding: 20px 22px; }
+    .fb-body { background: #fff; border: 1px solid #DCE5DF; border-top: 0; border-radius: 0 0 14px 14px; padding: 22px; }
+    .stars { display: flex; flex-direction: row-reverse; justify-content: center; gap: 6px; }
+    .stars input { position: absolute; opacity: 0; pointer-events: none; }
+    .stars label { font-size: 42px; line-height: 1; color: #DCE5DF; cursor: pointer; transition: color .12s; }
+    .stars.sm label { font-size: 30px; }
+    .stars input:checked ~ label, .stars label:hover, .stars label:hover ~ label { color: #E0A526; }
+    .stars input:focus-visible + label { outline: 2px solid #2F8F68; outline-offset: 2px; border-radius: 4px; }
+    .q { border-top: 1px solid #EEF2EF; padding-top: 14px; margin-top: 14px; }
+    .q-text { font-weight: 600; font-size: .95rem; margin-bottom: 8px; }
+    .pill { display: inline-block; }
+    .pill input { position: absolute; opacity: 0; pointer-events: none; }
+    .pill span { display: inline-block; border: 1px solid #DCE5DF; border-radius: 999px; padding: 6px 14px; margin: 0 6px 6px 0; cursor: pointer; font-size: .9rem; }
+    .pill input:checked + span { background: #0B3D2E; border-color: #0B3D2E; color: #fff; }
+    .pill input:focus-visible + span { outline: 2px solid #2F8F68; outline-offset: 2px; }
+    .btn-brand { background: #2F8F68; border-color: #2F8F68; color: #fff; }
+    .btn-brand:hover { background: #0B3D2E; border-color: #0B3D2E; color: #fff; }
+    .muted { color: #647069; }
+    .req { color: #BE123C; }
+  </style>
+</head>
+<body>
+  <div class="fb-card">
+    {% if preview %}<div class="alert alert-warning py-2 small">Preview — this is what customers see. Nothing is saved.</div>{% endif %}
+    <div class="fb-head">
+      <div class="fw-semibold fs-5">{{ SHOP_NAME }}</div>
+      <div class="small opacity-75">{% if inv %}Bill {{ inv.invoice_number }} · {{ inv.invoice_date.strftime('%d %b %Y') }}{% else %}Bill INV-000123 · today{% endif %}</div>
+    </div>
+    <div class="fb-body">
+      {% if thanks %}
+        <div class="text-center py-3">
+          <div style="font-size:44px;color:#2F8F68">✓</div>
+          <div class="fw-semibold fs-5 mb-1">Thank you!</div>
+          <div class="muted">{{ form.thanks }}</div>
+        </div>
+      {% else %}
+        <form method="post" {% if preview %}onsubmit="event.preventDefault()"{% endif %}>
+          <div class="fw-semibold fs-5 text-center mb-1">{{ form.title }}{% if inv and inv.customer %}, {{ inv.customer.name.split()[0] }}{% endif %}</div>
+          {% if form.intro %}<div class="muted small text-center mb-3">{{ form.intro }}</div>{% endif %}
+          {% if error %}<div class="alert alert-danger py-2 small">{{ error }}</div>{% endif %}
+          <div class="q-text text-center">{{ form.overall_label }} <span class="req">*</span></div>
+          <div class="stars mb-2" role="radiogroup" aria-label="{{ form.overall_label }}">
+            {% for r in [5,4,3,2,1] %}
+            <input type="radio" name="rating" id="r{{ r }}" value="{{ r }}" required {{ 'checked' if posted.get('rating') == r|string }}>
+            <label for="r{{ r }}" title="{{ r }} star{{ 's' if r > 1 }}">★</label>
+            {% endfor %}
+          </div>
+
+          {% for q in questions %}
+          <div class="q">
+            <div class="q-text" id="qt{{ q.id }}">{{ q.text }}{% if q.required %} <span class="req">*</span>{% endif %}</div>
+            {% set was = posted.get('q' ~ q.id) %}
+            {% if q.kind == 'rating' %}
+              <div class="stars sm" role="radiogroup" aria-labelledby="qt{{ q.id }}">
+                {% for r in [5,4,3,2,1] %}
+                <input type="radio" name="q{{ q.id }}" id="q{{ q.id }}r{{ r }}" value="{{ r }}" {{ 'required' if q.required }} {{ 'checked' if was == r|string }}>
+                <label for="q{{ q.id }}r{{ r }}" title="{{ r }} star{{ 's' if r > 1 }}">★</label>
+                {% endfor %}
+              </div>
+            {% elif q.kind == 'yesno' %}
+              <div role="radiogroup" aria-labelledby="qt{{ q.id }}">
+                {% for v, t in [('yes', 'Yes'), ('no', 'No')] %}
+                <label class="pill"><input type="radio" name="q{{ q.id }}" value="{{ v }}" {{ 'required' if q.required }} {{ 'checked' if was == v }}><span>{{ t }}</span></label>
+                {% endfor %}
+              </div>
+            {% elif q.kind == 'choice' %}
+              <div role="radiogroup" aria-labelledby="qt{{ q.id }}">
+                {% for o in q.option_list %}
+                <label class="pill"><input type="radio" name="q{{ q.id }}" value="{{ o }}" {{ 'required' if q.required }} {{ 'checked' if was == o }}><span>{{ o }}</span></label>
+                {% endfor %}
+              </div>
+            {% else %}
+              <textarea class="form-control" name="q{{ q.id }}" rows="2" maxlength="500" aria-labelledby="qt{{ q.id }}" {{ 'required' if q.required }}>{{ was or '' }}</textarea>
+            {% endif %}
+          </div>
+          {% endfor %}
+
+          {% if form.show_comment %}
+          <div class="q">
+            <label class="q-text d-block" for="comments">{{ form.comment_label }}</label>
+            <textarea class="form-control" id="comments" name="comments" rows="3" maxlength="2000">{{ posted.get('comments', '') }}</textarea>
+          </div>
+          {% endif %}
+          <button class="btn btn-brand w-100 py-2 mt-3">Send feedback</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>

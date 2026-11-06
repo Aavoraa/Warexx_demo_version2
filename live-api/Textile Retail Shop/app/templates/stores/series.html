@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h4 class="mb-0"><i class="bi bi-list-ol"></i> Bill series</h4>
+  <a href="{{ url_for('stores.index') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left"></i> Floors &amp; tills</a>
+</div>
+
+<p class="text-muted small">
+  One row per prefix and financial year — the register behind the register. This
+  is read only: the next number is taken by billing a sale, never by editing
+  here. A series that has reached 47 has handed out 47 numbers, and every one of
+  them is on a bill.
+</p>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-sm mb-0 align-middle">
+      <thead><tr>
+        <th>Prefix</th><th>Financial year</th><th>Floors on it</th>
+        <th class="text-end">Numbers issued</th><th class="text-end">Bills</th>
+        <th>Next</th><th>Last taken</th>
+      </tr></thead>
+      <tbody>
+        {% for s in rows %}
+        <tr {% if s.fin_year == year or not s.fin_year %}class="table-light"{% endif %}>
+          <td><code>{{ s.prefix }}</code></td>
+          <td>{% if s.fin_year %}{{ s.fin_year }}{% else %}
+            <span class="text-muted">does not reset</span>{% endif %}</td>
+          <td class="small">
+            {% set on = floors.get(s.prefix) %}
+            {% if on %}
+              {% for f in on %}{{ f.location.name }} / {{ f.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+            {% elif s.prefix == fallback %}
+              <span class="text-muted">the shop's own series — tills with no floor mapped,
+                and floor sales from the phone</span>
+            {% else %}
+              <span class="text-muted">no floor uses this prefix any more</span>
+            {% endif %}
+          </td>
+          <td class="text-end">{{ s.last_number }}</td>
+          <td class="text-end">{{ counts.get(s.prefix, 0) }}</td>
+          <td><code>{{ s.prefix }}{{ s.fin_year }}-{{ '%03d' % (s.last_number + 1) if s.fin_year else '%06d' % (s.last_number + 1) }}</code></td>
+          <td class="small text-muted">{{ s.updated_at.strftime('%d-%m-%Y %H:%M') if s.updated_at else '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted p-4">
+          No bill has been raised yet, so no series has been opened. The first one
+          creates itself.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<p class="text-muted small mt-3">
+  <strong>Bills</strong> counts invoices carrying that prefix and
+  <strong>Numbers issued</strong> is where the counter has got to. They should
+  agree. A number issued with no bill against it means a sale was abandoned after
+  its number was taken — which cannot happen here, because the number is taken
+  inside the same transaction as the sale and is given back if the sale fails.
+  A persistent gap between the two is worth investigating rather than explaining.
+</p>
+{% endblock %}

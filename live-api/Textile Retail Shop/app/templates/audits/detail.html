@@ -1,0 +1,498 @@
+{% extends "base.html" %}
+{% block content %}
+{% set BADGE = {'not_started':'secondary','in_progress':'warning','completed':'info',
+                'reviewed':'warning','approved':'success','cancelled':'danger'} %}
+{% set LINE = {'not_counted':'secondary','matched':'success','shortage':'danger','excess':'warning'} %}
+
+<div class="page-head align-items-start">
+  <div>
+    <h4 class="mb-1"><i class="bi bi-clipboard-check"></i> {{ audit.number }}
+      <span class="badge text-bg-{{ BADGE.get(audit.status, 'secondary') }}">
+        {{ audit.status.replace('_', ' ') }}</span>
+      {% if audit.adjusted_at %}<span class="badge text-bg-success">stock adjusted</span>{% endif %}
+    </h4>
+    <div class="page-sub">
+      {{ audit.floor.name if audit.floor else '—' }} ·
+      {{ audit.location.name if audit.location else '' }} ·
+      started {{ audit.started_at|dmy }} {{ audit.started_at.strftime('%H:%M') }}
+      {% if audit.started_by %} by {{ audit.started_by.full_name }}{% endif %}
+      {% if audit.note %}<br>{{ audit.note }}{% endif %}
+    </div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('audits.export', aid=audit.id) }}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-download"></i> CSV</a>
+    <a href="{{ url_for('audits.print_audit', aid=audit.id) }}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-printer"></i> Print</a>
+    <a href="{{ url_for('audits.index') }}" class="btn btn-outline-secondary btn-sm">All audits</a>
+  </div>
+</div>
+
+{# The floor's figures, §9. Quantities rather than line counts for shortage and
+   excess — "35 pieces short" is what somebody acts on. #}
+<div class="row g-2 mb-3" id="summaryRow">
+  {% for label, key, hint in [
+       ('Products', 'products', 'on this count'),
+       ('Counted', 'counted', 'physically verified'),
+       ('Not counted', 'not_counted', 'still to check'),
+       ('System qty', 'system_qty', 'what the books say'),
+       ('Physical qty', 'physical_qty', 'what was found'),
+       ('Shortage', 'shortage', 'pieces missing'),
+       ('Excess', 'excess', 'pieces over'),
+       ('Matched', 'matched', 'lines that agree')] %}
+  <div class="col-6 col-md-3 col-xl">
+    <div class="kpi-card h-100">
+      <div class="kpi-label">{{ label }}</div>
+      <div class="kpi-value" data-sum="{{ key }}"
+           style="color:{% if key == 'shortage' %}#BE123C{% elif key == 'excess' %}#B45309{% else %}var(--text){% endif %}">
+        {{ summary[key] }}</div>
+      <div class="kpi-sub">{{ hint }}</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% if summary.value_variance %}
+<div class="alert alert-{{ 'danger' if summary.value_variance < 0 else 'warning' }} py-2 small">
+  The gap is worth <strong>{{ summary.value_variance|inr }}</strong> at what the
+  shop sells these items for.
+</div>
+{% endif %}
+
+<div class="row g-3">
+  {% if audit.is_open %}
+  <div class="col-lg-4">
+    {# The scan-driven flow §11 describes. Scan → the system says what it
+       believes → type what is there → save → scan the next one. The count box
+       takes focus after a scan, so a whole rack is scan-type-enter without a
+       hand leaving the keyboard. #}
+    <div class="card p-3 mb-3">
+      <h6><i class="bi bi-upc-scan"></i> Scan a tag</h6>
+      <div class="input-group input-group-lg mb-2">
+        <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+        <input id="scanBox" class="form-control form-control-lg" autocomplete="off" autofocus
+               placeholder="Scan, or type a SKU / QR and press Enter">
+        <button id="camBtn" class="btn btn-outline-primary" type="button"
+                title="Scan with the camera"><i class="bi bi-camera"></i></button>
+      </div>
+      <div id="camBox" style="display:none">
+        <div id="reader" style="width:100%;max-width:340px"></div>
+        <button id="camStop" class="btn btn-outline-secondary btn-sm mt-1">Stop</button>
+      </div>
+      <div id="scanMsg" class="small mt-1"></div>
+
+      {# Everything §6 asks a scan to show. #}
+      <div id="found" class="mt-2 d-none border rounded p-2" style="background:var(--brand-50)">
+        <div class="fw-bold" id="fName">—</div>
+        <div class="small text-muted"><code id="fSku"></code> · <span id="fCat"></span></div>
+        <div class="small mt-1" id="fAttrs"></div>
+        <div class="small mt-1" id="fPrices"></div>
+        <table class="table table-sm mt-2 mb-1">
+          <tr><td class="text-muted">Purchase / inward</td><td class="text-end" id="fIn">—</td></tr>
+          <tr><td class="text-muted">Sales / outward</td><td class="text-end" id="fOut">—</td></tr>
+          <tr class="fw-bold"><td>System stock</td><td class="text-end" id="fSys">—</td></tr>
+        </table>
+        <label class="form-label small mb-1">Physical count on {{ audit.floor.name if audit.floor else 'this floor' }}</label>
+        <div class="input-group">
+          <input id="qtyBox" class="form-control form-control-lg" type="number"
+                 min="0" step="0.001" placeholder="0">
+          <button id="saveBtn" class="btn btn-brand"><i class="bi bi-check-lg"></i> Save</button>
+        </div>
+        <div id="diffNote" class="small mt-1"></div>
+      </div>
+    </div>
+
+    <div class="card p-3">
+      <h6 class="mb-2">Tag won't scan?</h6>
+      <div class="form-text mb-2">Find it by name or SKU and put it on the count
+        by hand. It is recorded as held on this floor, exactly as a scan would.</div>
+      <input id="findBox" class="form-control form-control-sm" autocomplete="off"
+             placeholder="Search name or SKU">
+      <div id="findResults" class="list-group mt-1" style="max-height:34vh;overflow:auto"></div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="{{ 'col-lg-8' if audit.is_open else 'col-12' }}">
+    {# §10's filters. #}
+    <form class="card p-2 mb-2">
+      <div class="row g-2">
+        <div class="col-md-4">
+          <input class="form-control form-control-sm" name="q" value="{{ q }}"
+                 placeholder="Name, SKU, barcode, design no, colour…">
+        </div>
+        <div class="col-6 col-md-2">
+          <select class="form-select form-select-sm" name="status">
+            <option value="">All lines</option>
+            {% for key, label in [('not_counted','Not counted'),('matched','Matched'),
+                                  ('shortage','Shortage'),('excess','Excess')] %}
+            <option value="{{ key }}" {% if status == key %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-6 col-md-3">
+          <select class="form-select form-select-sm" name="category">
+            <option value="">All categories</option>
+            {% for section, cats in category_groups %}
+            <optgroup label="{{ section }}">
+              {% for c in cats %}
+              <option value="{{ c.id }}" {% if category_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+              {% endfor %}
+            </optgroup>
+            {% endfor %}
+          </select>
+        </div>
+        {% for field, label in attributes %}
+        <div class="col-6 col-md-2">
+          <select class="form-select form-select-sm" name="{{ field }}">
+            <option value="">{{ label }}</option>
+            {% for v in options[field] %}
+            <option value="{{ v }}" {% if chosen[field] == v %}selected{% endif %}>{{ v }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endfor %}
+        <div class="col-6 col-md-2 d-flex gap-1">
+          <button class="btn btn-outline-primary btn-sm w-100">Filter</button>
+          <a href="{{ url_for('audits.detail', aid=audit.id) }}"
+             class="btn btn-outline-secondary btn-sm">Clear</a>
+        </div>
+      </div>
+      {% if showing != total %}
+      <div class="form-text mt-1">Showing {{ showing }} of {{ total }} lines.</div>
+      {% endif %}
+    </form>
+
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+          <thead><tr>
+            <th>Item</th><th>Attributes</th>
+            <th class="text-end">Purchase</th><th class="text-end">Sales</th>
+            <th class="text-end">System</th><th style="width:120px">Physical</th>
+            <th class="text-end">Diff</th><th>Status</th>
+          </tr></thead>
+          <tbody>
+            {% for l in lines %}
+            {% set p = l.product %}
+            <tr data-line="{{ l.id }}">
+              <td>
+                {{ l.name }}{% if l.found_off_floor %}
+                <span class="badge text-bg-warning" title="Held on another floor — counted here">off floor</span>{% endif %}
+                <br><code class="small">{{ l.sku }}</code>
+                {% if l.scans %}<span class="text-muted small"> · {{ l.scans }} scan(s)</span>{% endif %}
+              </td>
+              <td class="small text-muted">
+                {{ p.category.name if p and p.category else '' }}
+                {% if p %}{{ [p.size, p.color, p.fabric, p.pattern, p.fit, p.product_type, p.design_no]
+                              | select | join(' · ') }}{% endif %}
+                {% if p and p.mrp %}<br>MRP {{ p.mrp|inr }} · sells {{ p.selling_price|inr }}{% endif %}
+              </td>
+              <td class="text-end">{{ l.purchase_qty }}</td>
+              <td class="text-end">{{ l.sales_qty }}</td>
+              <td class="text-end fw-bold">{{ l.system_qty }}</td>
+              <td>
+                {% if audit.is_open %}
+                <input class="form-control form-control-sm qty" type="number" min="0"
+                       step="0.001" data-line="{{ l.id }}"
+                       value="{{ '' if l.physical_qty is none else l.physical_qty }}"
+                       placeholder="—">
+                {% else %}
+                {{ '—' if l.physical_qty is none else l.physical_qty }}
+                {% endif %}
+              </td>
+              <td class="text-end fw-bold diff"
+                  style="color:{% if l.difference < 0 %}#BE123C{% elif l.difference > 0 %}#B45309{% else %}inherit{% endif %}">
+                {% if l.physical_qty is none %}—{% else %}{{ '%+g' % l.difference if l.difference else 0 }}{% endif %}
+              </td>
+              <td><span class="badge text-bg-{{ LINE[l.line_status] }} status">
+                {{ l.line_status.replace('_', ' ') }}</span></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8" class="text-center text-muted p-4">
+              {% if total %}Nothing matches these filters.
+              {% else %}Nothing on this count yet — scan a tag to begin.{% endif %}
+            </td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {# The way through, §12, and the adjustment §13. Each button is the only
+       thing that moves the count on, and the server refuses anything out of
+       order with the reason. #}
+    <div class="card p-3 mt-3">
+      <h6 class="mb-2">Where this count has got to</h6>
+      <div class="d-flex gap-2 flex-wrap align-items-center">
+        {% for key, label, css, icon in [
+             ('completed','Mark counting complete','brand','check2-square'),
+             ('reviewed','Mark reviewed','outline-primary','eye'),
+             ('approved','Approve','outline-success','patch-check'),
+             ('in_progress','Re-open counting','outline-secondary','arrow-counterclockwise'),
+             ('cancelled','Cancel this count','outline-danger','x-circle')] %}
+        {% if key in allowed_next %}
+        <form method="post" action="{{ url_for('audits.status', aid=audit.id) }}"
+              {% if key == 'cancelled' %}onsubmit="return confirm('Cancel {{ audit.number }}? The count is kept but counts for nothing.')"{% endif %}>
+          <input type="hidden" name="status" value="{{ key }}">
+          <button class="btn btn-{{ css }} btn-sm"><i class="bi bi-{{ icon }}"></i> {{ label }}</button>
+        </form>
+        {% endif %}
+        {% endfor %}
+
+        {% if audit.can_adjust %}
+        <form method="post" action="{{ url_for('audits.adjust', aid=audit.id) }}"
+              onsubmit="return confirm('Correct stock to the counted figures? This writes a movement per product and cannot be undone from here.')">
+          <button class="btn btn-brand btn-sm">
+            <i class="bi bi-sliders"></i> Apply to stock</button>
+        </form>
+        {% elif audit.status == 'approved' and audit.adjusted_at %}
+        <span class="badge text-bg-success">
+          applied {{ audit.adjusted_at|dmy }} {{ audit.adjusted_at.strftime('%H:%M') }}
+          {% if audit.adjusted_by %} by {{ audit.adjusted_by.full_name }}{% endif %}</span>
+        {% elif audit.status == 'approved' %}
+        <span class="text-muted small">Nothing to apply — every counted line agrees
+          with the books.</span>
+        {% endif %}
+      </div>
+      <div class="form-text mt-2">
+        Counting changes no stock. <b>Apply to stock</b> is the only thing that
+        does, it needs an approved count, and it writes one movement per product
+        against {{ audit.number }} — so the correction is a row in the ledger
+        somebody can find and question, never a silently rewritten figure.
+      </div>
+      {% set off = audit.counted_lines | selectattr('found_off_floor') | list %}
+      {% if off %}
+      <div class="alert alert-warning py-2 small mt-2 mb-0">
+        <i class="bi bi-exclamation-triangle"></i>
+        <strong>{{ off|length }} counted line(s) will NOT be adjusted.</strong>
+        They are held on another floor, so counting them here found <em>where some
+        of them were</em>, not how many the shop has — applying that figure would
+        write off every piece still standing on the floor they belong to. Their own
+        floor's count settles their quantity; this count records that they were
+        down here.
+        <div class="mt-1">
+          {% for l in off %}<code>{{ l.sku }}</code> {{ l.name }}
+            {% if not loop.last %}· {% endif %}{% endfor %}
+        </div>
+      </div>
+      {% endif %}
+      <table class="table table-sm mt-2 mb-0 small">
+        <tr><td class="text-muted" style="width:170px">Started</td>
+          <td>{{ audit.started_at|dmy }} {{ audit.started_at.strftime('%H:%M') }}
+            {% if audit.started_by %}· {{ audit.started_by.full_name }}{% endif %}</td></tr>
+        {% for label, when, who in [('Counting complete', audit.completed_at, audit.completed_by),
+                                    ('Reviewed', audit.reviewed_at, audit.reviewed_by),
+                                    ('Approved', audit.approved_at, audit.approved_by),
+                                    ('Applied to stock', audit.adjusted_at, audit.adjusted_by)] %}
+        {% if when %}
+        <tr><td class="text-muted">{{ label }}</td>
+          <td>{{ when|dmy }} {{ when.strftime('%H:%M') }}
+            {% if who %}· {{ who.full_name }}{% endif %}</td></tr>
+        {% endif %}
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if audit.is_open %}
+<script src="https://unpkg.com/html5-qrcode@2.3.10/html5-qrcode.min.js"></script>
+<script>
+const AUD = {{ audit.id }};
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g,
+  (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const trim = (n) => (n == null ? '—' : String(Number(n)));
+let current = null;
+
+function paintSummary(s){
+  if (!s) return;
+  document.querySelectorAll('[data-sum]').forEach((el) => {
+    const v = s[el.dataset.sum];
+    if (v !== undefined) el.textContent = v;
+  });
+}
+
+function paintFound(d){
+  current = d;
+  $('found').classList.remove('d-none');
+  $('fName').textContent = d.name;
+  $('fSku').textContent = d.sku;
+  $('fCat').textContent = d.category || '';
+  $('fAttrs').innerHTML = [d.size, d.color, d.fabric, d.pattern, d.fit,
+                           d.product_type, d.design_no]
+    .filter(Boolean).map(esc).join(' · ') || '<span class="text-muted">no attributes recorded</span>';
+  const money = (v) => (v == null ? '' : '₹' + Number(v).toFixed(2));
+  $('fPrices').innerHTML = [d.mrp ? 'MRP ' + money(d.mrp) : '',
+                            d.selling_price ? 'sells ' + money(d.selling_price) : '',
+                            d.floor ? 'held on ' + esc(d.floor) : ''].filter(Boolean).join(' · ');
+  $('fIn').textContent = trim(d.purchase_qty);
+  $('fOut').textContent = trim(d.sales_qty);
+  $('fSys').textContent = trim(d.system_qty);
+  $('qtyBox').value = d.physical_qty == null ? '' : d.physical_qty;
+  paintDiff();
+  $('qtyBox').focus();
+  $('qtyBox').select();
+}
+
+function paintDiff(){
+  const note = $('diffNote');
+  if (!current || $('qtyBox').value === ''){ note.textContent = ''; return; }
+  const d = Math.round((Number($('qtyBox').value) - current.system_qty) * 1000) / 1000;
+  note.textContent = d === 0 ? 'Matches the books.'
+    : (d < 0 ? `${-d} short of the ${trim(current.system_qty)} the system expects.`
+             : `${d} more than the ${trim(current.system_qty)} the system expects.`);
+  note.style.color = d === 0 ? '#257353' : (d < 0 ? '#BE123C' : '#B45309');
+}
+$('qtyBox').oninput = paintDiff;
+
+function say(msg, kind){
+  const el = $('scanMsg');
+  el.textContent = msg || '';
+  el.style.color = kind === 'err' ? '#BE123C' : (kind === 'warn' ? '#B45309' : '#257353');
+}
+
+async function lookup(code){
+  code = (code || '').trim();
+  if (!code) return;
+  try {
+    const r = await fetch(`${SHOP_ROOT}/audits/${AUD}/scan`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({code}),
+    });
+    const j = await r.json();
+    if (j.error){ say(j.error, 'err'); return; }
+    say(j.message || '', j.off_floor || j.scans > 1 ? 'warn' : 'ok');
+    paintFound(j);
+    $('scanBox').value = '';
+  } catch (e){ say('Lookup failed: ' + e, 'err'); }
+}
+
+$('scanBox').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter'){ e.preventDefault(); lookup(e.target.value); }
+});
+// Most scanners send no Enter, so a code that has settled is looked up anyway.
+let scanTimer = null, lastCode = null;
+$('scanBox').oninput = (e) => {
+  clearTimeout(scanTimer);
+  scanTimer = setTimeout(() => {
+    const v = e.target.value.trim();
+    if (v.length >= 4 && (/^EU?1\|/.test(v) || !/\s/.test(v)) && v !== lastCode){
+      lastCode = v;
+      lookup(v);
+    }
+  }, 150);
+};
+
+async function saveCount(lineId, qty){
+  const r = await fetch(`${SHOP_ROOT}/audits/${AUD}/count`, {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({line_id: lineId, physical_qty: qty}),
+  });
+  const j = await r.json();
+  if (j.error){ say(j.error, 'err'); return null; }
+  paintSummary(j.summary);
+  paintRow(j.line);
+  return j.line;
+}
+
+// The table row for a line just counted, so the list and the scan panel agree
+// without a reload.
+function paintRow(d){
+  const row = document.querySelector(`tr[data-line="${d.line_id}"]`);
+  if (!row) return;
+  const box = row.querySelector('input.qty');
+  if (box) box.value = d.physical_qty == null ? '' : d.physical_qty;
+  const diff = row.querySelector('.diff');
+  if (diff){
+    diff.textContent = d.physical_qty == null ? '—'
+      : (d.difference > 0 ? '+' : '') + d.difference;
+    diff.style.color = d.difference < 0 ? '#BE123C'
+      : (d.difference > 0 ? '#B45309' : 'inherit');
+  }
+  const badge = row.querySelector('.status');
+  if (badge){
+    const css = {not_counted:'secondary', matched:'success',
+                 shortage:'danger', excess:'warning'}[d.line_status];
+    badge.className = 'badge status text-bg-' + css;
+    badge.textContent = d.line_status.replace('_', ' ');
+  }
+}
+
+$('saveBtn').onclick = async () => {
+  if (!current) return;
+  const line = await saveCount(current.line_id, $('qtyBox').value);
+  if (line){
+    say(`${line.name}: counted ${trim(line.physical_qty)}.`, 'ok');
+    $('found').classList.add('d-none');
+    current = null;
+    lastCode = null;
+    $('scanBox').focus();
+  }
+};
+$('qtyBox').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter'){ e.preventDefault(); $('saveBtn').click(); }
+});
+
+// Typing straight into the table, for anyone working down a printed list.
+document.querySelectorAll('input.qty').forEach((el) => {
+  el.addEventListener('change', () => saveCount(Number(el.dataset.line), el.value));
+});
+
+// ---- find by name, for a tag that will not scan ----------------------------
+let findTimer = null;
+$('findBox').oninput = () => {
+  clearTimeout(findTimer);
+  findTimer = setTimeout(async () => {
+    const q = $('findBox').value.trim();
+    if (!q){ $('findResults').innerHTML = ''; return; }
+    const r = await fetch(`${SHOP_ROOT}/audits/api/products?q=${encodeURIComponent(q)}`);
+    const rows = await r.json();
+    $('findResults').innerHTML = rows.map((p) => `
+      <a href="#" class="list-group-item list-group-item-action hit" data-id="${p.id}">
+        <div class="d-flex justify-content-between">
+          <div><strong>${esc(p.name)}</strong><br>
+            <small class="text-muted">${esc(p.sku)}${p.size ? ' · ' + esc(p.size) : ''}${p.color ? ' · ' + esc(p.color) : ''}</small></div>
+          <div class="text-end small">stock ${p.stock}<br>
+            <span class="text-muted">${esc(p.floor || 'no floor')}</span></div>
+        </div></a>`).join('') ||
+      '<div class="list-group-item text-muted">Nothing matches.</div>';
+  }, 200);
+};
+document.addEventListener('click', async (e) => {
+  const hit = e.target.closest('.hit');
+  if (!hit) return;
+  e.preventDefault();
+  const r = await fetch(`${SHOP_ROOT}/audits/${AUD}/add`, {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({product_id: Number(hit.dataset.id)}),
+  });
+  const j = await r.json();
+  if (j.error){ say(j.error, 'err'); return; }
+  say(j.message || '', 'ok');
+  paintFound(j);
+  $('findBox').value = '';
+  $('findResults').innerHTML = '';
+});
+
+// ---- camera, for a phone walking the floor ---------------------------------
+let cam = null;
+$('camBtn').onclick = async () => {
+  $('camBox').style.display = 'block';
+  if (cam) return;
+  cam = new Html5Qrcode('reader');
+  try {
+    await cam.start({facingMode: 'environment'}, {fps: 12, qrbox: {width: 260, height: 160}},
+      (text) => lookup(text), () => {});
+  } catch (err){ say('Camera error: ' + err, 'err'); }
+};
+$('camStop').onclick = async () => {
+  if (cam){ try { await cam.stop(); cam.clear(); } catch(e){} cam = null; }
+  $('camBox').style.display = 'none';
+};
+</script>
+{% endif %}
+{% endblock %}

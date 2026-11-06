@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h4 class="mb-0"><i class="bi bi-building"></i> Floors &amp; tills</h4>
+  <div class="d-flex flex-wrap gap-2">
+    <span class="badge text-bg-light border align-self-center">
+      Financial year <strong>{{ year }}</strong> · e.g. <code>{{ example }}</code></span>
+    <a href="{{ url_for('stores.series') }}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-list-ol"></i> Bill series</a>
+  </div>
+</div>
+
+<p class="text-muted small">
+  A till's bills are named after the storey it stands on:
+  <strong>POS → floor → prefix → financial year → next number</strong>. The
+  billing counter does the rest — a cashier never types a bill number and cannot
+  change one.
+</p>
+
+<div class="alert alert-secondary py-2 small">
+  <i class="bi bi-diagram-3"></i>
+  <strong>Floors are created in the warehouse.</strong> The chain
+  <em>warehouse → store → floor → till</em> is one master, kept in the WAREXX
+  warehouse's <b>Locations</b> screen, and this shop mirrors it — the same way it
+  mirrors the stores themselves. Rows marked
+  <span class="badge text-bg-info">warehouse</span> below are read-only here;
+  change them there and they follow through on the next sync. Anything you add on
+  this page is marked <span class="badge text-bg-light border">local</span> and is
+  left alone by a sync — that is for a shop running on its own, with no warehouse
+  to read.
+</div>
+
+{% if unassigned %}
+<div class="alert alert-info py-2">
+  <i class="bi bi-info-circle"></i>
+  {{ unassigned }} till(s) are not on a floor yet. They keep billing on the shop's
+  plain <code>INV-</code> series until they are mapped — nothing stops, but their
+  bills won't carry a floor prefix.
+</div>
+{% endif %}
+
+{% if shared %}
+<div class="alert alert-warning py-2">
+  <i class="bi bi-exclamation-triangle"></i>
+  <strong>Two floors share a prefix.</strong> That is allowed and means they share
+  one running series — bills alternate between them rather than each starting at
+  001. If that isn't what was meant, it's a typo:
+  {% for prefix, floors in shared.items() %}
+    <code>{{ prefix }}</code> —
+    {% for f in floors %}{{ f.location.name }} / {{ f.name }}{% if not loop.last %}, {% endif %}{% endfor %}{% if not loop.last %}; {% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+
+{% for loc in locations %}
+{% set floors = loc.floors | selectattr('active') | sort(attribute='sort_order') | list %}
+<div class="card mb-3">
+  <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h5 class="mb-0"><i class="bi bi-shop"></i> {{ loc.name }}</h5>
+    {% if not floors %}
+      {% if wh_available %}
+      <span class="text-muted small">
+        <i class="bi bi-arrow-up-right-square"></i>
+        Add its floors in the warehouse — <b>Locations → {{ loc.name }} → + Floor</b>
+        — and they appear here on the next sync.</span>
+      {% else %}
+      <form method="post" action="{{ url_for('stores.standard_floors') }}">
+        <input type="hidden" name="location_id" value="{{ loc.id }}">
+        <button class="btn btn-brand btn-sm">
+          <i class="bi bi-magic"></i> Add the four standard floors</button>
+        <span class="text-muted small ms-1">Ground TG · First TF · Second TS · Third TT</span>
+      </form>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-sm mb-0 align-middle">
+      <thead><tr>
+        <th style="width:80px">Order</th><th>Floor</th><th style="width:110px">Prefix</th>
+        <th>Next bill</th><th class="text-end">Bills this FY</th>
+        <th>Tills on it</th><th style="width:150px"></th>
+      </tr></thead>
+      <tbody>
+        {% for f in floors %}
+        <tr>
+          <form method="post" action="{{ url_for('stores.edit_floor', fid=f.id) }}">
+          {# A mirrored floor is shown, not offered for editing. The inputs
+             become plain text rather than disabled boxes — a greyed-out field
+             invites a click and then says nothing. #}
+          {% if f.wh_id %}
+          <td class="text-muted">{{ f.sort_order or 0 }}</td>
+          <td>{{ f.name }} <span class="badge text-bg-info"
+                title="Created in the warehouse's Locations screen">warehouse</span></td>
+          <td><code>{{ f.prefix or '—' }}</code></td>
+          {% else %}
+          <td><input class="form-control form-control-sm" type="number" name="sort_order"
+                     value="{{ f.sort_order or 0 }}"></td>
+          <td><input class="form-control form-control-sm" name="name" value="{{ f.name }}" required>
+            <span class="badge text-bg-light border"
+                  title="Added on this screen — a sync leaves it alone">local</span></td>
+          <td><input class="form-control form-control-sm text-uppercase" name="prefix"
+                     value="{{ f.prefix }}" maxlength="8" required></td>
+          {% endif %}
+          <td>{% if f.prefix %}<code>{{ f.prefix }}{{ year }}-{{ '%03d' % ((series.get((f.prefix, year)) or 0) + 1) }}</code>
+              {% else %}<span class="text-muted small">no prefix — plain series</span>{% endif %}</td>
+          <td class="text-end">{{ counts.get(f.id, 0) }}</td>
+          <td class="small">
+            {% set tills = f.counters | selectattr('active') | list %}
+            {% if tills %}
+              {% for t in tills %}{{ t.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+            {% else %}<span class="text-warning">no till mapped</span>{% endif %}
+          </td>
+          <td class="text-nowrap">
+            {% if not f.wh_id %}
+            <input type="hidden" name="active" value="on">
+            <button class="btn btn-sm btn-outline-primary" title="Save"><i class="bi bi-check-lg"></i></button>
+            {% else %}
+            <span class="text-muted small">edit upstairs</span>
+            {% endif %}
+          </td>
+          </form>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted p-3">
+          No floors here yet — bills from this store are numbered
+          <code>INV-000001</code>.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="p-3 pt-2 border-top">
+    <form method="post" action="{{ url_for('stores.new_floor') }}" class="row g-2 align-items-end">
+      <input type="hidden" name="location_id" value="{{ loc.id }}">
+      <div class="col-6 col-md-2">
+        <label class="form-label small mb-1">Order</label>
+        <input class="form-control form-control-sm" type="number" name="sort_order"
+               value="{{ floors | length }}"></div>
+      <div class="col-6 col-md-4">
+        <label class="form-label small mb-1">New floor</label>
+        <input class="form-control form-control-sm" name="name" placeholder="Fourth Floor"></div>
+      <div class="col-6 col-md-2">
+        <label class="form-label small mb-1">Prefix</label>
+        <input class="form-control form-control-sm text-uppercase" name="prefix"
+               maxlength="8" placeholder="TX"></div>
+      <div class="col-6 col-md-2">
+        <button class="btn btn-outline-primary btn-sm w-100">
+          <i class="bi bi-plus"></i> Add floor</button></div>
+    </form>
+  </div>
+
+  {# The tills, and the one thing that actually decides a bill number. Kept on
+     the same page as the floors because "which storey is this till on" is not a
+     question anyone can answer while looking at a different screen. #}
+  <div class="p-3 pt-0">
+    <h6 class="text-muted mb-2 mt-1">Tills at {{ loc.name }}</h6>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0 align-middle">
+        <thead><tr><th>Till</th><th style="width:240px">On floor</th>
+          <th>Its bills read</th><th style="width:110px"></th></tr></thead>
+        <tbody>
+          {% for t in loc.counters if t.active %}
+          <tr>
+            <form method="post" action="{{ url_for('stores.assign_counter', cid=t.id) }}">
+            <td>{{ t.name }}
+              {% if t.wh_id %}<span class="badge text-bg-info"
+                title="This till comes from the warehouse's Locations screen">warehouse</span>{% endif %}</td>
+            <td>
+              {% if t.wh_id %}
+              {{ t.floor.name if t.floor else '— not on a floor —' }}
+              {% else %}
+              <select class="form-select form-select-sm" name="floor_id" aria-label="Floor">
+                <option value="">— not on a floor —</option>
+                {% for f in floors %}
+                <option value="{{ f.id }}" {% if t.floor_id == f.id %}selected{% endif %}>
+                  {{ f.name }}{% if f.prefix %} ({{ f.prefix }}){% endif %}</option>
+                {% endfor %}
+              </select>
+              {% endif %}
+            </td>
+            <td><code>{% if t.floor and t.floor.active and t.floor.prefix %}{{ t.floor.prefix }}{{ year }}-001{% else %}INV-000001{% endif %}</code></td>
+            <td>{% if t.wh_id %}<span class="text-muted small">map upstairs</span>
+              {% else %}<button class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-check-lg"></i> Map</button>{% endif %}</td>
+            </form>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="text-center text-muted p-3">No tills here.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <form method="post" action="{{ url_for('stores.new_counter') }}" class="row g-2 align-items-end mt-1">
+      <input type="hidden" name="location_id" value="{{ loc.id }}">
+      <div class="col-6 col-md-4">
+        <label class="form-label small mb-1">New till</label>
+        <input class="form-control form-control-sm" name="name" placeholder="Counter 2"></div>
+      <div class="col-6 col-md-4">
+        <label class="form-label small mb-1">On floor</label>
+        <select class="form-select form-select-sm" name="floor_id" aria-label="Floor">
+          <option value="">— not on a floor —</option>
+          {% for f in floors %}<option value="{{ f.id }}">{{ f.name }} ({{ f.prefix }})</option>{% endfor %}
+        </select></div>
+      <div class="col-6 col-md-2">
+        <button class="btn btn-outline-primary btn-sm w-100">
+          <i class="bi bi-plus"></i> Add till</button></div>
+    </form>
+  </div>
+</div>
+{% else %}
+<div class="card p-4 text-center text-muted">
+  No stores yet. They come from the warehouse's own list of branches and appear
+  here once it has one — see <code>app/places.py</code>.
+</div>
+{% endfor %}
+
+<p class="text-muted small">
+  Changing a prefix changes what the <em>next</em> bill on that floor is called.
+  Bills already raised keep the numbers they were printed with, and keep their own
+  copy of the prefix and sequence they were built from — a master that rewrote
+  history to tidy itself up would lose the audit.
+</p>
+{% endblock %}

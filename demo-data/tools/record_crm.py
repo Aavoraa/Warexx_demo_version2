@@ -54,13 +54,21 @@ os.environ.update({
     "SHOP_NAME": "Sample Company", "SECRET_KEY": "demo-recording-only-" + os.urandom(8).hex(),
     "ESSA_COMPANY_NAME": "Sample Company Private Limited", "ESSA_COMPANY_GSTIN": "33AAAAA0000A1Z5",
 })
+# seed_live.py: seed the database it names and record nothing
+LIVE = os.environ.get("WAREXX_SEED_LIVE") == "1"
+LOGIN_PASSWORD = os.environ["ESSA_SUPERADMIN_PASSWORD"] if LIVE else "super@123"
+if LIVE:
+    SHOP_DB, WH_DB = os.environ["WAREXX_SEED_SHOP_URL"], os.environ["WAREXX_SEED_WH_URL"]
+    if SHOP_DB.startswith("postgresql"):
+        os.environ["SHOP_DB_SCHEMA"] = "shop"
+    os.environ["ESSA_POS_DB"] = os.environ["WAREXX_SEED_SHOP_URL"].replace("sqlite:///", "") if os.environ["WAREXX_SEED_SHOP_URL"].startswith("sqlite") else ""
 random.seed(20261005)
 NOW = dt.datetime.now()
 TODAY = NOW.date()
 
 # ===========================================================================
 # the shop's database: its own sample seed, then a fictional business's CRM
-os.environ["DATABASE_URL"] = "sqlite:///" + SHOP_DB
+os.environ["DATABASE_URL"] = SHOP_DB if LIVE else "sqlite:///" + SHOP_DB
 sys.path.insert(0, str(SHOP))
 import app as shop_pkg                                              # noqa: E402
 from app import db                                                  # noqa: E402
@@ -287,20 +295,20 @@ sys.path.remove(str(SHOP))
 # ===========================================================================
 # ESSA's backend, which mounts that shop at /pos and signs it in as the admin
 # ESSA reads ESSA_DATABASE_URL first; the shop it mounts reads DATABASE_URL — one file each
-os.environ["ESSA_DATABASE_URL"] = "sqlite:///" + WH_DB
-os.environ["DATABASE_URL"] = "sqlite:///" + SHOP_DB
+os.environ["ESSA_DATABASE_URL"] = WH_DB if LIVE else "sqlite:///" + WH_DB
+os.environ["DATABASE_URL"] = SHOP_DB if LIVE else "sqlite:///" + SHOP_DB
 sys.path.insert(0, str(ROOT))
 from backend.app import models                                      # noqa: E402
 from backend.app.database import engine, DB_URL                     # noqa: E402
 from backend.app.main import app                                    # noqa: E402
 from fastapi.testclient import TestClient                           # noqa: E402
 
-if not DB_URL.startswith("sqlite") or tmp.replace(os.sep, "/") not in DB_URL:
+if not LIVE and (not DB_URL.startswith("sqlite") or tmp.replace(os.sep, "/") not in DB_URL):
     sys.exit("refusing to run: the database is not the throwaway one (%s)" % DB_URL)
 models.Base.metadata.create_all(bind=engine)
 client = TestClient(app)
 tok = client.post("/api/auth/login", headers={"X-Essa-Client": "native"},
-                  json={"username": "superadmin", "password": "super@123"}).json()["token"]
+                  json={"username": "superadmin", "password": LOGIN_PASSWORD}).json()["token"]
 H = {"Authorization": "Bearer " + tok}
 _probe = client.get("/pos/", headers=H)
 if _probe.status_code == 503:
@@ -351,7 +359,7 @@ def rec(path, wh="1"):
 
 
 recorded_roots = 0
-for key, root in CRM:
+for key, root in ([] if LIVE else CRM):
     if root in KEEP:
         continue
     body = rec(root)
@@ -392,6 +400,11 @@ for body in [
     r = client.post("/pos/promotions/api/schemes", headers=H, json=body)
     if r.status_code != 200:
         problems.append("save scheme %r -> %s %s" % (body["name"], r.status_code, r.text[:160]))
+
+if LIVE:
+    if problems:
+        sys.exit("\n".join(problems))
+    sys.exit(0)
 
 # The Promotions screen draws its schemes from JSON it fetches after the page loads.
 def rec_json(path, search=""):

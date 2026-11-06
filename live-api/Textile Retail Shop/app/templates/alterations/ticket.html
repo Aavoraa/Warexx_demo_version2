@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}{{ job.number }} — {{ SHOP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-head d-print-none">
+  <h4><i class="bi bi-scissors"></i> Alteration {{ job.number }}</h4>
+  <div>
+    <button onclick="window.print()" class="btn btn-brand btn-sm"><i class="bi bi-printer"></i> Print ticket</button>
+    <a href="{{ url_for('alterations.index') }}" class="btn btn-outline-secondary btn-sm">New alteration</a>
+  </div>
+</div>
+
+<div class="card p-4" style="max-width:760px">
+  <div class="d-flex justify-content-between">
+    <div>
+      <div class="fw-bold fs-5">{{ SHOP_NAME }}</div>
+      <div class="small text-muted">Alteration ticket</div>
+    </div>
+    <div class="text-end">
+      <div class="fw-bold">{{ job.number }}</div>
+      <div class="small text-muted">Taken in {{ job.created_at.strftime('%d %b %Y') }}</div>
+      <div class="small">against <strong>{{ job.invoice.invoice_number }}</strong></div>
+    </div>
+  </div>
+
+  <hr>
+  <div class="row small">
+    <div class="col-6">
+      <div><strong>{{ job.invoice.customer.name if job.invoice.customer else 'Walk-in customer' }}</strong></div>
+      {% if job.invoice.customer and job.invoice.customer.phone %}
+      <div class="text-muted">{{ job.invoice.customer.phone }}</div>{% endif %}
+      {% if job.staff %}<div class="text-muted">Taken in by {{ job.staff.full_name }}</div>{% endif %}
+    </div>
+    <div class="col-6 text-end">
+      <div>Tailor: <strong>{{ job.tailor.name if job.tailor else 'not assigned' }}</strong></div>
+      {% if job.tailor and job.tailor.phone %}<div class="text-muted">{{ job.tailor.phone }}</div>{% endif %}
+      <div>Promised:
+        {% if job.promised_date %}<strong>{{ job.promised_date.strftime('%d %b %Y') }}</strong>
+          {% if job.is_overdue %}<span class="badge text-bg-danger">overdue</span>{% endif %}
+        {% else %}—{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <table class="table table-sm mt-3">
+    <thead><tr><th>Item</th><th class="text-end">Qty</th><th>What to do</th></tr></thead>
+    <tbody>
+      {% for it in job.items %}
+      <tr>
+        <td>{{ it.product.name }}<br><small class="text-muted">SKU {{ it.product.sku }}
+          {% if it.product.size %} · size {{ it.product.size }}{% endif %}</small></td>
+        <td class="text-end">{{ it.quantity }}</td>
+        <td>{{ it.instructions or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if job.remarks %}<div class="small"><strong>Remarks:</strong> {{ job.remarks }}</div>{% endif %}
+
+  <div class="d-flex justify-content-between align-items-center mt-3">
+    <div>
+      {% if job.status == 'delivered' %}
+      <span class="badge text-bg-dark">delivered {{ job.delivered_at.strftime('%d %b %Y') }}</span>
+      {% if job.delivered_by %}<span class="small text-muted ms-1">by {{ job.delivered_by.full_name }}</span>{% endif %}
+      {% elif job.status == 'ready' %}
+      <span class="badge text-bg-success">ready for collection</span>
+      {% else %}
+      <span class="badge text-bg-secondary">with the tailor</span>
+      {% endif %}
+    </div>
+    <div class="text-end">
+      <div class="text-muted small">Charge</div>
+      <div class="fs-5 fw-bold">{{ job.charge|inr }}</div>
+      {% if job.charge and job.status != 'delivered' %}
+      <div class="small text-muted">payable on collection</div>
+      {% elif job.charge and job.charge_method %}
+      <div class="small text-muted">paid by {{ job.charge_method }}</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{# Moving the job on. Not printed — this is the counter's half of the ticket. #}
+<div class="card p-3 mt-3 d-print-none" style="max-width:760px">
+  {% if job.status == 'pending' %}
+  <form method="post" action="{{ url_for('alterations.mark_ready', aid=job.id) }}">
+    <button class="btn btn-outline-success"><i class="bi bi-check2"></i> Back from the tailor — ready for collection</button>
+  </form>
+  {% elif job.status == 'ready' %}
+  <form method="post" action="{{ url_for('alterations.deliver', aid=job.id) }}" class="row g-2 align-items-end">
+    <div class="col-md-5">
+      <label class="form-label mb-0 small">Handed over by *</label>
+      <input class="form-control form-control-sm" name="staff_code" required
+             placeholder="Scan ID card or type STF000003" autocomplete="off">
+    </div>
+    {% if job.charge %}
+    <div class="col-md-3">
+      <label class="form-label mb-0 small">{{ job.charge|inr }} collected by</label>
+      <select class="form-select form-select-sm" name="charge_method">
+        <option value="cash">Cash</option><option value="card">Card</option><option value="upi">UPI</option>
+      </select>
+    </div>
+    {% endif %}
+    <div class="col-md-4">
+      <button class="btn btn-brand btn-sm"><i class="bi bi-bag-check"></i> Hand to customer</button>
+    </div>
+  </form>
+  {% else %}
+  <div class="text-muted small">This job is closed.</div>
+  {% endif %}
+</div>
+
+<style>
+  @media print { .brand-nav, .alert, .d-print-none { display: none !important; } body { background:#fff; } }
+</style>
+{% endblock %}

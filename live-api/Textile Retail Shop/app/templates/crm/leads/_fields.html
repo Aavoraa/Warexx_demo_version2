@@ -1,0 +1,25 @@
+{% set l = lead %}
+<div class="row g-2">
+  <div class="col-md-6"><label class="form-label small">Name *</label>
+    <input class="form-control form-control-sm" name="name" required maxlength="128" value="{{ l.name if l else '' }}"></div>
+  <div class="col-md-3"><label class="form-label small">Mobile</label>
+    <input class="form-control form-control-sm" name="phone" inputmode="tel" maxlength="32" value="{{ l.phone if l and l.phone else '' }}"></div>
+  <div class="col-md-3"><label class="form-label small">Email</label>
+    <input class="form-control form-control-sm" type="email" name="email" value="{{ l.email if l and l.email else '' }}"></div>
+  <div class="col-md-3"><label class="form-label small">City</label>
+    <input class="form-control form-control-sm" name="city" value="{{ l.city if l and l.city else '' }}"></div>
+  <div class="col-md-3"><label class="form-label small">Source</label>
+    <select class="form-select form-select-sm" name="source">
+      {% for s in sources %}<option value="{{ s }}" {{ 'selected' if l and l.source == s }}>{{ s|replace('_', ' ')|title }}</option>{% endfor %}
+    </select></div>
+  <div class="col-md-6"><label class="form-label small">Interested in</label>
+    <input class="form-control form-control-sm" name="interest" maxlength="256" value="{{ l.interest if l and l.interest else '' }}" placeholder="e.g. Bridal silk sarees for a February wedding"></div>
+  <div class="col-md-3"><label class="form-label small">Expected value (₹)</label>
+    <input class="form-control form-control-sm" type="number" min="0" step="1" name="expected_value" value="{{ '%g'|format(l.expected_value) if l and l.expected_value else '' }}"></div>
+  <div class="col-md-3"><label class="form-label small">Next follow-up</label>
+    <input class="form-control form-control-sm" type="date" name="next_follow_up" value="{{ l.next_follow_up.isoformat() if l and l.next_follow_up else (default_follow_up.isoformat() if default_follow_up else '') }}"></div>
+  <div class="col-md-6"><label class="form-label small">Assigned to</label>
+    <select class="form-select form-select-sm" name="assigned_to_id"><option value="">Nobody yet</option>
+      {% for u in staff %}<option value="{{ u.id }}" {{ 'selected' if (l and l.assigned_to_id == u.id) or (not l and u.id == current_user.id) }}>{{ u.full_name }}</option>{% endfor %}
+    </select></div>
+</div>

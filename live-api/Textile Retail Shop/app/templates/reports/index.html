@@ -1,0 +1,408 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h4><i class="bi bi-graph-up"></i> Sales / Retail Reports</h4>
+    <div class="page-sub">Every register — or just ask a question in plain words</div>
+  </div>
+  {# Two views of one page, switched here without a reload. Links as well as
+     buttons, so a view can be bookmarked and opens where it was left. #}
+  <div class="rpt-tabs" role="tablist">
+    <a href="{{ url_for('reports.index', view='all') }}" role="tab" data-view="all"
+       class="rpt-tab {% if view != 'overview' %}on{% endif %}"
+       aria-selected="{{ 'false' if view == 'overview' else 'true' }}">
+      <i class="bi bi-list-ul"></i> Report catalogue</a>
+    <a href="{{ url_for('reports.index', view='overview') }}" role="tab" data-view="overview"
+       class="rpt-tab {% if view == 'overview' %}on{% endif %}"
+       aria-selected="{{ 'true' if view == 'overview' else 'false' }}">
+      <i class="bi bi-bar-chart-line"></i> Sales overview</a>
+  </div>
+</div>
+
+{# Ask a question instead of hunting for the right screen. The question is routed
+   to one of the reports below it — never turned into a query — so the answer is
+   the same figure this page would show, with the same caveats attached. #}
+<div class="card p-3 mb-3" style="border-color:rgba(47,143,104,.3); background:var(--brand-50);">
+  <div class="d-flex align-items-center gap-2 flex-wrap">
+    <span style="font-size:1.3rem">✨</span>
+    <input id="askBox" class="form-control" style="flex:1;min-width:260px"
+           placeholder="Ask a question, or press 🎤 — “what did we sell last month”, “கடந்த மாதம் விற்பனை எவ்வளவு”"
+           autocomplete="off">
+    <button id="askMic" class="btn btn-outline-secondary" type="button" title="Speak the question">🎤</button>
+    <div class="btn-group" role="group">
+      <input type="radio" class="btn-check" name="asklang" id="langEn" value="en-IN" checked>
+      <label class="btn btn-outline-dark btn-sm" for="langEn">EN</label>
+      <input type="radio" class="btn-check" name="asklang" id="langTa" value="ta-IN">
+      <label class="btn btn-outline-dark btn-sm" for="langTa">தமிழ்</label>
+    </div>
+    <button id="askGo" class="btn btn-brand">Ask</button>
+  </div>
+  <div id="askHint" class="small text-muted mt-2"></div>
+  <div id="askOut" class="mt-3"></div>
+</div>
+
+{# ---- the catalogue ----
+   The report menu group by group, in the order and under the names the reference
+   ERP uses, so a report is found where people already look for it. A report the
+   shop keeps no record for is still listed — greyed, and it says why when opened —
+   so the menu is complete without pretending. #}
+<div id="view-all" {% if view == 'overview' %}hidden{% endif %}>
+  <div class="rpt-find">
+    <i class="bi bi-search"></i>
+    <input id="rptFilter" class="form-control" type="search" autocomplete="off"
+           placeholder="Find a report — “tax”, “salesman”, “stock”…" aria-label="Find a report">
+    <span class="small text-muted" id="rptCount">
+      {% set ns = namespace(n=0, ok=0) %}
+      {% for g in groups %}{% set ns.n = ns.n + g.reports|length %}{% set ns.ok = ns.ok + g.available %}{% endfor %}
+      {{ ns.ok }} of {{ ns.n }} reports have data to show</span>
+  </div>
+  <div class="rpt-grid">
+    {% for g in groups %}
+    <section class="rpt-group" data-group="{{ g.key }}">
+      <button type="button" class="rpt-head" aria-expanded="true">
+        <span>{{ g.label }} <span class="rpt-n">({{ g.reports|length }})</span></span>
+        <i class="bi bi-dash-lg" aria-hidden="true"></i>
+      </button>
+      <ul class="rpt-list">
+        {% for r in g.reports %}
+        <li data-name="{{ (r.label ~ ' ' ~ g.label)|lower }}">
+          <a href="{{ url_for('reports.report', key=r.key) }}"
+             class="rpt-link{% if r.unavailable %} na{% endif %}"
+             title="{{ r.unavailable if r.unavailable else 'Open ' ~ r.label }}">
+            <i class="bi {{ 'bi-slash-circle' if r.unavailable else 'bi-file-earmark-bar-graph' }}"></i>
+            <span>{{ r.label }}</span>
+            {% if r.unavailable %}<span class="rpt-na">not recorded</span>{% endif %}
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endfor %}
+  </div>
+  <div id="rptNone" class="text-muted small p-3" hidden>No report matches that.</div>
+</div>
+
+<div id="view-overview" {% if view != 'overview' %}hidden{% endif %}>
+{# Every figure below is filtered by these three, not just the tables that name
+   them: a page headed "Tirupur" whose totals count every branch is worse than a
+   page with no filter on it. #}
+<form class="row g-2 mb-3">
+  <input type="hidden" name="view" value="overview">
+  <div class="col-md-2"><input class="form-control" type="date" name="from" value="{{ start }}"></div>
+  <div class="col-md-2"><input class="form-control" type="date" name="to" value="{{ end }}"></div>
+  <div class="col-md-2">
+    <select class="form-select" name="company">
+      <option value="">Every company</option>
+      {% for c in places.companies %}
+      <option value="{{ c.id }}" {% if chosen.company == c.id %}selected{% endif %}>{{ c.name }}</option>
+      {% endfor %}
+    </select></div>
+  <div class="col-md-2">
+    <select class="form-select" name="location">
+      <option value="">Every branch</option>
+      {% for l in places.locations %}
+      <option value="{{ l.id }}" {% if chosen.location == l.id %}selected{% endif %}>{{ l.name }}</option>
+      {% endfor %}
+    </select></div>
+  <div class="col-md-2">
+    <select class="form-select" name="counter">
+      <option value="">Every till</option>
+      {% for c, where in places.counters %}
+      <option value="{{ c.id }}" {% if chosen.counter == c.id %}selected{% endif %}>{{ where }} · {{ c.name }}</option>
+      {% endfor %}
+    </select></div>
+  <div class="col-md-1"><button class="btn btn-brand w-100">Apply</button></div>
+  <div class="col-md-1 text-end"><a href="{{ url_for('reports.low_stock') }}" class="btn btn-outline-warning" title="Low stock report">Low</a></div>
+</form>
+
+{% if unplaced %}
+<div class="small text-muted mb-2">
+  {{ unplaced }} bill(s) in this range carry no branch — raised before counters
+  existed, so they are in the totals above but in none of the splits below.
+</div>
+{% endif %}
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-md-3"><div class="stat-card card p-3 t-money"><div class="label">Total sales</div><div class="value">{{ total_sales|inr }}</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card card p-3 t-count"><div class="label">Invoices</div><div class="value">{{ invoice_count }}</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card card p-3 t-money"><div class="label">Avg bill</div><div class="value">{{ avg_bill|inr }}</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card card p-3 t-adjust"><div class="label">Tax collected</div><div class="value">{{ total_tax|inr }}</div></div></div>
+</div>
+
+{# The question this page is usually opened to answer: what did each branch and
+   each till take. Three of them because they are three different questions, and
+   one table with three columns would make you read past two to reach the one you
+   came for. #}
+<div class="row g-3 mb-3">
+  {% for title, rows, icon in [('By branch', by_location, 'shop'),
+                               ('By till', by_counter, 'calculator'),
+                               ('By company', by_company, 'building')] %}
+  <div class="col-lg-4">
+    <div class="card p-3 h-100">
+      <h6 class="mb-2"><i class="bi bi-{{ icon }}"></i> {{ title }}</h6>
+      {% if rows %}
+      <table class="table table-sm mb-0">
+        <thead><tr><th></th><th class="text-end">Bills</th><th class="text-end">Sales</th></tr></thead>
+        <tbody>
+          {% for name, bills, total in rows %}
+          <tr><td>{{ name }}</td><td class="text-end">{{ bills }}</td>
+              <td class="text-end">{{ total|inr }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="small text-muted">Nothing recorded against a {{ title[3:]|lower }} in this range.</div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% if daily_places %}
+<div class="card p-3 mb-3">
+  <h6 class="mb-2"><i class="bi bi-calendar3"></i> Daily sales, branch by branch</h6>
+  <div class="table-responsive" style="max-height:340px;overflow:auto">
+    <table class="table table-sm mb-0">
+      <thead class="table-light" style="position:sticky;top:0">
+        <tr><th>Date</th><th>Branch</th><th class="text-end">Bills</th><th class="text-end">Sales</th></tr>
+      </thead>
+      <tbody>
+        {% for day, name, bills, total in daily_places %}
+        <tr><td>{{ day|dmy }}</td><td>{{ name }}</td>
+            <td class="text-end">{{ bills }}</td><td class="text-end">{{ total|inr }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card p-3 mb-3">
+      <h6>Daily sales trend</h6>
+      <canvas id="trendChart" height="80"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-header">Top products</div>
+      <table class="table mb-0">
+        <thead><tr><th>Product</th><th class="text-end">Qty sold</th><th class="text-end">Revenue</th></tr></thead>
+        <tbody>
+          {% for name, qty, rev in top_products %}
+          <tr><td>{{ name }}</td><td class="text-end">{{ '%.2f' % qty }}</td><td class="text-end">{{ rev|inr }}</td></tr>
+          {% else %}<tr><td colspan="3" class="text-center text-muted">No data.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card mt-3">
+      <div class="card-header">Top customers</div>
+      <table class="table mb-0">
+        <thead><tr><th>Customer</th><th class="text-end">Invoices</th><th class="text-end">Spent</th></tr></thead>
+        <tbody>
+          {% for name, cnt, spent in top_customers %}
+          <tr><td>{{ name }}</td><td class="text-end">{{ cnt }}</td><td class="text-end">{{ spent|inr }}</td></tr>
+          {% else %}<tr><td colspan="3" class="text-center text-muted">-</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card p-3 mb-3">
+      <h6>GST summary</h6>
+      <div class="d-flex justify-content-between"><span>CGST</span><strong>{{ gst_summary.cgst|inr }}</strong></div>
+      <div class="d-flex justify-content-between"><span>SGST</span><strong>{{ gst_summary.sgst|inr }}</strong></div>
+      <div class="d-flex justify-content-between"><span>IGST</span><strong>{{ gst_summary.igst|inr }}</strong></div>
+    </div>
+    <div class="card">
+      <div class="card-header">Payment breakdown</div>
+      <table class="table mb-0">
+        <thead><tr><th>Method</th><th class="text-end">Count</th><th class="text-end">Amount</th></tr></thead>
+        <tbody>
+          {% for m, cnt, amt in pay_rows %}
+          <tr><td>{{ m|upper }}</td><td class="text-end">{{ cnt }}</td><td class="text-end">{{ amt|inr }}</td></tr>
+          {% else %}<tr><td colspan="3" class="text-center text-muted">-</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</div>{# /view-overview #}
+{% endblock %}
+{% block scripts %}
+<script>
+// ---- The two views, and the catalogue's find box and folding groups ---------
+(function(){
+  const tabs = document.querySelectorAll('.rpt-tab');
+  const views = { all: document.getElementById('view-all'),
+                  overview: document.getElementById('view-overview') };
+  tabs.forEach(t => t.addEventListener('click', (e) => {
+    e.preventDefault();
+    const v = t.dataset.view;
+    tabs.forEach(x => { const on = x === t; x.classList.toggle('on', on); x.setAttribute('aria-selected', on); });
+    Object.entries(views).forEach(([k, el]) => { el.hidden = k !== v; });
+    history.replaceState(null, '', t.href);
+    // Chart.js cannot size a canvas that was hidden when it drew, so the trend is
+    // redrawn the first time the overview is actually shown.
+    if (v === 'overview' && window.__drawTrend) window.__drawTrend();
+  }));
+
+  // Folded groups are remembered, because a manager who only ever opens the tax
+  // reports should not have to fold the other ten away every morning.
+  const KEY = 'shop_report_groups_folded';
+  let folded = {};
+  try { folded = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
+  document.querySelectorAll('.rpt-group').forEach(g => {
+    const head = g.querySelector('.rpt-head');
+    const set = (open) => {
+      g.classList.toggle('folded', !open);
+      head.setAttribute('aria-expanded', open);
+      head.querySelector('.bi').className = 'bi ' + (open ? 'bi-dash-lg' : 'bi-plus-lg');
+    };
+    set(!folded[g.dataset.group]);
+    head.addEventListener('click', () => {
+      const open = g.classList.contains('folded');
+      set(open);
+      folded[g.dataset.group] = !open;
+      try { localStorage.setItem(KEY, JSON.stringify(folded)); } catch (e) {}
+    });
+  });
+
+  // Find: filters every group at once and opens any group holding a match.
+  const box = document.getElementById('rptFilter');
+  const none = document.getElementById('rptNone');
+  box && box.addEventListener('input', () => {
+    const q = box.value.trim().toLowerCase();
+    let any = false;
+    document.querySelectorAll('.rpt-group').forEach(g => {
+      let hits = 0;
+      g.querySelectorAll('li').forEach(li => {
+        const hit = !q || li.dataset.name.includes(q);
+        li.hidden = !hit; if (hit) hits++;
+      });
+      g.hidden = hits === 0;
+      if (q && hits) g.classList.remove('folded');
+      if (hits) any = true;
+    });
+    none.hidden = any;
+  });
+})();
+</script>
+<script>
+// ---- Ask a question --------------------------------------------------------
+// The server routes the question to one report and returns it in the shape every
+// report uses, so this only has to draw {columns, rows, totals, note} — it never
+// needs to know which report came back.
+(function(){
+  const box = document.getElementById('askBox');
+  const out = document.getElementById('askOut');
+  const hint = document.getElementById('askHint');
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g,
+    c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  fetch(`${SHOP_ROOT}/reports/catalogue`).then(r => r.json()).then(c => {
+    const how = c.engine === 'model'
+      ? 'Reads the question.'
+      : 'No API key set, so it matches on keywords — less reliable.';
+    hint.innerHTML = how + ' Try: ' +
+      c.examples.slice(0, 4).map(e => `<a href="#" class="ask-eg">${esc(e)}</a>`).join(' · ');
+    hint.querySelectorAll('.ask-eg').forEach(a => a.onclick = (e) => {
+      e.preventDefault(); box.value = a.textContent; run();
+    });
+  }).catch(() => {});
+
+  function table(d){
+    const head = d.columns.map(c => `<th>${esc(c)}</th>`).join('');
+    const body = d.rows.length
+      ? d.rows.map(r => '<tr>' + r.map((c, i) =>
+          `<td${i ? ' class="text-end"' : ''}>${esc(c)}</td>`).join('') + '</tr>').join('')
+      : `<tr><td colspan="${d.columns.length}" class="text-center text-muted p-3">Nothing in this period.</td></tr>`;
+    const totals = Object.entries(d.totals || {})
+      .map(([k, v]) => `<span class="me-3"><span class="text-muted">${esc(k)}:</span> <strong>${esc(v)}</strong></span>`)
+      .join('');
+    return `
+      <div class="d-flex justify-content-between align-items-baseline flex-wrap">
+        <h6 class="mb-1">${esc(d.label)}</h6>
+        <div class="small text-muted">${esc(d.dated ? d.from + ' to ' + d.to : 'as it stands now')}</div>
+      </div>
+      <div class="table-responsive" style="max-height:420px">
+        <table class="table table-sm mb-0"><thead class="sticky-top bg-white"><tr>${head}</tr></thead>
+        <tbody>${body}</tbody></table>
+      </div>
+      ${totals ? `<div class="border-top pt-2 mt-2">${totals}</div>` : ''}
+      ${d.note ? `<div class="small text-muted mt-1"><i class="bi bi-info-circle"></i> ${esc(d.note)}</div>` : ''}`;
+  }
+
+  async function run(){
+    const q = box.value.trim();
+    if (!q) return;
+    out.innerHTML = '<div class="text-muted small">Reading the question…</div>';
+    try {
+      const r = await fetch(`${SHOP_ROOT}/reports/ask`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({q})
+      });
+      const d = await r.json();
+      if (d.error){ out.innerHTML = `<div class="alert alert-warning py-2 mb-0">${esc(d.error)}</div>`; return; }
+      // The reading is shown first and always: a misroute has to be catchable
+      // before the numbers underneath it are believed.
+      const conf = d.confidence === 'high' ? 'success' : d.confidence === 'medium' ? 'secondary' : 'warning';
+      out.innerHTML = `
+        <div class="mb-2">
+          <span class="badge text-bg-${conf}">${esc(d.confidence)} confidence</span>
+          <span class="ms-1">${esc(d.reading)}</span>
+          <span class="text-muted small ms-1">(${esc(d.engine)})</span>
+        </div>
+        ${d.warning ? `<div class="alert alert-warning py-1 small">${esc(d.warning)}</div>` : ''}
+        <div class="card p-2">${table(d)}</div>`;
+    } catch (e){
+      out.innerHTML = `<div class="alert alert-danger py-2 mb-0">Couldn't ask: ${esc(e)}</div>`;
+    }
+  }
+
+  document.getElementById('askGo').onclick = run;
+  box.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); run(); } });
+
+  // Dictation, where the browser has it. Chrome and Edge do; Firefox does not,
+  // so the button says so rather than silently doing nothing.
+  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const mic = document.getElementById('askMic');
+  if (!Rec){
+    mic.disabled = true;
+    mic.title = 'This browser has no speech recognition — type the question instead';
+  } else {
+    let rec = null;
+    mic.onclick = () => {
+      if (rec){ rec.stop(); return; }
+      rec = new Rec();
+      rec.lang = document.querySelector('input[name=asklang]:checked').value;
+      rec.interimResults = false;
+      mic.classList.add('btn-danger');
+      rec.onresult = (ev) => { box.value = ev.results[0][0].transcript; run(); };
+      rec.onerror = () => { hint.textContent = 'Could not hear that — type the question instead.'; };
+      rec.onend = () => { mic.classList.remove('btn-danger'); rec = null; };
+      rec.start();
+    };
+  }
+})();
+</script>
+
+<script>
+window.__drawTrend = function(){
+  if (window.__trendDrawn || typeof Chart === 'undefined') return;
+  window.__trendDrawn = true;
+  new Chart(document.getElementById('trendChart'), {
+    type: 'bar',
+    data: {
+      labels: {{ trend_labels|tojson }},
+      datasets: [{
+        label: 'Sales (₹)',
+        data: {{ trend_values|tojson }},
+        backgroundColor: '#2F8F68'
+      }]
+    },
+    options: { plugins: { legend: { display: false } } }
+  });
+};
+if (!document.getElementById('view-overview').hidden) window.__drawTrend();
+</script>
+{% endblock %}

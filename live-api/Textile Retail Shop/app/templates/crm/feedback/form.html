@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h4><i class="bi bi-ui-checks"></i> Feedback Form Config</h4>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener" href="{{ url_for('crmfeedback.form_preview') }}"><i class="bi bi-phone"></i> Preview</a>
+    <button form="fbForm" class="btn btn-brand btn-sm"><i class="bi bi-save"></i> Save</button>
+  </div>
+</div>
+<form method="post" id="fbForm">
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card p-3">
+      <div class="fw-semibold mb-2">What the page says</div>
+      <label class="form-label small">Title</label>
+      <input class="form-control form-control-sm mb-2" name="title" maxlength="80" value="{{ cfg.title }}">
+      <label class="form-label small">Introduction</label>
+      <textarea class="form-control form-control-sm mb-2" name="intro" rows="2" maxlength="300">{{ cfg.intro }}</textarea>
+      <label class="form-label small">Overall rating question</label>
+      <input class="form-control form-control-sm mb-2" name="overall_label" maxlength="120" value="{{ cfg.overall_label }}">
+      <div class="form-check mb-1"><input class="form-check-input" type="checkbox" name="show_comment" id="fShowComment" {{ 'checked' if cfg.show_comment }}>
+        <label class="form-check-label small" for="fShowComment">Ask for a comment at the end</label></div>
+      <input class="form-control form-control-sm mb-2" name="comment_label" maxlength="120" value="{{ cfg.comment_label }}" aria-label="Comment prompt">
+      <label class="form-label small">Thank-you message</label>
+      <textarea class="form-control form-control-sm mb-2" name="thanks" rows="2" maxlength="300">{{ cfg.thanks }}</textarea>
+      <label class="form-label small">Flag a response for a call back at</label>
+      <select class="form-select form-select-sm" name="alert_at" style="max-width:200px">
+        {% for r in [1, 2, 3] %}<option value="{{ r }}" {{ 'selected' if cfg.alert_at == r }}>{{ r }} ★ or less</option>{% endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card p-3">
+      <div class="fw-semibold mb-2">Which questions it asks</div>
+      <div class="form-check"><input class="form-check-input" type="radio" name="which" value="all" id="wAll" {{ 'checked' if all_chosen }}>
+        <label class="form-check-label small" for="wAll">Every active question <span class="text-muted">(a new question joins the form by itself)</span></label></div>
+      <div class="form-check mb-2"><input class="form-check-input" type="radio" name="which" value="some" id="wSome" {{ 'checked' if not all_chosen }}>
+        <label class="form-check-label small" for="wSome">Only the ticked ones</label></div>
+      <div class="list-group" id="qList">
+        {% for q in active %}
+        <label class="list-group-item d-flex gap-2 align-items-start small">
+          <input class="form-check-input mt-1" type="checkbox" name="question_ids" value="{{ q.id }}" {{ 'checked' if q.id in chosen }}>
+          <span>{{ q.text }}<br><span class="text-muted">{{ q.kind }}{{ ' · required' if q.required }}</span></span>
+        </label>
+        {% else %}
+        <div class="list-group-item small text-muted">No active questions — the page asks only for the overall rating.</div>
+        {% endfor %}
+      </div>
+      <a class="small mt-2" href="{{ url_for('crmfeedback.questions') }}">Add or reorder questions →</a>
+    </div>
+    <div class="card p-3 mt-3 small text-muted">
+      Customers reach this page from the QR printed on their bill. Each bill's QR takes one response, and the page needs no login.
+    </div>
+  </div>
+</div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+const list = document.getElementById('qList');
+function sync(){ const all = document.getElementById('wAll').checked; list.querySelectorAll('input').forEach((i) => { i.disabled = all; }); list.style.opacity = all ? .55 : 1; }
+document.querySelectorAll('[name=which]').forEach((r) => r.addEventListener('change', sync)); sync();
+</script>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "coupons/_head.html" %}
+<div class="row g-3">
+  <div class="col-lg-3 d-print-none">
+    <form class="card p-3">
+      <label class="form-label small">Location</label>
+      <select class="form-select form-select-sm mb-2" name="location_id">
+        <option value="">Any</option>
+        {% for l in locations %}<option value="{{ l.id }}" {{ 'selected' if request.args.get('location_id')|int == l.id }}>{{ l.name }}</option>{% endfor %}
+      </select>
+      <label class="form-label small">Code</label>
+      <div class="input-group input-group-sm">
+        <input class="form-control text-uppercase" name="code" value="{{ code }}" placeholder="Coupon code or bill number" autofocus>
+        <button class="btn btn-brand" title="Find" aria-label="Find"><i class="bi bi-search"></i></button>
+      </div>
+      {% if code and not found %}<div class="small text-danger mt-2">No coupon or bill “{{ code }}”.</div>{% endif %}
+    </form>
+  </div>
+  <div class="col-lg-9">
+    {% if found %}
+    <div class="d-flex justify-content-between align-items-center mb-2 d-print-none">
+      <span class="small text-muted">{{ found|length }} coupon{{ 's' if found|length != 1 }}</span>
+      <button class="btn btn-brand btn-sm" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+    </div>
+    <div class="row g-3">
+      {% for cp in found %}
+      {% set worth = ('₹' ~ '%g'|format(cp.value)) if cp.value is not none else cp.campaign.describe %}
+      <div class="col-md-6">
+        <div class="card p-3" style="border:2px dashed var(--brand-300, #C1DDD2);break-inside:avoid">
+          <div class="small text-muted text-uppercase" style="letter-spacing:.06em">Gift coupon · {{ SHOP_NAME }}</div>
+          <div class="fs-5 fw-bold mt-1" style="color:var(--brand)">{{ worth }}</div>
+          <table class="small mt-2 w-100">
+            <tr><td class="fw-semibold pe-2">Name</td><td>{{ cp.customer.name if cp.customer else 'Anyone' }}</td></tr>
+            <tr><td class="fw-semibold pe-2">Mobile</td><td>{{ cp.customer.phone if cp.customer and cp.customer.phone else '—' }}</td></tr>
+            <tr><td class="fw-semibold pe-2">Coupon name</td><td>{{ cp.campaign.name }}</td></tr>
+            <tr><td class="fw-semibold pe-2">Valid upto</td><td>{{ cp.valid_to|dmy if cp.valid_to else 'no expiry' }}</td></tr>
+            <tr><td class="fw-semibold pe-2">Uses</td><td>{{ cp.uses_allowed or 'unlimited' }}{% if cp.campaign.min_bill %} · on bills of ₹{{ '%g'|format(cp.campaign.min_bill) }}+{% endif %}</td></tr>
+          </table>
+          <div class="mt-2">{{ cp.code | barcode }}</div>
+          <div class="d-print-none mt-1"><span class="status-badge {{ 'success' if cp.state(today) == 'valid' else 'neutral' }} sm">{{ cp.state(today) }}</span>
+            {% if cp.issued_invoice %}<span class="small text-muted">earned on {{ cp.issued_invoice.invoice_number }}</span>{% endif %}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="card p-4 small">
+      {% for label in ['Name', 'Mobile', 'Coupon name', 'Coupon valid upto', 'Coupon value', 'No of coupons'] %}
+      <div class="fw-semibold py-2">{{ label }} :</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

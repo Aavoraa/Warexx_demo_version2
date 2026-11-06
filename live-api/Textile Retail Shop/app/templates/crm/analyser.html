@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% from "crm/_ui.html" import stat %}
+{% block content %}
+<div class="page-head">
+  <h4><i class="bi bi-bar-chart-line"></i> CRM Analyser</h4>
+  <form class="d-flex gap-2 align-items-center flex-wrap">
+    <select class="form-select form-select-sm" name="location_id" style="width:auto" aria-label="Location">
+      <option value="">Every location</option>
+      {% for l in locations %}<option value="{{ l.id }}" {{ 'selected' if location_id == l.id }}>{{ l.name }}</option>{% endfor %}
+    </select>
+    <input class="form-control form-control-sm" type="date" name="from" value="{{ d_from.isoformat() }}" style="width:auto" aria-label="From">
+    <input class="form-control form-control-sm" type="date" name="to" value="{{ d_to.isoformat() }}" style="width:auto" aria-label="To">
+    <button class="btn btn-brand btn-sm">Analyse</button>
+  </form>
+</div>
+
+{% set share = (cust_sales / total_sales * 100) if total_sales else 0 %}
+<div class="row g-3 mb-3">
+  <div class="col-6 col-lg-2">{{ stat('Customers', '{:,}'.format(customers), 'count', 'Active customers in the book') }}</div>
+  <div class="col-6 col-lg-2">{{ stat('New sign-ups', '{:,}'.format(new), 'move', 'Customers added in the window') }}</div>
+  <div class="col-6 col-lg-2">{{ stat('Buyers', '{:,}'.format(buyers), 'stock', 'Customers who bought in the window') }}</div>
+  <div class="col-6 col-lg-2">{{ stat('Repeat buyers', ('{:,}'.format(repeat) ~ (' · ' ~ '%.0f'|format(repeat / buyers * 100) ~ '%' if buyers else '')), 'adjust', 'Bought twice or more in the window') }}</div>
+  <div class="col-6 col-lg-2">{{ stat('First-time buyers', '{:,}'.format(first_timers), 'move', 'Their first ever bill fell in the window') }}</div>
+  <div class="col-6 col-lg-2">{{ stat('Lapsed', '{:,}'.format(lapsed), 'back', 'Bought before, nothing in the last ' ~ lapsed_days ~ ' days') }}</div>
+</div>
+<div class="row g-3 mb-3">
+  <div class="col-md-4">{{ stat('Sales to known customers', cust_sales|inr ~ ' · ' ~ '%.0f'|format(share) ~ '%', 'money', 'Bills with a customer on them, against all sales') }}</div>
+  <div class="col-md-4">{{ stat('Average customer bill', (cust_sales / cust_bills)|inr if cust_bills else '—', 'money') }}</div>
+  <div class="col-md-4">{{ stat('Walk-in bills (no customer)', '{:,}'.format(total_bills - cust_bills) ~ ' of ' ~ '{:,}'.format(total_bills), 'count', 'Every one is a customer the shop could have known') }}</div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-8"><div class="card p-3 h-100">
+    <div class="fw-semibold mb-2">New customers and buyers, month by month</div>
+    <div style="height:240px"><canvas id="chMonths" aria-label="New customers and buyers by month" role="img"></canvas></div>
+  </div></div>
+  <div class="col-lg-4"><div class="card p-3 h-100">
+    <div class="fw-semibold mb-2">How often they came</div>
+    <div style="height:240px"><canvas id="chVisits" aria-label="Customers by number of visits" role="img"></canvas></div>
+  </div></div>
+</div>
+<div class="row g-3 mb-3">
+  <div class="col-md-6 col-lg-3"><div class="card p-3 h-100">
+    <div class="fw-semibold mb-2">What they spent in the window</div>
+    <div style="height:220px"><canvas id="chSpend" aria-label="Customers by spend band" role="img"></canvas></div>
+  </div></div>
+  {% for title, rows in [('By customer category', by_category), ('By city', by_city), ('By gender', by_gender)] %}
+  <div class="col-md-6 col-lg-3">
+    <div class="card h-100">
+      <div class="card-header">{{ title }}</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead><tr><th></th><th class="text-end">Buyers</th><th class="text-end">Sales</th></tr></thead>
+          <tbody>
+            {% for k, n, v in rows %}
+            <tr><td class="small">{{ k|title if title == 'By gender' else k }}</td><td class="text-end">{{ n }}</td><td class="text-end">{{ v|inr }}</td></tr>
+            {% else %}<tr><td colspan="3" class="text-center text-muted small p-3">No customer bills in the window.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-6"><div class="card h-100">
+    <div class="card-header">Best customers in the window</div>
+    <div class="table-responsive"><table class="table table-sm table-hover mb-0 align-middle">
+      <thead><tr><th>Customer</th><th>Mobile</th><th class="text-end">Bills</th><th class="text-end">Spent</th><th>Last bill</th></tr></thead>
+      <tbody>
+        {% for c, spent, bills, last in top %}
+        <tr><td><a href="{{ url_for('customers.view_customer', cid=c.id) }}">{{ c.name }}</a></td><td class="small">{{ c.phone or '—' }}</td>
+          <td class="text-end">{{ bills }}</td><td class="text-end fw-semibold">{{ spent|inr }}</td><td class="small text-nowrap">{{ last|dmy }}</td></tr>
+        {% else %}<tr><td colspan="5" class="text-center text-muted small p-3">No customer bills in the window.</td></tr>{% endfor %}
+      </tbody>
+    </table></div>
+  </div></div>
+  <div class="col-lg-6"><div class="card h-100">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>Good customers who have stopped coming</span>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('sms.index', exclude_from=lapsed_from, exclude_to=today.isoformat()) }}"><i class="bi bi-chat-dots"></i> Message lapsed customers</a>
+    </div>
+    <div class="table-responsive"><table class="table table-sm table-hover mb-0 align-middle">
+      <thead><tr><th>Customer</th><th>Mobile</th><th class="text-end">Lifetime</th><th>Last bill</th></tr></thead>
+      <tbody>
+        {% for c, last, spent, bills in at_risk %}
+        <tr><td><a href="{{ url_for('customers.view_customer', cid=c.id) }}">{{ c.name }}</a></td><td class="small">{{ c.phone or '—' }}</td>
+          <td class="text-end">{{ spent|inr }} <span class="small text-muted">· {{ bills }}</span></td><td class="small text-nowrap">{{ last|dmy }}</td></tr>
+        {% else %}<tr><td colspan="4" class="text-center text-muted small p-3">Nobody has lapsed — every customer bought in the last {{ lapsed_days }} days.</td></tr>{% endfor %}
+      </tbody>
+    </table></div>
+  </div></div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header d-flex justify-content-between align-items-center"><span>This week's birthdays and anniversaries</span>
+    <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('customers.messages') }}"><i class="bi bi-send"></i> Queue wishes</a></div>
+  <div class="card-body"><div class="row">
+    {% for title, items, icon in [('Birthdays', birthdays, 'cake2'), ('Anniversaries', anniversaries, 'heart')] %}
+    <div class="col-md-6"><div class="small fw-semibold mb-1"><i class="bi bi-{{ icon }}"></i> {{ title }}</div>
+      <ul class="list-unstyled small mb-0">
+        {% for c, when in items[:12] %}<li><a href="{{ url_for('customers.view_customer', cid=c.id) }}">{{ c.name }}</a> <span class="text-muted">· {{ when.strftime('%d %b') }}</span></li>
+        {% else %}<li class="text-muted">None in the next 7 days.</li>{% endfor %}
+        {% if items|length > 12 %}<li class="text-muted">and {{ items|length - 12 }} more</li>{% endif %}
+      </ul></div>
+    {% endfor %}
+  </div></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const css = getComputedStyle(document.documentElement);
+const C1 = css.getPropertyValue('--viz-1').trim() || '#2F8F68', C2 = css.getPropertyValue('--viz-2').trim() || '#0B3D2E',
+      C3 = css.getPropertyValue('--viz-3').trim() || '#6FBF98', C4 = css.getPropertyValue('--viz-4').trim() || '#D97706';
+const months = {{ months | tojson }};
+const common = {responsive: true, maintainAspectRatio: false, plugins: {legend: {position: 'bottom', labels: {boxWidth: 10}}}};
+new Chart(document.getElementById('chMonths'), {type: 'bar', data: {labels: months.map((m) => m[0]), datasets: [
+  {label: 'Buyers', data: months.map((m) => m[2]), backgroundColor: C1, borderRadius: 4},
+  {label: 'New sign-ups', data: months.map((m) => m[1]), backgroundColor: C3, borderRadius: 4},
+]}, options: {...common, scales: {x: {grid: {display: false}}, y: {beginAtZero: true, ticks: {precision: 0}}}}});
+const visits = {{ visit_bands | tojson }}, spend = {{ spend_bands | tojson }};
+new Chart(document.getElementById('chVisits'), {type: 'doughnut', data: {labels: Object.keys(visits), datasets: [
+  {data: Object.values(visits), backgroundColor: [C3, C1, C2, C4], borderWidth: 0}]}, options: {...common, cutout: '62%'}});
+new Chart(document.getElementById('chSpend'), {type: 'bar', data: {labels: Object.keys(spend), datasets: [
+  {label: 'Customers', data: Object.values(spend), backgroundColor: C1, borderRadius: 4}]},
+  options: {...common, indexAxis: 'y', plugins: {legend: {display: false}}, scales: {x: {beginAtZero: true, ticks: {precision: 0}}, y: {grid: {display: false}}}}});
+</script>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-print-none mb-3 d-flex gap-2">
+  <button class="btn btn-brand btn-sm" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+  <a href="{{ url_for('registration.index', location_id=loc.id if loc else None) }}" class="btn btn-outline-secondary btn-sm">Back</a>
+</div>
+<div class="card mx-auto text-center p-5" style="max-width:560px;border:2px solid var(--brand)">
+  <div class="text-uppercase small fw-semibold" style="letter-spacing:.12em;color:var(--accent)">{{ SHOP_NAME }}{{ ' · ' ~ loc.name if loc }}</div>
+  <h2 class="fw-bold mt-2 mb-2" style="color:var(--brand)">{{ cfg.title }}</h2>
+  <p class="text-muted mb-4">{{ cfg.intro }}</p>
+  <div class="mx-auto" style="width:280px">{{ link | qr }}</div>
+  <p class="mt-4 mb-0 fw-semibold">Scan with your phone's camera</p>
+  <p class="small text-muted mb-0">It takes a minute. No app to install.</p>
+</div>
+{% endblock %}

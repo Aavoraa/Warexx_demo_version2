@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% from "crm/_ui.html" import stat, status as badge, customer_lookup, customer_lookup_script %}
+{% block content %}
+<div class="page-head">
+  <h4><i class="bi bi-signpost-split"></i> Customer Divert</h4>
+  <form class="d-flex gap-2 align-items-center">
+    <input class="form-control form-control-sm" type="date" name="day" value="{{ day.isoformat() }}" onchange="this.form.submit()" aria-label="Day">
+    {% if day != today %}<a href="{{ url_for('divert.index') }}" class="btn btn-outline-secondary btn-sm">Today</a>{% endif %}
+  </form>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-md-3">{{ stat('Walked in', total, 'count') }}</div>
+  <div class="col-6 col-md-3">{{ stat('Being served', open_|length, 'move') }}</div>
+  <div class="col-6 col-md-3">{{ stat('Bought', billed ~ (' · ' ~ '%.0f'|format(billed / total * 100) ~ '%' if total else ''), 'stock', 'Walk-ins closed with a bill') }}</div>
+  <div class="col-6 col-md-3">{{ stat('Left without buying', left, 'back') }}</div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    {% if day == today %}
+    <form method="post" action="{{ url_for('divert.new') }}" class="card p-3 mb-3">
+      <div class="fw-semibold mb-2">Divert a customer</div>
+      {{ customer_lookup('customer', required=False) }}
+      <div class="row g-2">
+        <div class="col-8"><label class="form-label small">Looking for</label>
+          <input class="form-control form-control-sm" name="looking_for" list="dlInterest" placeholder="Sarees, kidswear…">
+          <datalist id="dlInterest">{% for x in interests %}<option value="{{ x }}">{% endfor %}</datalist></div>
+        <div class="col-4"><label class="form-label small">People</label>
+          <input class="form-control form-control-sm" type="number" min="1" max="50" name="party_size" value="1"></div>
+        <div class="col-6"><label class="form-label small">Floor</label>
+          <select class="form-select form-select-sm" name="floor_id"><option value="">—</option>
+            {% for f in floors %}<option value="{{ f.id }}">{{ f.name }}</option>{% endfor %}</select></div>
+        <div class="col-6"><label class="form-label small">Salesperson</label>
+          <select class="form-select form-select-sm" name="staff_id"><option value="">Next free</option>
+            {% for u in staff %}<option value="{{ u.id }}">{{ u.full_name }}</option>{% endfor %}</select></div>
+        <div class="col-12"><label class="form-label small">Note</label>
+          <input class="form-control form-control-sm" name="note" maxlength="256" placeholder="Budget, occasion…"></div>
+        <div class="col-12"><button class="btn btn-brand btn-sm w-100"><i class="bi bi-signpost-split"></i> Divert</button></div>
+      </div>
+    </form>
+    {% endif %}
+    <div class="card mb-3">
+      <div class="card-header">By floor</div>
+      <table class="table table-sm mb-0"><thead><tr><th></th><th class="text-end">In</th><th class="text-end">Bought</th></tr></thead><tbody>
+        {% for name, n in by_floor %}<tr><td class="small">{{ name }}</td><td class="text-end">{{ n[0] }}</td><td class="text-end">{{ n[1] }}</td></tr>
+        {% else %}<tr><td colspan="3" class="text-muted small text-center p-2">Nobody yet.</td></tr>{% endfor %}
+      </tbody></table>
+    </div>
+    <div class="card">
+      <div class="card-header">By salesperson</div>
+      <table class="table table-sm mb-0"><thead><tr><th></th><th class="text-end">Served</th><th class="text-end">Converted</th></tr></thead><tbody>
+        {% for name, n in by_staff %}<tr><td class="small">{{ name }}</td><td class="text-end">{{ n[0] }}</td><td class="text-end">{{ n[1] }}{% if n[0] %} <span class="small text-muted">· {{ '%.0f'|format(n[1] / n[0] * 100) }}%</span>{% endif %}</td></tr>
+        {% else %}<tr><td colspan="3" class="text-muted small text-center p-2">Nobody yet.</td></tr>{% endfor %}
+      </tbody></table>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card mb-3">
+      <div class="card-header">On the floor now</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+          <thead><tr><th>In at</th><th>Customer</th><th>Looking for</th><th>Floor · salesperson</th><th>Status</th><th class="text-end">Close</th></tr></thead>
+          <tbody>
+            {% for v in open_ %}
+            <tr>
+              <td class="small text-nowrap">{{ v.created_at.strftime('%H:%M') }}</td>
+              <td>{% if v.customer %}<a href="{{ url_for('customers.view_customer', cid=v.customer_id) }}">{{ v.customer.name }}</a> <span class="status-badge info sm">returning</span>{% else %}{{ v.name or '—' }}{% endif %}
+                <br><span class="small text-muted">{{ v.phone or '' }}{{ ' · ' ~ v.party_size ~ ' people' if v.party_size and v.party_size > 1 }}</span></td>
+              <td class="small">{{ v.looking_for or '—' }}{% if v.note %}<br><span class="text-muted">{{ v.note }}</span>{% endif %}</td>
+              <td>
+                <form method="post" action="{{ url_for('divert.move', vid=v.id) }}" class="d-flex gap-1">
+                  <select class="form-select form-select-sm" name="floor_id" onchange="this.form.submit()" aria-label="Floor" style="max-width:120px"><option value="">—</option>
+                    {% for f in floors %}<option value="{{ f.id }}" {{ 'selected' if v.floor_id == f.id }}>{{ f.name }}</option>{% endfor %}</select>
+                  <select class="form-select form-select-sm" name="staff_id" onchange="this.form.submit()" aria-label="Salesperson" style="max-width:150px"><option value="">Unassigned</option>
+                    {% for u in staff %}<option value="{{ u.id }}" {{ 'selected' if v.staff_id == u.id }}>{{ u.full_name }}</option>{% endfor %}</select>
+                </form>
+              </td>
+              <td>{{ badge(v.status) }}</td>
+              <td class="text-end">
+                <form method="post" action="{{ url_for('divert.set_status', vid=v.id) }}" class="d-inline-flex gap-1">
+                  <input class="form-control form-control-sm" name="invoice" placeholder="Bill no" style="width:110px" aria-label="Bill number" title="Leave blank to find the customer's bill by itself">
+                  <button class="btn btn-sm btn-outline-success" name="status" value="billed" title="Bought"><i class="bi bi-bag-check"></i></button>
+                  <button class="btn btn-sm btn-outline-secondary" name="status" value="left" title="Left without buying"><i class="bi bi-box-arrow-right"></i></button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="text-center text-muted p-4">Nobody is waiting or being served.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">Closed</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+          <thead><tr><th>In · out</th><th>Customer</th><th>Floor · salesperson</th><th>Status</th><th>Bill</th></tr></thead>
+          <tbody>
+            {% for v in done %}
+            <tr>
+              <td class="small text-nowrap">{{ v.created_at.strftime('%H:%M') }}{{ ' · ' ~ v.closed_at.strftime('%H:%M') if v.closed_at }}</td>
+              <td>{{ v.customer.name if v.customer else (v.name or v.phone or '—') }}</td>
+              <td class="small">{{ [v.floor.name if v.floor else None, v.staff.full_name if v.staff else None]|select|join(' · ') or '—' }}</td>
+              <td>{{ badge(v.status) }}</td>
+              <td class="small">{% if v.invoice %}<a href="{{ url_for('pos.view_invoice', iid=v.invoice_id) }}">{{ v.invoice.invoice_number }}</a> · {{ v.invoice.total|inr }}{% else %}—{% endif %}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted p-3 small">Nothing closed yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}{{ customer_lookup_script() }}{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "crm/_ui.html" import stat, status as badge %}
+{% block content %}
+{% set a = request.args %}
+<div class="page-head">
+  <h4><i class="bi bi-person-plus"></i> Lead Management</h4>
+  <a href="{{ url_for('leads.new') }}" class="btn btn-brand btn-sm"><i class="bi bi-plus"></i> New lead</a>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-lg">{{ stat('Open leads', open_count, 'count') }}</div>
+  <div class="col-6 col-lg">{{ stat('Follow up today', due, 'move') }}</div>
+  <div class="col-6 col-lg">{{ stat('Overdue', overdue, 'back') }}</div>
+  <div class="col-6 col-lg">{{ stat('Pipeline value', pipeline|inr, 'money', 'Expected value of the open leads') }}</div>
+  <div class="col-12 col-lg">{{ stat('Won this month', won_month ~ (' of ' ~ closed_month ~ ' closed' if closed_month else ''), 'stock') }}</div>
+</div>
+
+<form class="card p-3 mb-3">
+  <div class="row g-2 align-items-end">
+    <div class="col-md-3"><label class="form-label small">Status</label>
+      <select class="form-select form-select-sm" name="status" onchange="this.form.submit()">
+        <option value="open" {{ 'selected' if status == 'open' }}>Open</option>
+        <option value="due" {{ 'selected' if status == 'due' }}>Follow-up due{{ ' (' ~ (due + overdue) ~ ')' if due + overdue }}</option>
+        {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if status == s }}>{{ s|title }}{{ ' (' ~ counts[s] ~ ')' if counts.get(s) }}</option>{% endfor %}
+        <option value="all" {{ 'selected' if status == 'all' }}>All</option>
+      </select></div>
+    <div class="col-6 col-md-2"><label class="form-label small">Source</label>
+      <select class="form-select form-select-sm" name="source"><option value="">Any</option>
+        {% for s in sources %}<option value="{{ s }}" {{ 'selected' if a.get('source') == s }}>{{ s|replace('_', ' ')|title }}</option>{% endfor %}</select></div>
+    <div class="col-6 col-md-2"><label class="form-label small">Assigned to</label>
+      <select class="form-select form-select-sm" name="assigned"><option value="">Anyone</option>
+        {% for u in staff %}<option value="{{ u.id }}" {{ 'selected' if a.get('assigned')|int == u.id }}>{{ u.full_name }}</option>{% endfor %}</select></div>
+    <div class="col-md-3"><label class="form-label small">Name, mobile or interest</label>
+      <input class="form-control form-control-sm" name="q" value="{{ a.get('q', '') }}"></div>
+    <div class="col-md-2"><button class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-search"></i> Search</button></div>
+  </div>
+</form>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover table-sm mb-0 align-middle">
+      <thead><tr><th>Name</th><th>Mobile</th><th>Source</th><th>Interested in</th><th class="text-end">Expected</th><th>Status</th><th>Next follow-up</th><th>Assigned to</th><th>Added</th></tr></thead>
+      <tbody>
+        {% for l in leads %}
+        {% set late = l.next_follow_up and l.next_follow_up < today and l.status in ('new', 'contacted', 'interested') %}
+        <tr class="{{ 'table-warning' if late }}">
+          <td><a href="{{ url_for('leads.view', lid=l.id) }}">{{ l.name }}</a>{% if l.customer_id %} <span class="status-badge info sm">customer</span>{% endif %}</td>
+          <td>{{ l.phone or '—' }}</td>
+          <td class="small">{{ l.source|replace('_', ' ') }}</td>
+          <td class="small">{{ l.interest or '—' }}</td>
+          <td class="text-end">{{ l.expected_value|inr if l.expected_value else '—' }}</td>
+          <td>{{ badge(l.status) }}</td>
+          <td class="small text-nowrap">{% if l.next_follow_up %}{{ l.next_follow_up|dmy }}{% if l.next_follow_up == today %} <span class="status-badge pending sm">today</span>{% elif late %} <span class="status-badge danger sm">overdue</span>{% endif %}{% else %}—{% endif %}</td>
+          <td class="small">{{ l.assigned_to.full_name if l.assigned_to else '—' }}</td>
+          <td class="small text-nowrap">{{ l.created_at|dmy }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="text-center text-muted p-4">No leads here. <a href="{{ url_for('leads.new') }}">Add one</a> when someone enquires.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

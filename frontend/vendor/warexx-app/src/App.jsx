@@ -16877,6 +16877,34 @@ const NAV_GROUP = {
 // drawn as that screen, and any reachable screen no section names is gathered
 // under "More" — so a module added to MODULES can never go missing from the menu.
 const NAV_SECTIONS = {
+  // WAREXX Live (frontend/live): the modules on the real backend, for signed-in staff
+  live: [
+    { title: 'People', entries: [
+      { id: 'hr', label: 'HR & Payroll', icon: 'users', keys: HR_SCREENS.map(([k]) => k) },
+    ] },
+    { title: 'Finance', entries: [
+      { id: 'fin_entry', label: 'Payments & Vouchers', icon: 'receipt',
+        keys: ['fin_vouchers', 'fin_collection', 'fin_creditnote', 'fin_transport', 'fin_agent', 'fin_petty'] },
+      { id: 'fin_bank', label: 'Banking & Loans', icon: 'building', keys: ['fin_cheques', 'fin_brs', 'fin_loans'] },
+      { id: 'fin_books', label: 'Statements', icon: 'spreadsheet',
+        keys: ['fin_daybook', 'fin_trial', 'fin_trading', 'fin_pl', 'fin_bs', 'fin_dailypl'] },
+      { id: 'fin_analysis', label: 'Outstanding & Tax', icon: 'calc',
+        keys: ['fin_payable', 'fin_receivable', 'fin_analyser', 'fin_tds', 'fin_gst', 'fin_incentive'] },
+      { id: 'fin_setup', label: 'Ledgers & Tally', icon: 'book',
+        keys: ['fin_ledgers', 'fin_opening', 'fin_tally', 'fin_tallycfg'] },
+    ] },
+    { title: 'CRM', entries: [
+      { key: 'pos:customers' },
+      { id: 'crm_sales', label: 'Orders & Loyalty', icon: 'crm',
+        keys: ['pos:crm_orders', 'pos:loyalty', 'pos:gift_vouchers', 'pos:gift_coupons', 'pos:promotions', 'pos:price_list'] },
+      { id: 'crm_reach', label: 'Analyse & Reach', icon: 'barchart', keys: ['pos:crm_analyser', 'pos:send_sms'] },
+      { id: 'crm_feedback', label: 'Feedback', icon: 'gauge',
+        keys: ['pos:feedback_dashboard', 'pos:feedback_questions', 'pos:feedback_report', 'pos:feedback_form'] },
+      { id: 'crm_people', label: 'Walk-ins & Leads', icon: 'userplus',
+        keys: ['pos:customer_divert', 'pos:leads', 'pos:self_registration'] },
+    ] },
+    { title: 'Administration', entries: [{ key: 'users' }] },
+  ],
   warehouse: [
     { title: 'Operations', entries: [
       { id: 'procurement', label: 'Procurement', icon: 'cart',
@@ -19660,4 +19688,5 @@ export default function App() {
 }
 
 // What HR.jsx and hr-kit.jsx draw with — the same pieces every WAREXX screen uses.
-export { Stat, DateField, money, fmtDate, Icon, Section, SearchBox }
+// …and what WAREXX Live (frontend/live) reuses.
+export { Stat, DateField, money, fmtDate, Icon, Section, SearchBox, LoginScreen, NavSidebar, Users, POS_SCREENS, CRM_KEYS }

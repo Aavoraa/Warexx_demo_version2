@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="no-print mb-3">
+  <a href="{{ url_for('audits.detail', aid=audit.id) }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left"></i> Back</a>
+  <button class="btn btn-brand btn-sm" onclick="window.print()">
+    <i class="bi bi-printer"></i> Print</button>
+  <a href="{{ url_for('audits.export', aid=audit.id) }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-download"></i> CSV</a>
+</div>
+
+<div class="card p-3">
+  <div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+      <h4 class="mb-0" style="color:var(--brand-dark)">{{ SHOP_NAME }}</h4>
+      <div class="small">{{ SHOP_ADDRESS }}</div>
+      <div class="small">GSTIN: <strong>{{ SHOP_GSTIN }}</strong></div>
+    </div>
+    <div class="text-end">
+      <h5 class="mb-0">PHYSICAL STOCK AUDIT</h5>
+      <div><strong>{{ audit.number }}</strong></div>
+      <div>{{ audit.floor.name if audit.floor else '' }}</div>
+      <div class="small text-muted">{{ audit.location.name if audit.location else '' }}</div>
+      <div class="small">Printed {{ today|dmy }}</div>
+    </div>
+  </div>
+
+  <table class="table table-sm">
+    <tr>
+      <td class="text-muted">Started</td>
+      <td>{{ audit.started_at|dmy }} {{ audit.started_at.strftime('%H:%M') }}
+        {% if audit.started_by %}· {{ audit.started_by.full_name }}{% endif %}</td>
+      <td class="text-muted">Status</td>
+      <td><strong>{{ audit.status.replace('_', ' ')|upper }}</strong></td>
+    </tr>
+    <tr>
+      <td class="text-muted">Counting complete</td>
+      <td>{% if audit.completed_at %}{{ audit.completed_at|dmy }}
+        {% if audit.completed_by %}· {{ audit.completed_by.full_name }}{% endif %}
+        {% else %}—{% endif %}</td>
+      <td class="text-muted">Approved</td>
+      <td>{% if audit.approved_at %}{{ audit.approved_at|dmy }}
+        {% if audit.approved_by %}· {{ audit.approved_by.full_name }}{% endif %}
+        {% else %}—{% endif %}</td>
+    </tr>
+    <tr>
+      <td class="text-muted">Applied to stock</td>
+      <td colspan="3">{% if audit.adjusted_at %}{{ audit.adjusted_at|dmy }}
+        {{ audit.adjusted_at.strftime('%H:%M') }}
+        {% if audit.adjusted_by %}· {{ audit.adjusted_by.full_name }}{% endif %}
+        {% else %}not applied — the books are unchanged by this count{% endif %}</td>
+    </tr>
+  </table>
+
+  <div class="row g-2 mb-3">
+    {% for label, key in [('Products','products'),('Counted','counted'),
+                          ('Not counted','not_counted'),('System qty','system_qty'),
+                          ('Physical qty','physical_qty'),('Shortage','shortage'),
+                          ('Excess','excess'),('Matched','matched')] %}
+    <div class="col-3">
+      <div class="border rounded p-2">
+        <div class="text-muted small">{{ label }}</div>
+        <div class="fw-bold">{{ summary[key] }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-sm">
+      <thead><tr>
+        <th>#</th><th>Item</th><th>Attributes</th><th>QR / SKU</th>
+        <th class="text-end">Purchase</th><th class="text-end">Sales</th>
+        <th class="text-end">System</th><th class="text-end">Physical</th>
+        <th class="text-end">Diff</th><th>Status</th>
+      </tr></thead>
+      <tbody>
+        {% for l in audit.lines %}
+        {% set p = l.product %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ l.name }}
+            {% if l.found_off_floor %}<br><small class="text-muted">counted here, held elsewhere</small>{% endif %}</td>
+          <td class="small">{% if p %}{{ [p.category.name if p.category else None,
+                                          p.size, p.color, p.fabric, p.pattern,
+                                          p.fit, p.product_type, p.design_no]
+                                        | select | join(' · ') }}{% endif %}</td>
+          <td class="small"><code>{{ l.sku }}</code></td>
+          <td class="text-end">{{ l.purchase_qty }}</td>
+          <td class="text-end">{{ l.sales_qty }}</td>
+          <td class="text-end">{{ l.system_qty }}</td>
+          <td class="text-end">{{ '—' if l.physical_qty is none else l.physical_qty }}</td>
+          <td class="text-end">{% if l.physical_qty is none %}—
+            {% else %}{{ '%+g' % l.difference if l.difference else 0 }}{% endif %}</td>
+          <td class="small">{{ l.line_status.replace('_', ' ') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="row mt-5">
+    <div class="col-4"><div class="border-top pt-1 small text-muted">Counted by</div></div>
+    <div class="col-4"><div class="border-top pt-1 small text-muted">Reviewed by</div></div>
+    <div class="col-4"><div class="border-top pt-1 small text-muted">Approved by</div></div>
+  </div>
+</div>
+
+<style>
+  @media print { .brand-nav, .alert, .no-print { display: none !important; }
+                 body { background:#fff; } }
+</style>
+{% endblock %}

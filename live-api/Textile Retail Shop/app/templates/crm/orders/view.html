@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% from "crm/_ui.html" import status as badge, stat %}
+{% block content %}
+<div class="page-head">
+  <h4><i class="bi bi-bag"></i> Order {{ o.number }} {{ badge(o.status) }}</h4>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('orders.index') }}" class="btn btn-outline-secondary btn-sm">All orders</a>
+    <a href="{{ url_for('orders.print_slip', oid=o.id) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer"></i> Print slip</a>
+    {% if o.status not in ('delivered', 'cancelled') %}
+    <a href="{{ url_for('orders.edit', oid=o.id) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i> Edit</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-md-3">{{ stat('Order value', o.total_amount|inr, 'money') }}</div>
+  <div class="col-6 col-md-3">{{ stat('Paid', o.paid_amount|inr, 'stock') }}</div>
+  <div class="col-6 col-md-3">{{ stat('Balance', o.balance|inr, 'adjust') }}</div>
+  <div class="col-6 col-md-3">{{ stat('Delivery', o.delivery_date|dmy if o.delivery_date else 'Not set', 'move') }}</div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card mb-3">
+      <div class="card-header">Items</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+          <thead><tr><th>Description</th><th>Design no</th><th>Size</th><th>Colour</th><th class="text-end">Qty</th><th class="text-end">Rate</th><th class="text-end">Amount</th></tr></thead>
+          <tbody>
+            {% for l in o.lines %}
+            <tr><td>{{ l.description }}</td><td>{{ l.design_no or '—' }}</td><td>{{ l.size or '—' }}</td><td>{{ l.color or '—' }}</td>
+              <td class="text-end">{{ '%g'|format(l.qty) }}</td><td class="text-end">{{ l.rate|inr }}</td><td class="text-end">{{ l.amount|inr }}</td></tr>
+            {% endfor %}
+          </tbody>
+          <tfoot><tr><th colspan="4" class="text-end">Total</th><th class="text-end">{{ '%g'|format(o.total_qty) }}</th><th></th><th class="text-end">{{ o.total_amount|inr }}</th></tr></tfoot>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">Payments against this order</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+          <thead><tr><th>Advance</th><th>Date</th><th>By</th><th class="text-end">Amount</th><th class="text-end">Refunded</th></tr></thead>
+          <tbody>
+            {% for a in o.advances %}
+            <tr><td><a href="{{ url_for('customers.advance_receipt', aid=a.id) }}">{{ a.number }}</a></td>
+              <td>{{ a.created_at|dmy }}</td><td>{{ a.method|upper }}{{ ' · ' ~ a.reference if a.reference }}</td>
+              <td class="text-end">{{ a.amount|inr }}</td><td class="text-end">{{ (a.refunded or 0)|inr }}</td></tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted p-3">Nothing paid yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card p-3 mb-3 small">
+      <div class="fw-semibold mb-2">Customer</div>
+      <div><a href="{{ url_for('customers.view_customer', cid=o.customer_id) }}">{{ o.customer.name }}</a></div>
+      <div class="text-muted">{{ o.contact_no or o.customer.phone or 'no mobile' }}{{ ' · ' ~ o.city if o.city }}</div>
+      {% if o.category %}<div class="text-muted">{{ o.category }}</div>{% endif %}
+      <hr class="my-2">
+      <div><span class="text-muted">Ordered</span> {{ o.order_date|dmy }}{{ ' · taken by ' ~ o.received_by.full_name if o.received_by }}</div>
+      {% if o.invoice %}<div><span class="text-muted">Billed on</span> <a href="{{ url_for('pos.view_invoice', iid=o.invoice_id) }}">{{ o.invoice.invoice_number }}</a></div>{% endif %}
+      {% if o.notes %}<div class="mt-2" style="white-space:pre-line">{{ o.notes }}</div>{% endif %}
+    </div>
+
+    {% if o.status not in ('delivered', 'cancelled') %}
+    <form method="post" action="{{ url_for('orders.pay', oid=o.id) }}" class="card p-3 mb-3">
+      <div class="fw-semibold mb-2">Take a payment</div>
+      <div class="input-group input-group-sm mb-2">
+        <span class="input-group-text">₹</span>
+        <input class="form-control" type="number" min="0.01" step="0.01" name="amount" value="{{ '%.2f'|format(o.balance) if o.balance else '' }}" required aria-label="Amount">
+        <select class="form-select" name="method" style="max-width:90px" aria-label="Paid by">
+          {% for m in methods %}<option value="{{ m }}">{{ m|upper }}</option>{% endfor %}
+        </select>
+      </div>
+      <input class="form-control form-control-sm mb-2" name="reference" maxlength="64" placeholder="Reference (optional)" aria-label="Reference">
+      <button class="btn btn-brand btn-sm">Take payment</button>
+    </form>
+
+    <form method="post" action="{{ url_for('orders.set_status', oid=o.id) }}" class="card p-3">
+      <div class="fw-semibold mb-2">Move the order on</div>
+      <select class="form-select form-select-sm mb-2" name="status" id="stSel" aria-label="Status">
+        {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if s == o.status }}>{{ s|replace('_', ' ')|title }}</option>{% endfor %}
+      </select>
+      <input class="form-control form-control-sm mb-2" name="invoice" id="stBill" placeholder="Bill number it was billed on (when delivered)" aria-label="Bill number">
+      <button class="btn btn-outline-primary btn-sm">Update status</button>
+      <p class="small text-muted mt-2 mb-0">Bill the goods at the Billing Counter as usual; at Settlement, the paid amount is there under <b>Advance</b>.</p>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

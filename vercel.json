@@ -1,13 +1,22 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "build": {
+    "env": {
+      "UV_LINK_MODE": "copy"
+    }
+  },
   "services": {
     "web": {
       "root": ".",
-      "framework": null,
+      "framework": "vite",
       "installCommand": "echo 'dependencies are installed by the build command'",
       "buildCommand": "cd frontend && npm ci && npm run build:site",
       "outputDirectory": "frontend/dist/site",
       "rewrites": [
+        {
+          "source": "/live",
+          "destination": "/live/index.html"
+        },
         {
           "source": "/admin",
           "destination": "/admin/index.html"
@@ -44,11 +53,22 @@
     },
     "api": {
       "root": "lead-api",
-      "runtime": "python",
-      "entrypoint": "vercel_app:app",
+      "framework": "python",
+      "entrypoint": "vercel_app.py",
       "functions": {
         "vercel_app.py": {
           "maxDuration": 60
+        }
+      }
+    },
+    "live": {
+      "root": "live-api",
+      "framework": "fastapi",
+      "entrypoint": "index:app",
+      "functions": {
+        "index.py": {
+          "maxDuration": 60,
+          "includeFiles": "{backend/**,Textile Retail Shop/**}"
         }
       }
     }
@@ -61,6 +81,12 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/live/(api|pos)(/.*)?",
+      "destination": {
+        "service": "live"
+      }
+    },
     {
       "source": "/api/(leads|trial|admin|subscribe|geo)",
       "destination": {
@@ -210,6 +236,37 @@
         {
           "key": "Content-Security-Policy",
           "value": "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'self'; base-uri 'self'; frame-ancestors 'none'"
+        }
+      ]
+    },
+    {
+      "source": "/live(/.*)?",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "connect-src 'self'; form-action 'self'; base-uri 'self'; frame-ancestors 'self'"
+        }
+      ]
+    },
+    {
+      "source": "/live/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/live(/|/index.html)?",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
         }
       ]
     }

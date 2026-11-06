@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% from "crm/_ui.html" import stat %}
+{% block content %}
+{% include "crm/vouchers/_head.html" %}
+{% set a = request.args %}
+<div class="row g-3">
+  <div class="col-lg-3">
+    <form class="card p-3">
+      <label class="form-label small">Company</label>
+      <select class="form-select form-select-sm mb-2" name="company_id">
+        <option value="">Any</option>
+        {% for c in companies %}<option value="{{ c.id }}" {{ 'selected' if a.get('company_id')|int == c.id }}>{{ c.name }}</option>{% endfor %}
+      </select>
+      <label class="form-label small">Location</label>
+      <select class="form-select form-select-sm mb-2" name="location_id">
+        <option value="">Any</option>
+        {% for l in locations %}<option value="{{ l.id }}" {{ 'selected' if a.get('location_id')|int == l.id }}>{{ l.name }}</option>{% endfor %}
+      </select>
+      <label class="form-label small">Issued on</label>
+      <div class="input-group input-group-sm mb-3">
+        <input class="form-control" type="date" name="from" value="{{ a.get('from', '') }}" aria-label="From">
+        <input class="form-control" type="date" name="to" value="{{ a.get('to', '') }}" aria-label="To">
+      </div>
+      <button class="btn btn-brand btn-sm"><i class="bi bi-search"></i> Search</button>
+    </form>
+    <div class="row g-2 mt-1">
+      <div class="col-6">{{ stat('Received', sold|inr, 'money') }}</div>
+      <div class="col-6">{{ stat('Face value', face|inr, 'stock') }}</div>
+    </div>
+  </div>
+  <div class="col-lg-9">
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+          <thead><tr><th>Name</th><th>Mobile</th><th class="text-end">Received</th><th class="text-end">Value</th><th>Issued on</th><th>Valid till</th><th>Given to</th><th></th></tr></thead>
+          <tbody>
+            {% for b in batches %}
+            <tr>
+              <td>{{ b.customer.name if b.customer else '—' }}{% if b.mode != 'direct' %} <span class="status-badge info sm">{{ b.mode }}</span>{% endif %}</td>
+              <td>{{ b.customer.phone if b.customer and b.customer.phone else '—' }}</td>
+              <td class="text-end">{{ (b.amount or 0)|inr }}{% if b.method %}<span class="small text-muted"> · {{ b.method|upper }}</span>{% endif %}</td>
+              <td class="text-end">{{ b.face_value|inr }} <span class="small text-muted">· {{ b.vouchers|length }}</span></td>
+              <td class="text-nowrap">{{ b.issued_on|dmy }}</td>
+              <td class="text-nowrap">{{ b.valid_to|dmy if b.valid_to else '—' }}</td>
+              <td class="small">{{ b.vouchers[0].given_to if b.vouchers and b.vouchers[0].given_to else (b.received_by or '—') }}</td>
+              <td class="text-end"><a href="{{ url_for('giftvouchers.batch', bid=b.id) }}" class="btn btn-sm btn-outline-primary" title="Open"><i class="bi bi-eye"></i></a></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8" class="text-center text-muted p-4">No vouchers sold in this window.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

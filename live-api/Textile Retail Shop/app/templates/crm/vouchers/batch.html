@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "crm/vouchers/_head.html" %}
+<div class="card p-3 mb-3 d-print-none">
+  <div class="d-flex flex-wrap gap-3 align-items-center small">
+    <div><span class="text-muted">Sale</span> <b class="font-monospace">{{ b.number }}</b></div>
+    <div><span class="text-muted">Mode</span> {{ b.mode|title }}</div>
+    {% if b.customer %}<div><span class="text-muted">Bought by</span> <a href="{{ url_for('customers.view_customer', cid=b.customer_id) }}">{{ b.customer.name }}</a> · {{ b.customer.phone or '' }}</div>{% endif %}
+    {% if b.mode == 'direct' %}<div><span class="text-muted">Paid</span> {{ b.amount|inr }} by {{ (b.method or '')|upper }}{{ ' · ' ~ b.bank if b.bank }}{{ ' · ' ~ b.reference if b.reference }}</div>{% endif %}
+    <div><span class="text-muted">Valid</span> {{ b.valid_from|dmy }} – {{ b.valid_to|dmy if b.valid_to else 'no expiry' }}</div>
+    <div class="ms-auto"><button class="btn btn-brand btn-sm" onclick="window.print()"><i class="bi bi-printer"></i> Print vouchers</button></div>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% for v, left in rows %}
+  <div class="col-md-6 col-xl-4">
+    <div class="card p-3 h-100" style="border:2px dashed var(--brand-300, #C1DDD2);break-inside:avoid">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="small text-muted text-uppercase" style="letter-spacing:.06em">Gift voucher</div>
+          <div class="fw-bold">{{ SHOP_NAME }}</div>
+        </div>
+        <div class="fs-4 fw-bold" style="color:var(--brand)">₹{{ '{:,.0f}'.format(v.value) }}</div>
+      </div>
+      {% if v.given_to %}<div class="small mt-1">For <b>{{ v.given_to }}</b></div>{% endif %}
+      <div class="d-flex justify-content-between align-items-end mt-2">
+        <div>{{ v.code | barcode }}</div>
+        <div class="small text-end text-muted">Valid till<br><b class="text-body">{{ b.valid_to|dmy if b.valid_to else 'no expiry' }}</b></div>
+      </div>
+      <div class="d-print-none small mt-2">
+        {% if not v.active %}<span class="status-badge danger sm">cancelled</span>
+        {% elif left < v.value %}<span class="status-badge info sm">{{ left|inr }} left</span>{% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

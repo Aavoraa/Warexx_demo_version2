@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}{{ note.number }} — {{ SHOP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-head d-print-none">
+  <h4><i class="bi bi-bag-check"></i> Delivery {{ note.number }}</h4>
+  <div>
+    <button onclick="window.print()" class="btn btn-brand btn-sm"><i class="bi bi-printer"></i> Print</button>
+    <a href="{{ url_for('delivery.index') }}" class="btn btn-outline-secondary btn-sm">New delivery</a>
+  </div>
+</div>
+
+<div class="card p-4" style="max-width:860px">
+  <div class="d-flex justify-content-between">
+    <div>
+      {# The entity that raised the bills, not the shop's config — the same rule
+         the invoice follows. Falls back where a bill predates companies. #}
+      <div class="fw-bold fs-5">{{ note.company.name if note.company else SHOP_NAME }}</div>
+      <div class="small text-muted">{{ (note.company.address if note.company else None) or SHOP_ADDRESS }}</div>
+      <div class="small text-muted">
+        {{ note.location.name if note.location else '' }}{% if note.counter %} · {{ note.counter.name }}{% endif %}
+      </div>
+    </div>
+    <div class="text-end">
+      <div class="fw-bold">DELIVERY NOTE</div>
+      <div>{{ note.number }}</div>
+      <div class="small text-muted">{{ note.created_at.strftime('%d %b %Y, %H:%M') }}</div>
+    </div>
+  </div>
+
+  <hr>
+  <div class="row small">
+    <div class="col-6">
+      <div><strong>{{ note.customer.name if note.customer else 'Walk-in customer' }}</strong></div>
+      {% if note.customer and note.customer.phone %}
+      <div class="text-muted">{{ note.customer.phone }}</div>
+      {% endif %}
+      <div class="text-muted mt-1">Against
+        {% for b in note.bills %}
+        <a href="{{ url_for('pos.view_invoice', iid=b.invoice_id) }}">{{ b.invoice.invoice_number }}</a>{% if not loop.last %}, {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    <div class="col-6 text-end">
+      {% if note.staff %}
+      <div>Handed over by: {{ note.staff.full_name }} ({{ note.staff.staff_code }})</div>
+      {% endif %}
+      {% if not note.staff or note.staff_id != note.cashier_id %}
+      <div class="text-muted">Desk: {{ note.cashier.full_name }}</div>
+      {% endif %}
+      {% if note.notes %}<div class="text-muted">{{ note.notes }}</div>{% endif %}
+    </div>
+  </div>
+
+  <table class="table table-sm mt-3">
+    <thead><tr>
+      <th>Item</th><th>Bill</th><th class="text-end">Rate</th>
+      <th class="text-end">Qty</th><th>Pieces</th>
+      <th class="text-center">Verified</th><th class="text-end">Amount</th>
+    </tr></thead>
+    <tbody>
+      {% for l in note.lines %}
+      <tr>
+        <td>{{ l.product.name if l.product else '' }}
+          <br><small class="text-muted">SKU {{ l.product.sku if l.product else '' }}</small></td>
+        <td class="small">{{ l.invoice_item.invoice.invoice_number if l.invoice_item else '' }}</td>
+        <td class="text-end">{{ l.unit_price|inr }}</td>
+        <td class="text-end">{{ l.quantity }}</td>
+        {# The codes actually read, not a count of them. Which garment left the
+           shop is the question a delivery note exists to answer later. #}
+        <td class="small text-muted">
+          {% set codes = l.scans | selectattr('piece_code') | map(attribute='piece_code') | list %}
+          {% if codes %}{{ codes | join(', ') }}{% else %}—{% endif %}
+        </td>
+        <td class="text-center">
+          {% if l.overridden > 0 %}
+          <span class="badge text-bg-warning" title="{{ l.override_reason }}">
+            {{ l.scanned }} scanned · {{ l.overridden }} by hand</span>
+          {% else %}
+          <span class="badge text-bg-success">{{ l.scanned }} scanned</span>
+          {% endif %}
+        </td>
+        <td class="text-end">{{ l.amount|inr }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if note.overridden_qty > 0 %}
+  {# Stated on the note itself, not buried in a log. A piece that went out
+     unverified is the one thing anybody reading this afterwards needs told. #}
+  <div class="alert alert-warning py-2 small">
+    <strong>{{ note.overridden_qty }} piece(s) went out without a scan.</strong>
+    {% for l in note.lines if l.override_reason %}
+    <div>{{ l.product.name if l.product else '' }} — “{{ l.override_reason }}”
+      {% if l.overridden_by %}(passed by {{ l.overridden_by.full_name }}){% endif %}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="d-flex justify-content-end">
+    <table class="table table-sm w-auto">
+      <tr><td class="text-muted">Pieces handed over</td>
+        <td class="text-end fw-bold">{{ note.total_qty }}</td></tr>
+      <tr><td class="text-muted">Verified by scan</td>
+        <td class="text-end">{{ note.scanned_qty }}</td></tr>
+      <tr class="fw-bold"><td>Goods value</td>
+        <td class="text-end">{{ note.total_amount|inr }}</td></tr>
+    </table>
+  </div>
+
+  {% set outstanding = note.bills | map(attribute='invoice') | map(attribute='pending_qty') | sum %}
+  {% if outstanding > 0 %}
+  <div class="alert alert-info py-2 small mb-0">
+    <strong>{{ outstanding }} piece(s) on these bills are still to be collected.</strong>
+    The bills stay open until they are.
+  </div>
+  {% endif %}
+
+  <div class="row mt-4 small d-none d-print-block">
+    <div class="col-6">Received the goods above in good condition.</div>
+    <div class="col-6 text-end">Customer signature</div>
+  </div>
+</div>
+
+{% if print_mode %}
+<script>window.addEventListener('load', () => window.print());</script>
+{% endif %}
+<style>
+  @media print { .brand-nav, .alert-dismissible, .d-print-none { display: none !important; } body { background:#fff; } }
+</style>
+{% endblock %}

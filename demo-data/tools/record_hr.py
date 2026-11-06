@@ -54,6 +54,14 @@ os.environ["ESSA_COMPANY_GSTIN"] = "33AAAAA0000A1Z5"
 os.environ["ESSA_POS_DB"] = SHOP_DB
 os.environ["ESSA_WAREHOUSE_DB"] = os.path.join(tmp, "no-warehouse-here.db")
 
+# seed_live.py: seed the database it names and record nothing
+LIVE = os.environ.get("WAREXX_SEED_LIVE") == "1"
+LOGIN_PASSWORD = os.environ["ESSA_SUPERADMIN_PASSWORD"] if LIVE else "super@123"
+if LIVE:
+    SHOP_DB, WH_DB = os.environ["WAREXX_SEED_SHOP_URL"], os.environ["WAREXX_SEED_WH_URL"]
+    if SHOP_DB.startswith("postgresql"):
+        os.environ["SHOP_DB_SCHEMA"] = "shop"
+    os.environ["ESSA_POS_DB"] = os.environ["WAREXX_SEED_SHOP_URL"].replace("sqlite:///", "") if os.environ["WAREXX_SEED_SHOP_URL"].startswith("sqlite") else ""
 OFFSET = dt.timedelta(minutes=330)
 TODAY = (dt.datetime.utcnow() + OFFSET).date()
 random.seed(20261005)
@@ -88,7 +96,7 @@ def utc(d, h, m=0):
 
 # ===========================================================================
 # the till: the store staff who sell, and what they sold (for incentives/KPIs)
-os.environ["DATABASE_URL"] = "sqlite:///" + SHOP_DB
+os.environ["DATABASE_URL"] = SHOP_DB if LIVE else "sqlite:///" + SHOP_DB
 sys.path.insert(0, str(SHOP))
 import app as shop_pkg                                              # noqa: E402
 from app import db as shop_db                                       # noqa: E402
@@ -99,7 +107,7 @@ shop_app = shop_pkg.create_app()
 ctx = shop_app.app_context()
 ctx.push()
 shop_db.create_all()
-co = Company(name="SAMPLE BUSINESS", is_default=True, active=True)
+co = Company(name="SAMPLE BUSINESS", is_default=not LIVE, active=True)
 shop_db.session.add(co)
 SELLERS = {"anitha": "Anitha Raman", "karthik": "Karthik Sundar", "divya": "Divya Menon", "farhan": "Farhan Ali"}
 susers = {}
@@ -108,7 +116,7 @@ for u, n in SELLERS.items():
     s.set_password("demo-only")
     susers[u] = s
     shop_db.session.add(s)
-saree_c, kurti_c, shirt_c = Category(name="SAREE"), Category(name="KURTI"), Category(name="SHIRT")
+saree_c, kurti_c, shirt_c = Category(name="SAMPLE SAREE"), Category(name="SAMPLE KURTI"), Category(name="SAMPLE SHIRT")
 shop_db.session.add_all([saree_c, kurti_c, shirt_c])
 shop_db.session.flush()
 branch = Location(name="SAMPLE STORE 1", company_id=co.id, active=True)
@@ -157,7 +165,8 @@ print("till: %d bills by %d sellers" % (bill, len(SELLERS)))
 
 # ===========================================================================
 # the warehouse (where HR lives)
-os.environ["DATABASE_URL"] = "sqlite:///" + WH_DB
+os.environ["ESSA_DATABASE_URL"] = WH_DB if LIVE else "sqlite:///" + WH_DB
+os.environ["DATABASE_URL"] = SHOP_DB if LIVE else "sqlite:///" + WH_DB
 sys.path.insert(0, str(ROOT))
 from backend.app import models                                      # noqa: E402
 from backend.app.database import engine, DB_URL                     # noqa: E402
@@ -165,13 +174,13 @@ from backend.app.main import app                                    # noqa: E402
 from backend.app.services import hr as hr_svc                       # noqa: E402
 from fastapi.testclient import TestClient                           # noqa: E402
 
-if not DB_URL.startswith("sqlite") or tmp.replace(os.sep, "/") not in DB_URL:
+if not LIVE and (not DB_URL.startswith("sqlite") or tmp.replace(os.sep, "/") not in DB_URL):
     sys.exit("refusing to run: the database is not the throwaway one (%s)" % DB_URL)
 
 models.Base.metadata.create_all(bind=engine)
 client = TestClient(app)
 tok = client.post("/api/auth/login", headers={"X-Essa-Client": "native"},
-                  json={"username": "superadmin", "password": "super@123"}).json()["token"]
+                  json={"username": "superadmin", "password": LOGIN_PASSWORD}).json()["token"]
 H = {"Authorization": "Bearer " + tok}
 problems = []
 
@@ -449,6 +458,10 @@ send("POST", f"employees/{emp[NOTICE]['id']}/exit", {"last_working_day": (TODAY 
 
 # ===========================================================================
 # record every question the screens ask
+if LIVE:
+    if problems:
+        sys.exit("\n".join(problems))
+    sys.exit(0)
 entries = {}
 
 

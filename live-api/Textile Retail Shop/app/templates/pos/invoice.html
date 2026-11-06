@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+{% block content %}
+{# The bill's QR fills its box (the symbol carries a viewBox — utils._scalable),
+   on white, so a camera gets every module at full size and full contrast. #}
+<style>.bill-qr svg{display:block;width:100%;height:auto;background:#fff}</style>
+<div class="no-print mb-3 d-flex flex-wrap gap-2 align-items-start">
+  <a href="{{ back_url }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
+  {# Always two copies — the customer's and the delivery desk's. Both are on the
+     page; the second only appears on paper. #}
+  {% if only_copy %}
+  <button class="btn btn-brand btn-sm" onclick="window.print()">
+    <i class="bi bi-printer"></i> Print {{ only_copy }} copy</button>
+  {% else %}
+  <button class="btn btn-brand btn-sm" onclick="window.print()" title="Prints the customer copy and the delivery copy">
+    <i class="bi bi-printer"></i> Print (2 copies)</button>
+  {% endif %}
+  {# A bill raised and not yet paid: its next stop is Settlement. #}
+  {% if (inv.payment_status or '') == 'pending' and not inv.is_cancelled %}
+  <a href="{{ then_url or url_for('pos.settle', id=inv.id) }}" class="btn btn-warning btn-sm">
+    <i class="bi bi-cash-coin"></i> Go to settlement</a>
+  {% endif %}
+  <button class="btn btn-outline-primary btn-sm" id="billDownload" type="button">
+    <i class="bi bi-download"></i> Download PDF</button>
+  <a href="{{ url_for('pos.counter') }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-plus-lg"></i> New bill</a>
+  {# Cancelling is for a bill rung up wrongly today, before anything else has hung
+     off it — app/cancellation.py says what counts. When it cannot be cancelled the
+     manager is told why, instead of the button simply not being there. #}
+  {% if current_user.is_manager and not inv.is_cancelled %}
+    {% if cancel_blocked %}
+    <span class="small text-muted ms-auto align-self-center" title="{{ cancel_blocked }}"><i class="bi bi-slash-circle"></i> Can't cancel: {{ cancel_blocked }}</span>
+    {% else %}
+    <details class="ms-auto">
+      <summary class="btn btn-outline-danger btn-sm"><i class="bi bi-x-octagon"></i> Cancel bill</summary>
+      <form method="post" action="{{ url_for('pos.cancel_invoice', iid=inv.id) }}" class="card p-3 mt-2" style="max-width:360px"
+            onsubmit="return confirm('Cancel {{ inv.invoice_number }}? Stock, loyalty points, promotions and coupons on it are all reversed. This cannot be undone.')">
+        <label class="form-label small">Reason *</label>
+        <input class="form-control form-control-sm mb-2" name="reason" required maxlength="250" placeholder="e.g. wrong item billed">
+        <div class="small text-muted mb-2">The bill number stays in the register marked cancelled.
+          Hand back what the customer paid.</div>
+        <button class="btn btn-danger btn-sm">Cancel this bill</button>
+      </form>
+    </details>
+    {% endif %}
+  {% endif %}
+</div>
+
+{# What changed hands, said on screen once the bill is settled: what the customer
+   handed over and what goes back to them. Not on the paper — the bill already
+   prints its tenders and change. #}
+{% set paid = namespace(received=0) %}
+{% for p in inv.payments %}{% set paid.received = paid.received + (p.tendered or p.amount or 0) %}{% endfor %}
+{% if inv.payments and not inv.is_cancelled %}
+<div class="no-print card p-3 mb-3 mx-auto d-flex flex-row flex-wrap justify-content-between gap-3" style="max-width:800px">
+  <div><div class="small text-muted">Bill total</div><div class="fs-4 fw-bold">{{ inv.total|inr }}</div></div>
+  <div><div class="small text-muted">Amount received</div><div class="fs-4 fw-bold">{{ paid.received|inr }}</div></div>
+  <div class="text-end"><div class="small text-muted">Change to give back</div>
+    <div class="fs-4 fw-bold" style="color:var(--brand-dark)">{{ (inv.change_given or 0)|inr }}</div></div>
+</div>
+{% endif %}
+
+{# The bill. The shop's own layout — header, bill-to, the line table, the totals
+   — carrying the columns and figures of its printed receipt: S.NO, EMP (who
+   sold the line), BARC, PRODUCT, MTR / QTY, RATE (with GST), DIS%, AMT, the tax
+   by rate, and Total Pcs / Gross / Discount / Net Total. Figures come from
+   pos._receipt, which makes the AMT column add up to the net total. #}
+{% macro bill(copy, extra_class='') %}
+<div class="invoice-print card {{ 'is-cancelled' if inv.is_cancelled }} {{ extra_class }}" style="position:relative">
+  {% if inv.is_cancelled %}
+  <div class="inv-void-mark" aria-hidden="true">CANCELLED</div>
+  <div class="alert alert-danger py-2 mb-3">
+    <strong>CANCELLED</strong> on {{ inv.cancelled_at.strftime('%d %b %Y %I:%M %p') if inv.cancelled_at }}
+    {% if inv.cancelled_by %} by {{ inv.cancelled_by.full_name }}{% endif %}
+    {% if inv.cancel_reason %} — {{ inv.cancel_reason }}{% endif %}.
+    This bill is not a sale and is left out of every total.
+  </div>
+  {% endif %}
+  <div class="invoice-header d-flex justify-content-between">
+    <div>
+      {# The entity that RAISED this bill, not the till's setting today — a
+         reprint carries the registration it was billed under. #}
+      <h3 class="fw-bold mb-0" style="color: var(--brand-dark);">{{ inv.company.name if inv.company else SHOP_NAME }}</h3>
+      <div>{{ (inv.company.address if inv.company else None) or SHOP_ADDRESS }}</div>
+      <div>Phone: {{ (inv.company.phone if inv.company else None) or SHOP_PHONE }}</div>
+      <div>GSTIN: <strong>{{ (inv.company.gstin if inv.company else None) or SHOP_GSTIN }}</strong></div>
+      {% if inv.location or inv.counter or inv.floor %}
+      <div class="small text-muted">
+        {{ inv.location.name if inv.location else '' }}{% if inv.floor %} · {{ inv.floor.name }}{% endif %}{% if inv.counter %} · {{ inv.counter.name }}{% endif %}
+      </div>
+      {% endif %}
+    </div>
+    <div class="text-end">
+      <h5 class="mb-0">TAX INVOICE</h5>
+      <div class="bill-copy-label">{{ copy }}</div>
+      <div><strong>{{ inv.invoice_number }}</strong></div>
+      {# The bill number as a symbol, so the delivery desk reads it off the
+         paper. The bare number only; Code 128 when the QR library is missing. #}
+      {% set bill_qr = inv.invoice_number | qr(scale=3) %}
+      <div class="d-inline-block mt-1 bill-qr" style="width:96px">
+        {% if bill_qr %}{{ bill_qr }}
+        {% else %}{{ inv.invoice_number | barcode(module=1, height=34, with_text=False) }}{% endif %}
+      </div>
+      <div>{{ inv.invoice_date.strftime('%d %b %Y %I:%M %p') }}</div>
+      {% if not inv.staff or inv.staff_id != inv.cashier_id %}
+      <div>Cashier: {{ inv.cashier.full_name }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="row mb-3">
+    <div class="col-6">
+      <strong>Bill To:</strong><br>
+      {% if inv.customer %}
+        {{ inv.customer.name }}<br>
+        {% if inv.customer.phone %}Ph: {{ inv.customer.phone }}<br>{% endif %}
+        {% if inv.customer.address %}{{ inv.customer.address }}<br>{% endif %}
+        {% if inv.customer.gstin %}GSTIN: {{ inv.customer.gstin }}{% endif %}
+      {% else %}
+        Walk-in customer
+      {% endif %}
+    </div>
+    <div class="col-6 text-end">
+      <strong>Payment:</strong> {{ (inv.payment_method or '')|replace('_', ' ')|upper }}<br>
+      {# A split bill prints its split. #}
+      {% if inv.payments %}
+        {% for p in inv.payments %}
+          <span class="small">{{ p.method|replace('_', ' ')|upper }} {{ p.amount|inr }}{% if p.reference %}
+            · {{ p.reference }}{% endif %}</span><br>
+        {% endfor %}
+        {% if inv.change_given %}
+          <span class="small">Change {{ inv.change_given|inr }}</span><br>
+        {% endif %}
+      {% endif %}
+      <strong>Status:</strong> <span class="badge {{ 'bg-danger' if inv.is_cancelled else 'bg-success' }}">{{ inv.payment_status }}</span><br>
+      <strong>Goods:</strong>
+      {% if inv.is_cancelled %}
+        <span class="badge bg-secondary">back in stock</span>
+      {% elif inv.delivery_status == 'delivered' %}
+        <span class="badge bg-success">collected</span>
+      {% elif inv.delivery_status == 'part' %}
+        <span class="badge bg-warning text-dark">{{ inv.pending_qty }} still to collect</span>
+      {% else %}
+        <span class="badge bg-secondary">not collected</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-sm bill-lines-table">
+      <thead>
+        <tr><th>S.No</th><th>Emp</th><th>Barcode</th><th>Product</th>
+          <th class="text-end">Mtr</th><th class="text-end">Qty</th><th class="text-end">Rate</th>
+          <th class="text-end">Dis%</th><th class="text-end">Amount</th></tr>
+      </thead>
+      <tbody>
+        {# A free garment is a line like any other, and says which scheme put it there. #}
+        {% for r in rcpt.rows %}
+        {% set it = inv.items[loop.index0] %}
+        <tr>
+          <td>{{ r.sno }}</td>
+          <td>{{ r.emp }}</td>
+          <td class="text-nowrap">{{ r.barc }}</td>
+          <td>{{ r.product }}
+            {% if it.promo_role == 'reward' %}
+            <span class="badge bg-success">{{ 'FREE' if it.is_free_item else 'OFFER' }}</span>
+            {% if it.promo_application %}<br><small class="text-success">Promotion: {{ it.promo_application.scheme_name }}
+              ({{ it.promo_application.scheme_code }})</small>{% endif %}
+            {% endif %}
+            {% if it.scheme %}<br><small class="text-success">Scheme: {{ it.scheme.name }} ({{ it.scheme.code }})</small>{% endif %}
+          </td>
+          <td class="text-end">{{ '%g' % r.mtr if r.mtr is not none else '' }}</td>
+          <td class="text-end">{{ '%g' % r.qty if r.qty is not none else '' }}</td>
+          <td class="text-end">{% if r.free %}—{% else %}{{ r.rate|inr }}{% endif %}</td>
+          <td class="text-end">{{ r.dis if r.dis else '' }}</td>
+          <td class="text-end">{% if r.free %}<strong>FREE</strong>{% else %}{{ r.amt|inr }}{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr class="fw-bold">
+          <td colspan="4">TOTAL</td>
+          <td class="text-end">{{ '%g' % rcpt.mtr if rcpt.mtr else '' }}</td>
+          <td class="text-end">{{ '%g' % rcpt.pcs if rcpt.pcs else '' }}</td>
+          <td colspan="3" class="text-end">{{ rcpt.net|inr }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div class="row justify-content-between g-3">
+    {# Tax by rate, as the bill was raised. #}
+    <div class="col-md-7">
+      <table class="table table-sm small mb-0">
+        <thead><tr><th>GST</th><th class="text-end">Sales amount</th>
+          {% if inv.is_interstate %}<th class="text-end">IGST</th>
+          {% else %}<th class="text-end">CGST</th><th class="text-end">SGST</th>{% endif %}</tr></thead>
+        <tbody>
+          {% for t in rcpt.taxes %}
+          <tr><td>{{ '%g' % t.rate }} %</td><td class="text-end">{{ t.taxable|inr }}</td>
+            {% if inv.is_interstate %}<td class="text-end">{{ t.tax|inr }}</td>
+            {% else %}<td class="text-end">{{ t.half|inr }}</td><td class="text-end">{{ t.half|inr }}</td>{% endif %}</tr>
+          {% endfor %}
+          <tr class="fw-bold"><td>Total</td><td class="text-end">{{ inv.subtotal|inr }}</td>
+            {% if inv.is_interstate %}<td class="text-end">{{ inv.igst|inr }}</td>
+            {% else %}<td class="text-end">{{ inv.cgst|inr }}</td><td class="text-end">{{ inv.sgst|inr }}</td>{% endif %}</tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="col-md-5">
+      <table class="table table-sm">
+        <tr><td>Total Pcs</td><td class="text-end">{{ '%g' % rcpt.pcs }}</td></tr>
+        {% if rcpt.mtr %}<tr><td>Total Mtr</td><td class="text-end">{{ '%g' % rcpt.mtr }}</td></tr>{% endif %}
+        <tr><td>Gross</td><td class="text-end">{{ rcpt.gross|inr }}</td></tr>
+        <tr><td>Discount
+          {# What the discount is made of, when it is more than the typed figure. #}
+          {% set coupon_off = inv.coupon_discount or 0 %}
+          {% if coupon_off %}<br><small class="text-muted">incl. coupon{% for r in inv.coupon_redemptions %} <code>{{ r.coupon.code }}</code>{% endfor %} {{ coupon_off|inr }}</small>{% endif %}
+          {% if inv.loyalty_redeemed %}<br><small class="text-muted">incl. {{ '%g' % inv.loyalty_redeemed }} loyalty pts</small>{% endif %}
+          {% if inv.scheme_discount %}<br><small class="text-muted">incl. {{ inv.scheme_discount|inr }} scheme discount at settlement</small>{% endif %}
+          {% if inv.discount_by %}<br><small class="text-muted">approved by {{ inv.discount_by.full_name }} ({{ inv.discount_by.staff_code }})</small>{% endif %}
+          </td><td class="text-end">- {{ rcpt.discount|inr }}</td></tr>
+        <tr class="invoice-total-row"><td>NET TOTAL</td><td class="text-end">{{ rcpt.net|inr }}</td></tr>
+        {# What the promotions were worth — below the total, not inside it:
+           nothing was charged for them. #}
+        {% if inv.promotions %}
+        <tr><td colspan="2" class="text-success small">
+          {% for a in inv.promotions %}
+          {{ a.scheme_name }}{% if a.times_applied > 1 %} × {{ a.times_applied }}{% endif %}
+          — {{ a.reward_qty }} item(s) worth {{ a.benefit_value|inr }}, free.<br>
+          {% endfor %}
+        </td></tr>
+        {% endif %}
+        {% if inv.loyalty_earned and not inv.is_cancelled %}<tr><td colspan="2" class="text-success small">You earned {{ inv.loyalty_earned }} loyalty points.</td></tr>{% endif %}
+      </table>
+    </div>
+  </div>
+
+  {# The coupon this bill earned, for the next visit. #}
+  {% if coupons_issued and not inv.is_cancelled %}
+  {% for cp in coupons_issued if cp.active %}
+  <div class="border border-2 rounded p-2 mb-2 d-flex justify-content-between align-items-center" style="border-style:dashed!important">
+    <div>
+      <div class="small text-muted">Your coupon for next time</div>
+      <div class="fw-bold">{{ cp.campaign.describe }}</div>
+      <div class="small">Valid {{ cp.valid_from|dmy }} to {{ cp.valid_to|dmy }}</div>
+    </div>
+    <div class="text-end"><code class="fs-5">{{ cp.code }}</code></div>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <div class="text-center fs-4 fw-bold mt-2" style="color: var(--brand-dark);">BILL NO : {{ inv.invoice_number }}</div>
+
+  <div class="d-flex justify-content-between align-items-end mt-3 gap-3">
+    <p class="text-muted small mb-0">Thank you for shopping with us! Goods once sold cannot be returned after 7 days.</p>
+    {% if feedback_link %}
+    {% set fb_qr = feedback_link | qr(scale=2) %}
+    {% if fb_qr %}
+    <div class="text-center small text-muted" style="width:92px;flex:none">
+      {{ fb_qr }}
+      <div>Rate your visit</div>
+    </div>
+    {% endif %}
+    {% endif %}
+  </div>
+</div>
+{% endmacro %}
+
+{# One copy prints when the bill is raised — the delivery person's — and the
+   other once it is paid — the customer's. A reprint carries both. #}
+{% if only_copy == 'delivery' %}
+<div id="billCustomerCopy">{{ bill('DELIVERY COPY') }}</div>
+{% elif only_copy == 'customer' %}
+<div id="billCustomerCopy">{{ bill('CUSTOMER COPY') }}</div>
+{% else %}
+<div id="billCustomerCopy">{{ bill('CUSTOMER COPY') }}</div>
+{{ bill('DELIVERY COPY', 'bill-copy-2') }}
+{% endif %}
+
+{# Staff typing in what a customer said at the counter, against this bill. #}
+{% if not inv.is_cancelled %}
+<details class="no-print mt-3" style="max-width:520px">
+  <summary class="btn btn-outline-secondary btn-sm"><i class="bi bi-star"></i> Record feedback</summary>
+  <form method="post" action="{{ url_for('customers.feedback') }}" class="card p-3 mt-2">
+    <input type="hidden" name="invoice_id" value="{{ inv.id }}">
+    <input type="hidden" name="next" value="{{ url_for('pos.view_invoice', iid=inv.id) }}">
+    <div class="d-flex gap-2 mb-2">
+      <select class="form-select form-select-sm" name="rating" required style="max-width:160px">
+        <option value="">Rating…</option>
+        {% for r in [5,4,3,2,1] %}<option value="{{ r }}">{{ '★' * r }}</option>{% endfor %}
+      </select>
+      {% if feedback_link %}<a class="btn btn-sm btn-link ms-auto" href="{{ feedback_link }}" target="_blank" rel="noopener">Customer's link</a>{% endif %}
+    </div>
+    <textarea class="form-control form-control-sm mb-2" name="comments" rows="2" placeholder="What did they say?"></textarea>
+    <button class="btn btn-brand btn-sm align-self-start">Save</button>
+  </form>
+</details>
+{% endif %}
+
+<style>
+  .inv-void-mark { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:clamp(48px, 12vw, 120px); font-weight:800; letter-spacing:.08em; color:rgba(190,30,45,.12);
+    transform:rotate(-24deg); pointer-events:none; user-select:none; z-index:1; }
+  @media print { .inv-void-mark { color:rgba(190,30,45,.18); -webkit-print-color-adjust:exact; print-color-adjust:exact; } }
+
+</style>
+{% endblock %}
+{% block scripts %}
+<script>
+// The bill as a PDF file — for a customer who wants it on WhatsApp or mail, or a
+// reprint of a previous bill kept on record. Drawn from the customer copy as it
+// stands on screen, so the file and the paper say the same thing.
+//
+// The PDF library is fetched only when a download is asked for: it is large, and
+// every bill printed at the counter would otherwise pay for it.
+function loadPdfLib(){
+  if (window.html2pdf) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+    s.onload = () => resolve(!!window.html2pdf);
+    s.onerror = () => resolve(false);
+    document.head.appendChild(s);
+  });
+}
+async function downloadBill(){
+  const el = document.querySelector('#billCustomerCopy .invoice-print');
+  if (!el || !(await loadPdfLib())){
+    // No internet at the till: the browser's own print dialog saves a PDF too.
+    alert('PDF download could not load — the print dialog will open; choose "Save as PDF" there.');
+    window.print();
+    return;
+  }
+  await html2pdf().set({
+    margin: 8, filename: {{ (inv.invoice_number ~ '.pdf') | tojson }},
+    image: {type: 'jpeg', quality: 0.95}, html2canvas: {scale: 2, backgroundColor: '#ffffff'},
+    jsPDF: {unit: 'mm', format: 'a4', orientation: 'portrait'},
+  }).from(el).save();
+}
+document.getElementById('billDownload').onclick = downloadBill;
+
+{% if download %}
+window.addEventListener('load', downloadBill);
+{% elif print_view %}
+// The print view prints without waiting for a click.
+{% if then_url %}
+// The delivery copy is printed; the bill goes on to Settlement once the print
+// dialog closes — printed or not, the cashier is not left on this page.
+window.addEventListener('afterprint', () => { window.location = {{ then_url | tojson }}; });
+{% endif %}
+window.addEventListener('load', () => setTimeout(() => window.print(), 300));
+{% endif %}
+</script>
+{% endblock %}

@@ -1,0 +1,91 @@
+<!doctype html>
+{# The customer's sign-up page, on their own phone — reached from the QR at the
+   door. No login, no staff chrome; it looks like the feedback page because it is
+   the same kind of page. What it asks is set under CRM → Self Registration. #}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{{ cfg.title }} — {{ SHOP_NAME }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta name="theme-color" content="#0B3D2E">
+  <style>
+    body { background: #F7F9F7; color: #17221D; font-family: Inter, system-ui, sans-serif; }
+    .card-x { max-width: 460px; margin: 32px auto; padding: 0 16px; }
+    .head { background: #0B3D2E; color: #fff; border-radius: 14px 14px 0 0; padding: 20px 22px; }
+    .body { background: #fff; border: 1px solid #DCE5DF; border-top: 0; border-radius: 0 0 14px 14px; padding: 22px; }
+    .form-label { font-size: .85rem; font-weight: 500; margin-bottom: .25rem; }
+    .form-control, .form-select { border-color: #DCE5DF; }
+    .form-control:focus, .form-select:focus { border-color: #2F8F68; box-shadow: 0 0 0 .2rem rgba(47,143,104,.2); }
+    .btn-brand { background: #2F8F68; border-color: #2F8F68; color: #fff; }
+    .btn-brand:hover { background: #0B3D2E; border-color: #0B3D2E; color: #fff; }
+    .muted { color: #647069; }
+    .req { color: #BE123C; }
+    .hp { position: absolute; left: -5000px; }
+  </style>
+</head>
+<body>
+{% macro label(key, text) %}<label class="form-label" for="f_{{ key }}">{{ text }}{% if fields.get(key) == 'required' %} <span class="req">*</span>{% endif %}</label>{% endmacro %}
+{% macro need(key) %}{{ 'required' if fields.get(key) == 'required' }}{% endmacro %}
+{% set ON = ('optional', 'required') %}
+  <div class="card-x">
+    <div class="head">
+      <div class="fw-semibold fs-5">{{ SHOP_NAME }}</div>
+      <div class="small opacity-75">{{ loc.name if loc else 'Customer club' }}</div>
+    </div>
+    <div class="body">
+      {% if done %}
+        <div class="text-center py-3">
+          <div style="font-size:44px;color:#2F8F68">✓</div>
+          {% if already %}
+            <div class="fw-semibold fs-5 mb-1">You're already with us</div>
+            <div class="muted">That mobile number is already registered. Just give it at the counter to earn your points.</div>
+          {% else %}
+            <div class="fw-semibold fs-5 mb-1">Welcome!</div>
+            <div class="muted">{{ cfg.thanks }}</div>
+            {% if card %}<div class="mt-3 small muted">Your membership number</div><div class="fs-5 fw-semibold">{{ card }}</div>{% endif %}
+          {% endif %}
+        </div>
+      {% else %}
+        <form method="post" novalidate>
+          <div class="fw-semibold fs-5 mb-1">{{ cfg.title }}</div>
+          {% if cfg.intro %}<div class="muted small mb-3">{{ cfg.intro }}</div>{% endif %}
+          {% if error %}<div class="alert alert-danger py-2 small">{{ error }}</div>{% endif %}
+          <div class="hp" aria-hidden="true"><label>Website <input name="website" tabindex="-1" autocomplete="off"></label></div>
+          <div class="mb-3"><label class="form-label" for="f_name">Your name <span class="req">*</span></label>
+            <input class="form-control" id="f_name" name="name" required maxlength="128" autocomplete="name" value="{{ posted.get('name', '') }}"></div>
+          <div class="mb-3"><label class="form-label" for="f_phone">Mobile number <span class="req">*</span></label>
+            <input class="form-control" id="f_phone" name="phone" required inputmode="tel" maxlength="14" autocomplete="tel" value="{{ posted.get('phone', '') }}"></div>
+          {% if fields.get('email') in ON %}<div class="mb-3">{{ label('email', 'Email') }}
+            <input class="form-control" type="email" id="f_email" name="email" autocomplete="email" {{ need('email') }} value="{{ posted.get('email', '') }}"></div>{% endif %}
+          {% if fields.get('gender') in ON %}<div class="mb-3">{{ label('gender', 'Gender') }}
+            <select class="form-select" id="f_gender" name="gender" {{ need('gender') }}>
+              <option value="">—</option>
+              {% for v, t in [('female', 'Female'), ('male', 'Male'), ('other', 'Other')] %}<option value="{{ v }}" {{ 'selected' if posted.get('gender') == v }}>{{ t }}</option>{% endfor %}
+            </select></div>{% endif %}
+          {% if fields.get('dob') in ON %}<div class="mb-3">{{ label('dob', 'Date of birth') }}
+            <input class="form-control" type="date" id="f_dob" name="dob" autocomplete="bday" {{ need('dob') }} value="{{ posted.get('dob', '') }}"></div>{% endif %}
+          {% if fields.get('married') in ON %}<div class="mb-3">{{ label('married', 'Married?') }}
+            <select class="form-select" id="f_married" name="married" {{ need('married') }}>
+              <option value="">—</option><option value="yes" {{ 'selected' if posted.get('married') == 'yes' }}>Yes</option><option value="no" {{ 'selected' if posted.get('married') == 'no' }}>No</option>
+            </select></div>{% endif %}
+          {% if fields.get('anniversary') in ON %}<div class="mb-3">{{ label('anniversary', 'Wedding anniversary') }}
+            <input class="form-control" type="date" id="f_anniversary" name="anniversary" {{ need('anniversary') }} value="{{ posted.get('anniversary', '') }}"></div>{% endif %}
+          {% if fields.get('kids') in ON %}<div class="mb-3">{{ label('kids', 'Children') }}
+            <div class="row g-2"><div class="col"><input class="form-control" type="number" min="0" max="20" id="f_kids" name="kids_boys" placeholder="Boys" aria-label="Boys" value="{{ posted.get('kids_boys', '') }}"></div>
+              <div class="col"><input class="form-control" type="number" min="0" max="20" name="kids_girls" placeholder="Girls" aria-label="Girls" value="{{ posted.get('kids_girls', '') }}"></div></div></div>{% endif %}
+          {% if fields.get('address') in ON %}<div class="mb-3">{{ label('address', 'Address') }}
+            <textarea class="form-control" id="f_address" name="address" rows="2" autocomplete="street-address" {{ need('address') }}>{{ posted.get('address', '') }}</textarea></div>{% endif %}
+          {% for key, text, ac in [('city', 'City', 'address-level2'), ('area', 'Area', 'address-level3'), ('pincode', 'PIN code', 'postal-code'), ('religion', 'Religion', 'off')] %}
+            {% if fields.get(key) in ON %}<div class="mb-3">{{ label(key, text) }}
+              <input class="form-control" id="f_{{ key }}" name="{{ key }}" autocomplete="{{ ac }}" {{ need(key) }} {{ 'inputmode=numeric' if key == 'pincode' }} value="{{ posted.get(key, '') }}"></div>{% endif %}
+          {% endfor %}
+          <button class="btn btn-brand w-100 py-2 mt-2">Sign me up</button>
+          <div class="small muted mt-3 text-center">We use your details only to look after you as a customer.</div>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>

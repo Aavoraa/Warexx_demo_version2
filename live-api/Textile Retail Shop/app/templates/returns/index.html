@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h4><i class="bi bi-arrow-return-left"></i> Customer return</h4>
+  {% if current_user.is_manager %}
+  <a href="{{ url_for('returns.list_notes') }}" class="btn btn-outline-secondary btn-sm">All credit notes</a>
+  {% endif %}
+</div>
+
+<form class="row g-2 mb-3">
+  <div class="col-md-6">
+    <div class="input-group">
+      <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+      <input class="form-control" name="q" id="billScan" value="{{ q }}" {{ '' if invoice else 'autofocus' }} autocomplete="off"
+             placeholder="Scan the bill's QR, or type the bill number — e.g. INV-000003">
+    </div>
+  </div>
+  <div class="col-md-2"><button class="btn btn-brand w-100">Find bill</button></div>
+</form>
+
+{% if invoice %}
+{% set anything_left = invoice.items | selectattr('returnable_qty', 'gt', 0) | list %}
+<div class="card p-3 mb-3">
+  <div class="d-flex justify-content-between flex-wrap">
+    <div>
+      <h5 class="mb-1">{{ invoice.invoice_number }}</h5>
+      <div class="text-muted small">
+        {{ invoice.invoice_date.strftime('%d %b %Y, %H:%M') }} ·
+        {{ invoice.customer.name if invoice.customer else 'Walk-in customer' }}
+        {% if invoice.staff %} · sold by {{ invoice.staff.full_name }}{% endif %}
+      </div>
+    </div>
+    <div class="text-end">
+      <div class="text-muted small">Bill total</div>
+      <div class="fs-5 fw-bold">{{ invoice.total|inr }}</div>
+    </div>
+  </div>
+</div>
+
+{% if invoice.credit_notes %}
+<div class="alert alert-info py-2">
+  Already returned against this bill:
+  {% for n in invoice.credit_notes %}
+  <a href="{{ url_for('returns.view_note', nid=n.id) }}">{{ n.number }}</a> ({{ n.total|inr }}){% if not loop.last %}, {% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if not anything_left %}
+<div class="alert alert-warning">Every line on this bill has already been returned.</div>
+{% else %}
+<form method="post" action="{{ url_for('returns.create') }}">
+  <input type="hidden" name="invoice_id" value="{{ invoice.id }}">
+
+  {# Scan each garment coming back: its line's Return qty goes up by one. #}
+  <div class="input-group mb-2" style="max-width:560px">
+    <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+    <input class="form-control" id="itemScan" autofocus autocomplete="off"
+           placeholder="Scan the item coming back — its return qty goes up by 1">
+  </div>
+  <div id="itemScanMsg" class="small mb-2"></div>
+
+  <div class="card mb-3">
+    <div class="table-responsive">
+      <table class="table mb-0 align-middle">
+        <thead><tr>
+          <th>Item</th><th class="text-end">Price</th>
+          <th class="text-end">Sold</th><th class="text-end">Already back</th>
+          <th style="width:130px">Return qty</th><th style="width:190px">Condition</th>
+        </tr></thead>
+        <tbody>
+          {% for it in invoice.items %}
+          <tr class="{% if it.returnable_qty <= 0 %}text-muted{% endif %} {% if it.promo_role == 'reward' %}table-success{% endif %}">
+            <td>{{ it.product.name }}
+              {% if it.promo_role == 'reward' %}
+              <span class="badge text-bg-success">{{ 'FREE' if it.is_free_item else 'OFFER' }}</span>
+              {% elif it.promo_qty %}
+              <span class="badge text-bg-light border" title="{{ it.promo_qty }} of these earned a promotion">earned an offer</span>
+              {% endif %}
+              <br><small class="text-muted">{{ it.product.sku }}</small></td>
+            <td class="text-end">{{ it.unit_price|inr }}</td>
+            <td class="text-end">{{ it.quantity }}</td>
+            <td class="text-end">{{ it.returned_qty or '—' }}</td>
+            <td>
+              {% if it.returnable_qty > 0 %}
+              <input class="form-control form-control-sm" type="number" name="qty_{{ it.id }}"
+                     min="0" max="{{ it.returnable_qty }}" step="0.01" value="0"
+                     data-pid="{{ it.product_id }}" data-name="{{ it.product.name }}"
+                     data-codes="{{ [it.product.sku, it.product.barcode or '', it.product.warehouse_qr or ''] | join('\n') }}">
+              {% else %}<span class="small">nothing left</span>{% endif %}
+            </td>
+            <td>
+              {% if it.returnable_qty > 0 %}
+              <select class="form-select form-select-sm" name="cond_{{ it.id }}">
+                <option value="resellable">Resellable — back on the shelf</option>
+                <option value="damaged">Damaged — write off</option>
+              </select>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {# What the marked quantities do to the promotions on this bill, worked out as
+     the boxes are filled in. Here rather than after the fact: a free garment
+     that has to come back, or be paid for, changes what the customer is being
+     offered — and agreeing a refund figure and then reducing it is how a
+     counter argument starts. #}
+  <div id="promoWarn" class="d-none mb-3"></div>
+
+  <div class="card p-3">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Staff handling this return *</label>
+        <input class="form-control" name="staff_code" required autocomplete="off"
+               placeholder="Scan ID card or type STF000003">
+        <div class="form-text">The commission comes off whoever made the original sale, not this person.</div>
+      </div>
+      <div class="col-md-8">
+        <label class="form-label">Reason</label>
+        <input class="form-control" name="reason" placeholder="Size didn't fit, defect, changed mind…">
+      </div>
+    </div>
+    {# No money goes back. A return is always an exchange: its value becomes
+       store credit and the new bill opens with it applied. #}
+    <div class="mt-3 d-flex align-items-center flex-wrap gap-2">
+      <button class="btn btn-brand" id="exchangeBtn" disabled>
+        <i class="bi bi-arrow-left-right"></i> Exchange → new bill</button>
+      <span class="small" id="exchangeHint" style="color:#B45309">Enter the return qty for the items coming back.</span>
+      <span class="text-muted small ms-auto">No cash refunds — the value is credited to the new bill.
+        Stock, GST and loyalty are reversed for the lines above.</span>
+    </div>
+  </div>
+</form>
+{% endif %}
+{% endif %}
+
+{% if recent and not invoice %}
+<h6 class="text-muted mt-4">Recent returns</h6>
+<div class="card">
+  <table class="table table-sm mb-0">
+    <thead><tr><th>Credit note</th><th>Against</th><th>When</th><th class="text-end">Refunded</th></tr></thead>
+    <tbody>
+      {% for n in recent %}
+      <tr>
+        <td><a href="{{ url_for('returns.view_note', nid=n.id) }}">{{ n.number }}</a></td>
+        <td>{{ n.invoice.invoice_number }}</td>
+        <td>{{ n.created_at.strftime('%d %b %Y, %H:%M') }}</td>
+        <td class="text-end">{{ n.total|inr }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="text-center text-muted p-3">No returns yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if invoice %}
+<script>
+// The exchange button wakes up once something is actually coming back — a return
+// of nothing is refused by the server anyway, after the cashier has pressed it.
+(function () {
+  const btn = document.getElementById('exchangeBtn');
+  if (!btn) return;
+  const hint = document.getElementById('exchangeHint');
+  const boxes = document.querySelectorAll('input[name^="qty_"]');
+  const paint = () => {
+    const any = [...boxes].some((el) => (parseFloat(el.value) || 0) > 0);
+    btn.disabled = !any;
+    hint.classList.toggle('d-none', any);
+  };
+  boxes.forEach((el) => el.addEventListener('input', paint));
+  paint();
+
+  // ---- scanning the garments that come back ----------------------------------
+  // Matched against this bill's own lines: the SKU, printed barcode or warehouse
+  // QR on the line, and failing that whatever the counter's lookup resolves the
+  // tag to (a per-piece QR, say). Each scan adds one, up to what can come back.
+  const scan = document.getElementById('itemScan');
+  const msg = document.getElementById('itemScanMsg');
+  const say = (text, bad) => { msg.textContent = text; msg.style.color = bad ? '#BE123C' : 'var(--brand-dark)'; };
+  const room = (el) => (parseFloat(el.max) || 0) - (parseFloat(el.value) || 0);
+  async function take(code){
+    code = (code || '').trim();
+    scan.value = '';
+    if (!code) return;
+    const c = code.toUpperCase();
+    let hits = [...boxes].filter((el) => el.dataset.codes.split('\n').some((x) => x && x.toUpperCase() === c));
+    if (!hits.length){
+      try {
+        const r = await fetch(`${SHOP_ROOT}/pos/api/product?code=${encodeURIComponent(code)}`);
+        if (r.ok){ const p = await r.json(); hits = [...boxes].filter((el) => el.dataset.pid === String(p.id)); }
+      } catch (e) { /* falls through to "not on this bill" */ }
+    }
+    if (!hits.length){ say(`“${code}” is not on this bill.`, true); return; }
+    const el = hits.find((x) => room(x) >= 1);
+    if (!el){ say(`${hits[0].dataset.name}: nothing more left to return.`, true); return; }
+    el.value = (parseFloat(el.value) || 0) + 1;
+    el.dispatchEvent(new Event('input', {bubbles: true}));
+    say(`${el.dataset.name} — returning ${el.value}.`);
+  }
+  let timer = null;
+  scan.addEventListener('keydown', (e) => {
+    // A scanner ends with Enter; here that must not submit the return.
+    if (e.key === 'Enter'){ e.preventDefault(); clearTimeout(timer); take(scan.value); }
+  });
+  scan.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { const v = scan.value.trim(); if (v.length >= 4 && !/\s/.test(v)) take(v); }, 200);
+  });
+})();
+</script>
+{% endif %}
+<script>
+// The bill's QR is the bare bill number: a scanner that sends no Enter still
+// finds the bill once the number settles.
+(function () {
+  const box = document.getElementById('billScan');
+  if (!box) return;
+  let t = null;
+  box.addEventListener('input', () => {
+    clearTimeout(t);
+    t = setTimeout(() => { if (/^[A-Z]+\d*-\d{3,}$/i.test(box.value.trim())) box.form.submit(); }, 350);
+  });
+})();
+</script>
+{# Only where there is a bill on screen carrying promotions. The `if` is INSIDE
+   the block, not around it: a Jinja block is resolved when the template is
+   compiled, so one wrapped in a condition still overrides the parent's — the
+   condition would decide nothing and the page would carry a script referring to
+   an invoice that isn't there. #}
+{% if invoice and invoice.promotions %}
+<script>
+// What these quantities would do to the bill's promotions, asked of the server
+// as the boxes are filled in. It calls the same function the POST will
+// (promotions.review_return), so the warning here and what happens on submit
+// cannot disagree — and if this request fails, the POST still checks.
+const REVIEW_URL = "{{ url_for('returns.api_review') }}";
+const INVOICE_ID = {{ invoice.id }};
+let reviewTimer = null;
+
+function markedQuantities(){
+  const out = {};
+  document.querySelectorAll('input[name^="qty_"]').forEach((el) => {
+    const qty = parseFloat(el.value) || 0;
+    if (qty > 0) out[el.name.slice(4)] = qty;
+  });
+  return out;
+}
+
+async function reviewPromotions(){
+  const box = document.getElementById('promoWarn');
+  const taking = markedQuantities();
+  const clear = () => { box.className = 'd-none mb-3'; box.innerHTML = ''; };
+  if (!Object.keys(taking).length){ clear(); return; }
+  try {
+    const r = await fetch(REVIEW_URL, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({invoice_id: INVOICE_ID, taking}),
+    });
+    const j = await r.json();
+    const findings = (j.findings || []).filter((f) => f.unearned_qty > 0);
+    if (!findings.length){ clear(); return; }
+    const blocking = findings.some((f) => f.policy === 'require_return' && f.kept_qty > 0);
+    box.className = 'alert alert-' + (blocking ? 'danger' : 'warning') + ' mb-3';
+    box.innerHTML = '<strong><i class="bi bi-gift"></i> This return breaks a promotion</strong>'
+      + findings.map((f) => `<div class="mt-1">${f.message}</div>`).join('')
+      + (j.clawback > 0 ? `<div class="mt-2">The refund will be reduced by
+           <strong>₹${Number(j.clawback).toFixed(2)}</strong>.</div>` : '');
+  } catch (e){ /* advisory only — the POST checks it again either way */ }
+}
+
+document.querySelectorAll('input[name^="qty_"]').forEach((el) => {
+  el.addEventListener('input', () => {
+    clearTimeout(reviewTimer);
+    reviewTimer = setTimeout(reviewPromotions, 250);
+  });
+});
+</script>
+{% endif %}
+{% endblock %}

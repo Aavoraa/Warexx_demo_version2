@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% from "crm/_ui.html" import customer_lookup, customer_lookup_script %}
+{% block content %}
+{% set o = order %}
+{% macro pv(field, default='') %}{{ posted.get(field) if posted.get(field) is not none else default }}{% endmacro %}
+<div class="page-head">
+  <h4><i class="bi bi-bag"></i> {{ ('Edit order ' ~ o.number) if o else 'New order' }}</h4>
+  <a href="{{ url_for('orders.view', oid=o.id) if o else url_for('orders.index') }}" class="btn btn-outline-secondary btn-sm">Cancel</a>
+</div>
+
+<form method="post" id="orderForm">
+<div class="row g-3">
+  <div class="col-lg-5">
+    <div class="card p-3 mb-3">
+      <div class="fw-semibold mb-2">Customer</div>
+      {% if o %}
+        <div>{{ o.customer.name }} <span class="text-muted small">· {{ o.customer.phone or 'no mobile' }}</span></div>
+      {% else %}
+        {{ customer_lookup('customer', phone=pv('customer_phone', customer.phone if customer else ''),
+                           name=pv('customer_name', customer.name if customer else ''),
+                           cid=pv('customer_id', customer.id if customer else '')) }}
+      {% endif %}
+    </div>
+    <div class="card p-3">
+      <div class="fw-semibold mb-2">Order</div>
+      <div class="row g-2">
+        <div class="col-6"><label class="form-label small">Order date</label>
+          <input class="form-control form-control-sm" type="date" name="order_date" value="{{ pv('order_date', (o.order_date if o else today).isoformat()) }}"></div>
+        <div class="col-6"><label class="form-label small">Delivery date</label>
+          <input class="form-control form-control-sm" type="date" name="delivery_date" value="{{ pv('delivery_date', o.delivery_date.isoformat() if o and o.delivery_date else '') }}"></div>
+        <div class="col-6"><label class="form-label small">Contact no</label>
+          <input class="form-control form-control-sm" name="contact_no" id="fContact" value="{{ pv('contact_no', o.contact_no if o else '') }}" placeholder="The customer's mobile"></div>
+        <div class="col-6"><label class="form-label small">City</label>
+          <input class="form-control form-control-sm" name="city" id="fCity" value="{{ pv('city', o.city if o else '') }}"></div>
+        <div class="col-6"><label class="form-label small">Category</label>
+          <input class="form-control form-control-sm" name="category" id="fCategory" list="dlCat" value="{{ pv('category', o.category if o else '') }}">
+          <datalist id="dlCat">{% for x in categories %}<option value="{{ x }}">{% endfor %}</datalist></div>
+        <div class="col-6"><label class="form-label small">Order received by</label>
+          <select class="form-select form-select-sm" name="received_by_id">
+            {% set rb = (posted.get('received_by_id')|int) if posted.get('received_by_id') else (o.received_by_id if o else current_user.id) %}
+            {% for u in staff %}<option value="{{ u.id }}" {{ 'selected' if u.id == rb }}>{{ u.full_name }}</option>{% endfor %}
+          </select></div>
+        <div class="col-12"><label class="form-label small">Notes</label>
+          <textarea class="form-control form-control-sm" name="notes" rows="2" placeholder="Measurements, fabric, anything the workshop needs">{{ pv('notes', o.notes if o and o.notes else '') }}</textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Items</span>
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="addLine"><i class="bi bi-plus"></i> Add item</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+          <thead><tr><th>Description *</th><th>Design no</th><th>Size</th><th>Colour</th><th style="width:80px">Qty</th><th style="width:110px">Rate</th><th class="text-end">Amount</th><th></th></tr></thead>
+          <tbody id="lines"></tbody>
+          <tfoot><tr><th colspan="4" class="text-end">Total</th><th id="tQty">0</th><th></th><th class="text-end" id="tAmt">₹0.00</th><th></th></tr></tfoot>
+        </table>
+      </div>
+    </div>
+    {% if not o %}
+    <div class="card p-3">
+      <div class="fw-semibold mb-2">Advance <span class="text-muted small fw-normal">— optional; becomes the customer's advance, spent at the counter when the order is billed</span></div>
+      <div class="row g-2">
+        <div class="col-md-4"><label class="form-label small">Amount (₹)</label>
+          <input class="form-control form-control-sm" type="number" min="0" step="0.01" name="advance" value="{{ pv('advance') }}"></div>
+        <div class="col-md-3"><label class="form-label small">Paid by</label>
+          <select class="form-select form-select-sm" name="method">
+            {% for m in methods %}<option value="{{ m }}">{{ m|upper }}</option>{% endfor %}
+          </select></div>
+        <div class="col-md-5"><label class="form-label small">Reference</label>
+          <input class="form-control form-control-sm" name="reference" maxlength="64" placeholder="Card last 4 / UPI ref"></div>
+      </div>
+    </div>
+    {% endif %}
+    <div class="mt-3 d-flex gap-2 justify-content-end">
+      <a href="{{ url_for('orders.view', oid=o.id) if o else url_for('orders.index') }}" class="btn btn-outline-secondary">Cancel</a>
+      <button class="btn btn-brand"><i class="bi bi-save"></i> {{ 'Save changes' if o else 'Take order' }}</button>
+    </div>
+  </div>
+</div>
+</form>
+
+<template id="lineTpl">
+  <tr>
+    <td><input class="form-control form-control-sm" name="line_description" aria-label="Description"></td>
+    <td><input class="form-control form-control-sm" name="line_design" aria-label="Design no"></td>
+    <td><input class="form-control form-control-sm" name="line_size" style="width:70px" aria-label="Size"></td>
+    <td><input class="form-control form-control-sm" name="line_color" style="width:90px" aria-label="Colour"></td>
+    <td><input class="form-control form-control-sm l-qty" name="line_qty" type="number" min="0" step="any" value="1" aria-label="Quantity"></td>
+    <td><input class="form-control form-control-sm l-rate" name="line_rate" type="number" min="0" step="0.01" value="0" aria-label="Rate"></td>
+    <td class="text-end l-amt">₹0.00</td>
+    <td><button type="button" class="btn btn-sm btn-outline-danger l-del" title="Remove"><i class="bi bi-x"></i></button></td>
+  </tr>
+</template>
+{% endblock %}
+{% block scripts %}
+{{ customer_lookup_script() }}
+<script>
+const INITIAL = {{ lines | tojson }};
+const fmt = (n) => '₹' + (Math.round(n * 100) / 100).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const body = document.getElementById('lines');
+function total(){
+  let q = 0, a = 0;
+  body.querySelectorAll('tr').forEach((tr) => {
+    const qty = parseFloat(tr.querySelector('.l-qty').value) || 0, rate = parseFloat(tr.querySelector('.l-rate').value) || 0;
+    tr.querySelector('.l-amt').innerText = fmt(qty * rate);
+    q += qty; a += qty * rate;
+  });
+  document.getElementById('tQty').innerText = Math.round(q * 100) / 100;
+  document.getElementById('tAmt').innerText = fmt(a);
+}
+function addLine(l){
+  const tr = document.getElementById('lineTpl').content.firstElementChild.cloneNode(true);
+  if (l){
+    tr.querySelector('[name=line_description]').value = l.description || '';
+    tr.querySelector('[name=line_design]').value = l.design_no || '';
+    tr.querySelector('[name=line_size]').value = l.size || '';
+    tr.querySelector('[name=line_color]').value = l.color || '';
+    tr.querySelector('[name=line_qty]').value = l.qty ?? 1;
+    tr.querySelector('[name=line_rate]').value = l.rate ?? 0;
+  }
+  tr.querySelectorAll('input').forEach((i) => i.addEventListener('input', total));
+  tr.querySelector('.l-del').onclick = () => { tr.remove(); if (!body.children.length) addLine(); total(); };
+  body.appendChild(tr);
+  total();
+  return tr;
+}
+document.getElementById('addLine').onclick = () => addLine().querySelector('input').focus();
+(INITIAL.length ? INITIAL : [null]).forEach(addLine);
+// A customer found by mobile fills the order's contact, city and category.
+document.querySelectorAll('.cl-phone').forEach((el) => el.addEventListener('customer', (e) => {
+  const j = e.detail;
+  if (!document.getElementById('fContact').value) document.getElementById('fContact').value = j.phone || '';
+  if (!document.getElementById('fCity').value) document.getElementById('fCity').value = j.city || '';
+  if (!document.getElementById('fCategory').value) document.getElementById('fCategory').value = j.category || '';
+}));
+</script>
+{% endblock %}

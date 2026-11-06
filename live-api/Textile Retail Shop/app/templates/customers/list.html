@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+{% from "_pager.html" import pager with context %}
+<div class="page-head">
+  <h4><i class="bi bi-people"></i> Customers</h4>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('customers.advances') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-wallet2"></i> Advances</a>
+    <a href="{{ url_for('customers.feedback') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-star"></i> Feedback</a>
+    {% if current_user.is_manager %}
+    <a href="{{ url_for('customers.messages') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-chat-dots"></i> Messages</a>
+    {% endif %}
+    <a href="{{ url_for('customers.new_customer') }}" class="btn btn-brand btn-sm"><i class="bi bi-plus"></i> New</a>
+  </div>
+</div>
+<form class="row g-2 mb-3 align-items-end">
+  <div class="col-md-5"><input class="form-control form-control-sm" name="q" placeholder="Search name, mobile, email, code or loyalty card" value="{{ q }}" aria-label="Search customers"></div>
+  <div class="col-6 col-md-3">
+    <select class="form-select form-select-sm" name="category" aria-label="Customer category">
+      <option value="">Every category</option>
+      {% for x in categories %}<option {{ 'selected' if category == x }}>{{ x }}</option>{% endfor %}
+    </select></div>
+  <div class="col-6 col-md-2">
+    <select class="form-select form-select-sm" name="show" aria-label="Which customers">
+      <option value="">Active</option>
+      <option value="pending" {{ 'selected' if show == 'pending' }}>Awaiting approval{{ ' (' ~ pending ~ ')' if pending }}</option>
+      <option value="inactive" {{ 'selected' if show == 'inactive' }}>Inactive</option>
+      <option value="all" {{ 'selected' if show == 'all' }}>All</option>
+    </select></div>
+  <div class="col-md-2"><button class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-search"></i> Search</button></div>
+</form>
+{% if pending and show != 'pending' %}
+<div class="alert alert-warning py-2 small d-flex justify-content-between align-items-center">
+  <span><i class="bi bi-qr-code"></i> {{ pending }} customer{{ 's' if pending != 1 }} signed up from the QR and {{ 'are' if pending != 1 else 'is' }} waiting for approval.</span>
+  <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('customers.list_customers', show='pending') }}">Review</a>
+</div>
+{% endif %}
+<div class="d-print-none">{{ pager(page) }}</div>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle">
+      <thead><tr><th>Code</th><th>Name</th><th>Mobile</th><th>Category</th><th>City / area</th><th class="text-end">Loyalty</th><th class="text-end">Spent</th><th></th></tr></thead>
+      <tbody>
+        {% for c in customers %}
+        <tr class="{{ 'text-muted' if c.inactive }}">
+          <td class="small font-monospace">{{ c.code or c.card_code }}</td>
+          <td><a href="{{ url_for('customers.view_customer', cid=c.id) }}" class="text-reset">{{ c.name }}</a>
+            {% if c.awaiting_approval %}<span class="status-badge pending sm">new sign-up</span>{% endif %}
+            {% if c.customer_type and c.customer_type != 'customer' %}<span class="status-badge info sm">{{ c.customer_type }}</span>{% endif %}</td>
+          <td>{{ c.phone or '-' }}</td>
+          <td class="small">{{ c.category or '—' }}</td>
+          <td class="small">{{ [c.city, c.area]|select|join(' · ') or '—' }}</td>
+          <td class="text-end">{% if c.loyalty_disabled %}<span class="status-badge neutral sm">off</span>{% else %}<span class="badge text-bg-info">{{ '%.0f' % (c.loyalty_points or 0) }} pts</span>{% endif %}</td>
+          <td class="text-end">{{ c.total_spent|inr }}</td>
+          <td class="text-nowrap text-end">
+            <a href="{{ url_for('customers.customer_card', cid=c.id) }}" class="btn btn-sm btn-outline-secondary" title="Print membership card"><i class="bi bi-person-vcard"></i></a>
+            <a href="{{ url_for('customers.edit_customer', cid=c.id) }}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="{{ url_for('customers.view_customer', cid=c.id) }}" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted p-4">No customers match.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="d-print-none">{{ pager(page) }}</div>
+{% endblock %}

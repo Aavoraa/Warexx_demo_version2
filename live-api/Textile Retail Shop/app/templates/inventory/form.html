@@ -1,0 +1,508 @@
+{% extends "base.html" %}
+{% block content %}
+{% set pf = prefill if prefill is defined else {} %}
+{% set pieces = units if units is defined else [] %}
+<div class="page-head">
+  <h4><i class="bi bi-box-seam"></i> {{ 'Edit' if product else 'New' }} Product</h4>
+</div>
+
+{% if product and product.warehouse_id %}
+<div class="card p-3 mb-3" style="border-color:rgba(47,143,104,.3); background:var(--brand-50);">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+    <div>
+      <h6 class="mb-2"><i class="bi bi-hdd-network"></i> From the warehouse</h6>
+      <table class="table table-sm mb-0" style="max-width:520px">
+        <tbody class="small">
+          <tr><th class="text-muted fw-normal" style="width:130px">Warehouse item</th>
+              <td><code>{{ product.sku }}</code> · id {{ product.warehouse_id }}</td></tr>
+          <tr><th class="text-muted fw-normal">Category</th>
+              <td>{{ product.category.name if product.category else '—' }}
+                  {% if product.category and product.category.section %}
+                  <span class="badge text-bg-light">{{ product.category.section }}</span>{% endif %}</td></tr>
+          <tr><th class="text-muted fw-normal">Supplier called it</th>
+              <td>{{ product.description or '—' }}</td></tr>
+          <tr><th class="text-muted fw-normal">Attributes</th>
+              <td>
+                {% set attrs = [product.size, product.color, product.fabric,
+                                product.product_type, product.pattern,
+                                product.fit] | select | list %}
+                {{ attrs | join(' · ') if attrs else '—' }}
+                {% if product.design_no %}<br><span class="text-muted">Design {{ product.design_no }}</span>{% endif %}
+              </td></tr>
+          <tr><th class="text-muted fw-normal">HSN / MRP</th>
+              <td>{{ product.hsn_code or '—' }}
+                  {% if product.mrp %} · MRP {{ product.mrp|inr }}{% endif %}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="text-center">
+      {# The same QR the warehouse prints on this item's tag. #}
+      <div style="width:140px">{{ product.warehouse_qr | qr }}</div>
+      <div class="small text-muted mt-1">Item QR</div>
+      <a class="small" href="{{ url_for('inventory.product_label', pid=product.id) }}" target="_blank">
+        <i class="bi bi-printer"></i> Print label</a>
+    </div>
+  </div>
+
+  {% if pieces %}
+  <hr class="my-3">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <strong>{{ pieces|length }} piece{{ '' if pieces|length == 1 else 's' }}</strong>
+      <span class="text-muted small">— each garment carries its own code and QR</span>
+    </div>
+    <div>
+      <a class="btn btn-outline-secondary btn-sm" target="_blank"
+         href="{{ url_for('inventory.product_pieces', pid=product.id) }}">
+        <i class="bi bi-upc-scan"></i> Piece labels</a>
+      <button class="btn btn-outline-secondary btn-sm" type="button"
+              data-bs-toggle="collapse" data-bs-target="#pieceList">Show pieces</button>
+    </div>
+  </div>
+  <div class="collapse mt-2" id="pieceList">
+    <div class="d-flex flex-wrap gap-2">
+      {% for u in pieces %}
+      <div class="text-center border rounded p-1 bg-white" style="width:104px">
+        <div style="width:88px;margin:0 auto">{{ u.qr | qr(scale=2) }}</div>
+        <div class="small font-monospace text-truncate" title="{{ u.code }}">{{ u.code }}</div>
+        <div class="small text-muted">{{ u.status.replace('_', ' ') }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+{% if pf.get('name') %}
+<div class="alert alert-info d-flex align-items-center gap-2 py-2">
+  <i class="bi bi-upc-scan"></i>
+  <span>Details filled from the scan. Review, set the price/stock, and save.</span>
+</div>
+{% endif %}
+
+{% if not product %}
+<!-- QR product record: scan/paste a JSON blob and fill the whole form at once -->
+<div class="card p-3 mb-3">
+  <h6 class="mb-2"><i class="bi bi-qr-code-scan"></i> Add from QR code (product data)</h6>
+  <p class="small text-muted mb-2">
+    Scan a warehouse label — the SKU tag or a single garment's tag — or paste its text below,
+    then click <strong>ADD</strong>. The product is looked up in the warehouse and the fields
+    below fill in from its live record. A plain JSON product record works too.
+  </p>
+  <div class="input-group mb-2">
+    <button type="button" id="qrScanBtn" class="btn btn-outline-primary" title="Scan QR with camera"><i class="bi bi-camera"></i> Scan QR</button>
+    <textarea id="qrJson" class="form-control" rows="2" placeholder="Scan or paste the label text here — e.g. EU1|SMPL-00002-001|ESSA-00002|…" autocomplete="off"></textarea>
+    <button type="button" id="qrAddBtn" class="btn btn-primary"><i class="bi bi-plus-lg"></i> ADD</button>
+  </div>
+
+  <!-- QR camera (optional) -->
+  <div id="qrReaderBox" style="display:none" class="mb-2">
+    <div id="qrReader" style="max-width:340px"></div>
+    <div class="d-flex justify-content-between mt-1" style="max-width:340px">
+      <span id="qrMsg" class="small text-muted">Point the camera at the QR code…</span>
+      <button type="button" id="qrStopBtn" class="btn btn-outline-secondary btn-sm">Stop</button>
+    </div>
+  </div>
+
+  <div id="qrResult" class="p-2 border rounded bg-white text-muted small">
+    Scan or paste a warehouse label, then click <strong>ADD</strong>.
+  </div>
+</div>
+{% endif %}
+
+<form method="post" class="card p-3">
+  <div class="row g-3">
+    <div class="col-md-3"><label class="form-label">SKU *</label><input class="form-control" name="sku" required value="{{ product.sku if product else '' }}"></div>
+    <div class="col-md-9"><label class="form-label">Name *</label><input class="form-control" name="name" required value="{{ product.name if product else pf.get('name', '') }}"></div>
+    <div class="col-md-4"><label class="form-label">Category</label>
+      {# The master runs to hundreds of codes, so a search box sits above the
+         list. It only jumps the <select>; the <select> is what gets posted, and
+         the field still works with the box ignored or scripting off. #}
+      <input class="form-control form-control-sm mb-1" id="catSearch" list="categoryCodes"
+             placeholder="Search the category master…" autocomplete="off">
+      <datalist id="categoryCodes">
+        {% for section, cats in category_groups %}{% for c in cats %}<option value="{{ c.name }}">{{ section }}</option>{% endfor %}{% endfor %}
+      </datalist>
+      <select class="form-select" name="category_id" id="category_id" aria-label="Category">
+        <option value="">-- none --</option>
+        {% for section, cats in category_groups %}
+        <optgroup label="{{ section }}">
+          {% for c in cats %}<option value="{{ c.id }}" {% if product and product.category_id==c.id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+        </optgroup>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3"><label class="form-label">Fabric</label><input class="form-control" name="fabric" value="{{ product.fabric if product else '' }}" placeholder="cotton, silk..."></div>
+    {# Which storey the item is held on — where somebody goes to find it, and
+       what a floor-wise stock count covers. A place, not a quantity: the shop
+       keeps one stock figure per product. Usually filled in by the count itself
+       (scanning a garment on a floor records it there); this is the deliberate
+       way to say it, or to move an item between floors. #}
+    <div class="col-md-3"><label class="form-label">Held on floor</label>
+      <select class="form-select" name="floor_id">
+        <option value="">— not placed —</option>
+        {% for f in floors %}
+        <option value="{{ f.id }}" {% if product and product.floor_id == f.id %}selected{% endif %}>
+          {{ f.location.name if f.location else '' }} · {{ f.name }}</option>
+        {% endfor %}
+      </select>
+      <div class="form-text">Where a stock audit will expect to count it.</div>
+    </div>
+    <div class="col-md-3"><label class="form-label">Color</label><input class="form-control" name="color" value="{{ product.color if product else '' }}"></div>
+    <div class="col-md-3"><label class="form-label">Size</label><input class="form-control" name="size" value="{{ product.size if product else '' }}"></div>
+    {# What the sales-promotion schemes can pick goods out by (Promotions → filters). #}
+    <div class="col-md-3"><label class="form-label">Brand</label><input class="form-control" name="brand" value="{{ (product.brand or '') if product else '' }}"></div>
+    <div class="col-md-3"><label class="form-label">Style</label><input class="form-control" name="style" value="{{ (product.style or '') if product else '' }}"></div>
+    <div class="col-md-3"><label class="form-label">Sleeve</label><input class="form-control" name="sleeve" value="{{ (product.sleeve or '') if product else '' }}"></div>
+    <div class="col-md-3"><label class="form-label">Marker</label><input class="form-control" name="marker" value="{{ (product.marker or '') if product else '' }}" placeholder="e.g. OLD STOCK"></div>
+    <div class="col-md-3"><label class="form-label">Supplier</label><input class="form-control" name="supplier" value="{{ (product.supplier or '') if product else '' }}"></div>
+    <div class="col-md-3"><label class="form-label">Purchase invoice</label><input class="form-control" name="purchase_invoice" value="{{ (product.purchase_invoice or '') if product else '' }}"></div>
+    <div class="col-md-3"><label class="form-label">Purchase date</label><input class="form-control" type="date" name="purchase_date" value="{{ product.purchase_date.isoformat() if product and product.purchase_date else '' }}"></div>
+    <div class="col-md-3"><label class="form-label">Unit</label>
+      <select class="form-select" name="unit">
+        {% for u in ['pcs','mtr','kg','set'] %}<option {% if product and product.unit==u %}selected{% endif %}>{{ u }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3"><label class="form-label">HSN code</label><input class="form-control" name="hsn_code" value="{{ product.hsn_code if product else '5208' }}"></div>
+    <div class="col-md-3"><label class="form-label">GST %</label>
+      <select class="form-select" name="gst_rate">
+        {% for r in [0,5,12,18,28] %}<option value="{{ r }}" {% if product and product.gst_rate==r %}selected{% endif %}>{{ r }}%</option>{% endfor %}
+      </select>
+    </div>
+    {# Prices on a WAREHOUSE item are the warehouse's, and are copied down on
+       every sync (app/warehouse_items._apply). Editing them here looked like it
+       worked and was silently undone the next time the warehouse was read — so
+       the boxes are shown filled and read-only, with the one place a change
+       actually sticks. A product the shop created itself is nobody else's and
+       stays fully editable. #}
+    {% set owned = product and product.warehouse_id %}
+    <div class="col-md-3"><label class="form-label">Cost price</label>
+      <input class="form-control" name="cost_price" type="number" step="0.01"
+             value="{{ product.cost_price if product else 0 }}"
+             {% if owned %}readonly{% endif %}></div>
+    <div class="col-md-3"><label class="form-label">Selling price *</label>
+      <input class="form-control" name="selling_price" type="number" step="0.01"
+             required value="{{ product.selling_price if product else '' }}"
+             {% if owned %}readonly{% endif %}>
+      {% if owned %}
+      <div class="form-text">Set in the warehouse — <b>Price Changer</b>. A change
+        made here would be undone by the next sync.</div>
+      {% endif %}</div>
+    <div class="col-md-3"><label class="form-label">Stock qty</label><input class="form-control" name="stock_qty" type="number" step="0.01" value="{{ product.stock_qty if product else 0 }}"></div>
+    <div class="col-md-3"><label class="form-label">Reorder level</label><input class="form-control" name="reorder_level" type="number" step="0.01" value="{{ product.reorder_level if product else 5 }}"></div>
+    <div class="col-12"><label class="form-label">Description</label><textarea class="form-control" name="description" rows="2">{{ product.description if product else pf.get('description', '') }}</textarea></div>
+  </div>
+  <div class="mt-3">
+    <button class="btn btn-brand">Save</button>
+    <a href="{{ url_for('inventory.list_products') }}" class="btn btn-outline-secondary">Cancel</a>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Category search: pick a code in the box and the <select> below follows. Runs
+// on New and Edit alike, so it lives outside the QR block.
+(function(){
+  const box = document.getElementById('catSearch');
+  const sel = document.getElementById('category_id');
+  if (!box || !sel) return;
+  function jump(){
+    const want = box.value.trim().toLowerCase();
+    if (!want) return;
+    for (const opt of sel.options){
+      if (opt.text.trim().toLowerCase() === want){ sel.value = opt.value; return; }
+    }
+    // Nothing matched exactly — fall back to the first code containing the text,
+    // so a half-typed "frock" still lands somewhere useful.
+    for (const opt of sel.options){
+      if (opt.value && opt.text.toLowerCase().includes(want)){ sel.value = opt.value; return; }
+    }
+  }
+  box.addEventListener('change', jump);
+  box.addEventListener('input', jump);
+  // Show the current code in the box when editing a product that has one.
+  if (sel.value && sel.selectedIndex > 0) box.value = sel.options[sel.selectedIndex].text;
+})();
+</script>
+{% if not product %}
+<script src="https://unpkg.com/html5-qrcode@2.3.10/html5-qrcode.min.js"></script>
+<script>
+(function(){
+  const f = document.querySelector('form');
+
+  function esc(s){ return (s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  // ---------- QR product record: parse a JSON blob and fill the whole form ----------
+  const qrBox    = document.getElementById('qrJson');
+  const qrResult = document.getElementById('qrResult');
+  const qrMsg    = document.getElementById('qrMsg');
+
+  // QR key -> form field name. Several aliases map to the same field so the QR
+  // can use short or long names. The short ones (d, bc, sz, col…) are the
+  // warehouse label's field names — see LABEL_FORMATS below.
+  const FIELD_MAP = {
+    sku: 'sku',
+    name: 'name', title: 'name',
+    // On a warehouse label the readable product name is its `description`.
+    d: 'name',
+    description: 'description', desc: 'description',
+    color: 'color', colour: 'color', col: 'color',
+    fabric: 'fabric', material: 'fabric', mat: 'fabric',
+    size: 'size', sz: 'size',
+    cost: 'cost_price', cost_price: 'cost_price', costprice: 'cost_price',
+    price: 'selling_price', selling_price: 'selling_price', sellingprice: 'selling_price', mrp: 'selling_price', rate: 'selling_price', sp: 'selling_price',
+    stock: 'stock_qty', stock_qty: 'stock_qty', qty: 'stock_qty', quantity: 'stock_qty',
+    reorder: 'reorder_level', reorder_level: 'reorder_level',
+    hsn: 'hsn_code', hsn_code: 'hsn_code',
+    gst: 'gst_rate', gst_rate: 'gst_rate', tax: 'gst_rate',
+    unit: 'unit', uom: 'unit',
+  };
+
+  // ---------- warehouse labels: pipe-delimited, not JSON ----------
+  //
+  // The warehouse prints its QRs as positional pipe-delimited text — `E1|…` for a
+  // SKU tag, `EU1|…` for one garment — because JSON's key names and quotes push
+  // the symbol past what a phone camera reads off a 17mm label. Field order IS
+  // the format and is append-only, so these two lists mirror QR_ORDER and
+  // UNIT_ORDER in backend/app/services/barcode_svc.py and must stay in step.
+  const LABEL_FORMATS = {
+    E1:  ['id','sku','bc','d','hsn','uom','mrp','sp','cat','sec','ty','sz','col','pat','fit','mat','dsn'],
+    EU1: ['u','sku','id','d','sz','col','mrp'],
+  };
+
+  // Carried on the label but with nowhere to go on this form — the piece code and
+  // product id are the warehouse's identifiers, and the shop keeps no column for
+  // section, type, pattern, fit or design number. Dropped quietly rather than
+  // reported as "skipped", which would read as something having gone wrong.
+  const LABEL_IGNORED = new Set(['id', 'u', 'sec', 'ty', 'pat', 'fit', 'dsn']);
+
+  // The live warehouse record -> this form. `stock_qty` is deliberately absent:
+  // the field here is the shop's opening count, not the warehouse's holding.
+  const WAREHOUSE_MAP = {
+    sku: 'sku', description: 'name', hsn: 'hsn_code',
+    uom: 'unit', size: 'size', color: 'color', material: 'fabric',
+    avg_cost: 'cost_price',
+  };
+
+  // Split on unescaped '|' only — values escape '\' and '|' when printed.
+  function splitEscaped(s){
+    const out = []; let cur = '', esc = false;
+    for (const ch of s){
+      if (esc){ cur += ch; esc = false; }
+      else if (ch === '\\'){ esc = true; }
+      else if (ch === '|'){ out.push(cur); cur = ''; }
+      else { cur += ch; }
+    }
+    out.push(cur);
+    return out;
+  }
+
+  // Decode a warehouse label, or null if the text isn't one.
+  function parseLabel(text){
+    const parts = splitEscaped(String(text || '').trim());
+    const order = LABEL_FORMATS[parts[0]];
+    if (!order) return null;
+    // Trailing empty fields are dropped before printing, so read what arrived.
+    const obj = { _tag: parts[0] };
+    order.forEach(function(key, i){
+      const v = (parts[i + 1] || '').trim();
+      if (v) obj[key] = v;
+    });
+    return obj;
+  }
+
+  // The live record behind a scanned label.
+  //
+  // What the label carries is a snapshot from the day it was printed; the
+  // warehouse holds what the product is now. The shop is mounted inside that same
+  // server, so this is a same-origin call — and when the shop runs on its own the
+  // fetch just fails and the label's own values, already filled in, stand.
+  async function warehouseLookup(raw, label){
+    // The whole payload first: that resolves a piece label to its product. If the
+    // piece was never generated, or the label outlived it, fall back to the
+    // identifiers printed inside it.
+    const tries = [raw];
+    if (label){
+      ['sku', 'bc', 'id'].forEach(function(k){ if (label[k]) tries.push(label[k]); });
+    }
+    for (const code of tries){
+      let r;
+      try {
+        r = await fetch('/api/inventory/lookup?code=' + encodeURIComponent(code));
+      } catch (e) {
+        return null;               // no warehouse reachable — stop trying
+      }
+      if (r.ok) return await r.json();
+    }
+    return null;
+  }
+
+  function qrShow(cls, html){ qrResult.className = 'p-2 border rounded ' + cls; qrResult.innerHTML = html; }
+
+  // Set a <select> by matching an option's value or visible text (case-insensitive).
+  function setSelect(name, val){
+    const el = f.elements[name];
+    if (!el || val == null || val === '') return false;
+    const want = String(val).trim().toLowerCase();
+    for (const opt of el.options){
+      if (opt.value.trim().toLowerCase() === want || opt.text.trim().toLowerCase() === want){
+        el.value = opt.value; return true;
+      }
+    }
+    // For gst, a bare number like "5" or "5%" should still match value "5".
+    const num = want.replace('%', '').trim();
+    for (const opt of el.options){
+      if (opt.value.trim() === num){ el.value = opt.value; return true; }
+    }
+    return false;
+  }
+
+  // Best-effort parse: real JSON first, then a tolerant "key":"value" scan so a
+  // slightly malformed QR (missing brace, stray colon) still fills what it can.
+  function parseQr(text){
+    text = (text || '').trim();
+    if (!text) return null;
+    try { return JSON.parse(text); } catch (e) {}
+    const obj = {}; let m; let got = false;
+    const re = /["']?([A-Za-z_][\w]*)["']?\s*:\s*["']?([^",'{}]*)["']?/g;
+    while ((m = re.exec(text)) !== null){ obj[m[1]] = m[2].trim(); got = true; }
+    return got ? obj : null;
+  }
+
+  // Copy a bag of key/value pairs onto the form. Used for both a JSON QR and a
+  // decoded warehouse label — the key names differ, FIELD_MAP reconciles them.
+  function fillFromKeys(obj, filled, skipped){
+    for (let [key, val] of Object.entries(obj)){
+      if (val == null || key.startsWith('_')) continue;
+      val = String(val).trim();
+      if (val === '') continue;
+      const k = key.toLowerCase().replace(/[\s-]/g, '_');
+      if (LABEL_IGNORED.has(k)) continue;
+      // category is a <select> matched by name
+      if (k === 'category' || k === 'category_name' || k === 'cat'){
+        (setSelect('category_id', val) ? filled : skipped).add('category');
+        continue;
+      }
+      const field = FIELD_MAP[k];
+      if (!field){ skipped.add(key); continue; }
+      const el = f.elements[field];
+      if (!el){ skipped.add(key); continue; }
+      if (el.tagName === 'SELECT'){ (setSelect(field, val) ? filled : skipped).add(field); }
+      else { el.value = val; filled.add(field); }
+    }
+  }
+
+  // Overwrite with the warehouse's current record. Runs after the label's own
+  // fields, so where the two disagree the live value is the one that stands.
+  function fillFromWarehouse(p, filled){
+    for (const [key, field] of Object.entries(WAREHOUSE_MAP)){
+      const v = p[key];
+      if (v == null || v === '') continue;
+      const el = f.elements[field];
+      if (!el) continue;
+      if (el.tagName === 'SELECT'){ if (setSelect(field, v)) filled.add(field); }
+      else { el.value = v; filled.add(field); }
+    }
+    // What the shop charges: the warehouse's sale price, or the MRP if none is set.
+    const price = (p.sale_price != null && p.sale_price !== '') ? p.sale_price : p.mrp;
+    if (price != null && price !== ''){
+      f.elements['selling_price'].value = price;
+      filled.add('selling_price');
+    }
+    // Both sides now read the same category master, so this matches by name.
+    if (p.category && setSelect('category_id', p.category)) filled.add('category');
+  }
+
+  async function applyQr(){
+    const raw = (qrBox.value || '').trim();
+    const label = parseLabel(raw);           // a warehouse tag?
+    const obj = label || parseQr(raw);       // …otherwise a JSON record
+    if (!obj){
+      qrShow('bg-danger-subtle text-dark small',
+        `<i class="bi bi-x-circle-fill text-danger"></i> Couldn't read any product data.
+         Expected a warehouse label (<code>E1|…</code> or <code>EU1|…</code>) or JSON like
+         <code>{"sku":"...","name":"...","price":"..."}</code>.`);
+      return;
+    }
+
+    const filled = new Set(), skipped = new Set();
+    fillFromKeys(obj, filled, skipped);
+
+    // A warehouse label names a product the warehouse still holds — go and read it.
+    let live = null;
+    if (label){
+      qrShow('bg-light text-dark small',
+        `<i class="bi bi-hourglass-split"></i> Reading the live record from the warehouse…`);
+      live = await warehouseLookup(raw, label);
+      if (live) fillFromWarehouse(live, filled);
+    }
+
+    if (!filled.size){
+      qrShow('bg-warning-subtle text-dark small',
+        `<i class="bi bi-exclamation-triangle"></i> Read the data but no fields matched. Check the key names.`);
+      return;
+    }
+
+    let source;
+    if (live){
+      source = `<div><i class="bi bi-hdd-network"></i> Matched <strong>${esc(live.sku || '')}</strong>
+                in the warehouse — stock there is ${esc(String(live.stock_qty ?? '—'))}.
+                Values below are the live record, not the printed label.</div>`;
+    } else if (label){
+      source = `<div class="text-muted"><i class="bi bi-tag"></i> Filled from the label itself —
+                the warehouse had no matching product, or isn't reachable from here.
+                Check the price and category before saving.</div>`;
+    } else {
+      source = '';
+    }
+
+    qrShow('bg-success-subtle text-dark small',
+      `<div class="fw-bold mb-1"><i class="bi bi-check-circle-fill text-success"></i> Added — ${filled.size} field(s) filled in below.</div>
+       ${source}
+       <div><strong>Filled:</strong> ${esc([...filled].join(', '))}</div>
+       ${skipped.size ? `<div class="text-muted"><strong>Skipped:</strong> ${esc([...skipped].join(', '))} (no matching field — set by hand if needed)</div>` : ''}
+       <div class="mt-1 text-muted">Review the values, then <strong>Save</strong>.</div>`);
+    // bring the form into view so the user can review + save
+    f.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // Camera scanner dedicated to the QR JSON box.
+  let qrCam = null, qrLast = null;
+  async function qrStartScan(){
+    document.getElementById('qrReaderBox').style.display = 'block';
+    if (qrCam) return;
+    qrCam = new Html5Qrcode("qrReader");
+    const cfg = { fps: 12, qrbox: { width: 240, height: 240 } };
+    if (window.Html5QrcodeSupportedFormats){
+      cfg.formatsToSupport = [window.Html5QrcodeSupportedFormats.QR_CODE];
+    }
+    try {
+      await qrCam.start({ facingMode: "environment" }, cfg, async (decoded) => {
+        if (decoded === qrLast) return;
+        qrLast = decoded;
+        qrBox.value = decoded;
+        qrMsg.innerHTML = `Read QR — applying…`;
+        // Stop the camera first: applyQr now waits on the warehouse, and leaving
+        // the scanner running would re-fire on the next frame while it does.
+        await qrStopScan();
+        await applyQr();
+      }, () => {});
+      qrMsg.innerText = 'Point the camera at the QR code…';
+    } catch (err){
+      qrMsg.innerHTML = `<span class="text-danger">Camera error: ${esc(String(err))}. Paste the text instead.</span>`;
+    }
+  }
+  async function qrStopScan(){
+    if (qrCam){ try { await qrCam.stop(); qrCam.clear(); } catch(e){} qrCam = null; }
+    document.getElementById('qrReaderBox').style.display = 'none';
+    qrLast = null;
+  }
+
+  document.getElementById('qrAddBtn').onclick = applyQr;
+  document.getElementById('qrScanBtn').onclick = qrStartScan;
+  document.getElementById('qrStopBtn').onclick = qrStopScan;
+})();
+</script>
+{% endif %}
+{% endblock %}

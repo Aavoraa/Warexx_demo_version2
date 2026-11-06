@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% from "crm/_ui.html" import status as badge %}
+{% block content %}
+{% set l = lead %}
+{% set kind_icon = {'call': 'telephone', 'visit': 'shop', 'message': 'chat-dots', 'note': 'journal-text', 'status': 'flag'} %}
+<div class="page-head">
+  <h4><i class="bi bi-person-plus"></i> {{ l.name }} {{ badge(l.status) }}</h4>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('leads.index') }}" class="btn btn-outline-secondary btn-sm">All leads</a>
+    {% if not edit %}<a href="{{ url_for('leads.view', lid=l.id, edit=1) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i> Edit</a>{% endif %}
+    {% if l.status != 'won' %}
+    <form method="post" action="{{ url_for('leads.convert', lid=l.id) }}" onsubmit="return confirm('Mark {{ l.name }} as won and make them a customer?')">
+      <button class="btn btn-brand btn-sm"><i class="bi bi-person-check"></i> Won — make customer</button></form>
+    {% elif l.customer %}
+    <a href="{{ url_for('customers.view_customer', cid=l.customer_id) }}" class="btn btn-brand btn-sm"><i class="bi bi-person"></i> Open customer</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-5">
+    {% if edit %}
+    <form method="post" class="card p-3">
+      {% include "crm/leads/_fields.html" %}
+      <div class="mt-3 d-flex gap-2"><button class="btn btn-brand btn-sm">Save</button>
+        <a href="{{ url_for('leads.view', lid=l.id) }}" class="btn btn-outline-secondary btn-sm">Cancel</a></div>
+    </form>
+    {% else %}
+    <div class="card p-3 small">
+      {% for label, val in [('Mobile', l.phone), ('Email', l.email), ('City', l.city), ('Source', (l.source or '')|replace('_', ' ')|title),
+                            ('Interested in', l.interest), ('Expected value', l.expected_value|inr if l.expected_value else None),
+                            ('Next follow-up', l.next_follow_up|dmy if l.next_follow_up else None),
+                            ('Assigned to', l.assigned_to.full_name if l.assigned_to else None),
+                            ('Lost because', l.lost_reason if l.status == 'lost' else None),
+                            ('Customer', (l.customer.name ~ ' · ' ~ (l.customer.code or l.customer.card_code)) if l.customer else None),
+                            ('Added', l.created_at|dmy)] %}
+      {% if val %}<div class="d-flex justify-content-between py-1 border-bottom"><span class="text-muted">{{ label }}</span><span class="text-end">{{ val }}</span></div>{% endif %}
+      {% endfor %}
+      {% if l.phone %}
+      <div class="d-flex gap-2 mt-3">
+        <a class="btn btn-sm btn-outline-secondary" href="tel:{{ l.phone }}"><i class="bi bi-telephone"></i> Call</a>
+        <a class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener" href="https://wa.me/{{ (l.phone if l.phone|length > 10 else '91' ~ l.phone)|replace('+', '') }}"><i class="bi bi-whatsapp"></i> WhatsApp</a>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-7">
+    <form method="post" action="{{ url_for('leads.activity', lid=l.id) }}" class="card p-3 mb-3">
+      <div class="fw-semibold mb-2">Log a follow-up</div>
+      <div class="row g-2">
+        <div class="col-md-3"><select class="form-select form-select-sm" name="kind" aria-label="Kind">
+          <option value="call">Call</option><option value="visit">Visit</option><option value="message">Message</option><option value="note">Note</option></select></div>
+        <div class="col-md-9"><input class="form-control form-control-sm" name="note" maxlength="512" placeholder="What happened" aria-label="What happened"></div>
+        <div class="col-md-4"><label class="form-label small">Status</label>
+          <select class="form-select form-select-sm" name="status" id="laStatus">
+            {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if s == l.status }}>{{ s|title }}</option>{% endfor %}</select></div>
+        <div class="col-md-4"><label class="form-label small">Next follow-up</label>
+          <input class="form-control form-control-sm" type="date" name="next_follow_up" min="{{ today.isoformat() }}"></div>
+        <div class="col-md-4 d-flex align-items-end"><button class="btn btn-brand btn-sm w-100">Save</button></div>
+        <div class="col-12" id="laLost" hidden><input class="form-control form-control-sm" name="lost_reason" maxlength="256" placeholder="Why it was lost — price, range, went elsewhere…" aria-label="Lost reason"></div>
+      </div>
+    </form>
+    <div class="card">
+      <div class="card-header">History</div>
+      <ul class="list-group list-group-flush">
+        {% for a in l.activities %}
+        <li class="list-group-item small d-flex gap-2">
+          <i class="bi bi-{{ kind_icon.get(a.kind, 'dot') }} text-muted mt-1"></i>
+          <div class="flex-grow-1">{{ a.note }}<div class="text-muted">{{ a.created_at|dmy }}{{ ' · ' ~ a.by.full_name if a.by }}</div></div>
+        </li>
+        {% else %}
+        <li class="list-group-item small text-muted">Nothing logged yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const st = document.getElementById('laStatus'), lost = document.getElementById('laLost');
+const sync = () => { lost.hidden = st.value !== 'lost'; };
+st.addEventListener('change', sync); sync();
+</script>
+{% endblock %}
